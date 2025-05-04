@@ -1,0 +1,395 @@
+/**
+ * @name All Potential Vulnerability Sources in JavaScript
+ * @description Identifies a broad range of untrusted or external data sources, including user input, environment variables, file reads....
+ * @kind table
+ * @id js/all-possible-sources
+ * @tags inventory
+ *       sources
+ *       taint
+ *       security
+ */
+
+ import javascript
+
+ /* -- Source categories as predicates or classes -- */
+ 
+ /* - Remote/user input sources via CodeQL library models -  */
+ // All instances of RemoteFlowSource (e.g. Express, HTTP, Next.js, Firebase, etc.) 
+ // are considered taint sources (remote/user input).
+ predicate isRemoteSource(DataFlow::Node src) {
+   src instanceof RemoteFlowSource
+ }
+
+ // over-approximates all possible sources of untrusted data in JavaScript.
+ // even though RemoteFlowSource might cover most of the cases we will make sure to include all possible sources.
+
+// Uses multiple heuristics to identify HTTP request sources across standard and custom frameworks:
+// - Property name patterns (query, body, params, etc.)
+// - Request object type detection
+// - Parameter and variable name patterns
+// - Property access patterns
+// - Express-style route handler detection
+// This complements RemoteFlowSource by catching sources in custom frameworks or non-standard patterns
+predicate isHeuristicHttpRequestSource(DataFlow::Node src) {
+  // Direct property access based on property names
+  exists(PropAccess acc |
+    acc = src.asExpr() and
+    
+    // Common request properties that may contain untrusted data
+    acc.getPropertyName() in [
+      // Standard properties
+      "query", "params", "body", "headers", "cookies", "files",
+      // URL and path related
+      "url", "path", "originalUrl", "baseUrl", "hostname", "pathname",
+      // Authentication related
+      "user", "auth", "credentials",
+      // Alternative naming conventions
+      "payload", "data", "queryParameters", "requestParameters", "formData",
+      // Headers-specific properties
+      "authorization", "content", "origin", "referer", "userAgent"
+    ] and
+    
+    (
+      // Standard request object types
+      acc.getBase().getType().toString() = "Request" or
+      acc.getBase().getType().toString() = "IncomingMessage" or
+      acc.getBase().getType().toString().matches("%Request%") or
+      acc.getBase().getType().toString().matches("%Http%") or
+      acc.getBase().getType().hasUnderlyingType("Request") or
+      acc.getBase().getType().hasUnderlyingType("IncomingMessage") or
+      acc.getBase().getType().hasUnderlyingType("ExpressRequest") or
+      
+      // Parameter name-based heuristics for custom frameworks
+      exists(Parameter p |
+        acc.getBase() = p.getAVariable().getAnAccess() and
+        p.getName().toLowerCase().matches(["%req%", "%request%", "http%", "%session%"])
+      ) or
+      
+      // Variable name-based heuristics
+      exists(Variable v |
+        acc.getBase() = v.getAnAccess() and
+        v.getName().toLowerCase().matches(["%req%", "%request%", "http%", "%session%"])
+      ) or
+      
+      // Property pattern heuristics (if an object has multiple request-like properties)
+      exists(Variable v, int propertyCount |
+        acc.getBase() = v.getAnAccess() and
+        propertyCount = count(PropAccess otherAcc | 
+          otherAcc.getBase() = v.getAnAccess() and
+          otherAcc.getPropertyName() in ["body", "query", "params", "headers"]
+        ) and
+        propertyCount >= 2  // If object has at least 2 request-like properties
+      ) or
+      
+      // Express/Connect convention detection
+      exists(Function f, Parameter p |
+        p = f.getParameter(0) and
+        acc.getBase() = p.getAVariable().getAnAccess() and
+        (
+          f.getName().matches(["route", "get", "post", "put", "delete", "handler", "middleware"]) or
+          exists(DataFlow::MethodCallNode call |
+            call.getMethodName() in ["get", "post", "put", "delete", "use", "all", "options", "head", "patch"] and
+            call.getArgument(_).getAFunctionValue().getFunction() = f
+          )
+        )
+      )
+    )
+  )
+}
+
+// Detects GraphQL resolver arguments and context objects as sources of untrusted data.
+// Identifies data coming from client requests through the GraphQL protocol in resolvers.
+predicate isGraphQLRequestSource(DataFlow::Node src) {
+  // Case 1: Direct property access to resolver arguments
+  exists(PropAccess acc, Function f, Import imp |
+    acc = src.asExpr() and
+    
+    // This access happens inside a function
+    acc.getEnclosingFunction() = f and
+    
+    // The function is in a file with GraphQL imports
+    imp.getImportedPath().getValue().regexpMatch(".*(graphql|apollo).*") and
+    imp.getFile() = acc.getFile() and
+    
+    // The function has a resolver-like signature (3-4 parameters)
+    f.getNumParameter() in [3, 4] and
+    
+    // Additional resolver identification heuristics
+    (
+      // Within a resolver object map (most common case)
+      exists(ObjectExpr obj |
+        obj.getPropertyByName(["Query", "Mutation", "Subscription"]).getInit() = f or
+        obj.getPropertyByName(["Query", "Mutation", "Subscription"]).getInit()
+          .(ObjectExpr).getAProperty().getInit() = f
+      )
+      or
+      // Named with resolver-indicating name
+      f.getName().regexpMatch(".*(query|resolver|mutation|subscription|Query|Resolver|Mutation|Subscription).*")
+      or
+      // Default case: rely on parameter pattern
+      f.getParameter(0).getName() in ["parent", "root", "_", "obj", "source"] and
+      f.getParameter(1).getName() in ["args", "arg", "arguments"] and
+      f.getParameter(2).getName() in ["context", "ctx", "contextValue"]
+    ) and
+    
+    // Common GraphQL resolver parameter patterns
+    (
+      // Standard pattern: (parent, args, context, info?)
+      (
+        f.getParameter(1).getName() in ["args", "arg", "arguments"] and
+        acc.getBase() = f.getParameter(1).getAVariable().getAnAccess()
+      )
+      or
+      (
+        f.getParameter(2).getName() in ["context", "ctx", "contextValue"] and
+        acc.getBase() = f.getParameter(2).getAVariable().getAnAccess()
+      )
+      or
+      (
+        f.getNumParameter() = 4 and
+        f.getParameter(3).getName() = "info" and
+        acc.getBase() = f.getParameter(3).getAVariable().getAnAccess()
+      )
+      or
+      // Alternative pattern with underscore: (_, args, context)
+      (
+        f.getParameter(0).getName() = "_" and
+        f.getParameter(1).getName() in ["args", "arg", "arguments"] and
+        acc.getBase() = f.getParameter(1).getAVariable().getAnAccess()
+      )
+    )
+  )
+  or
+  
+  // Case 2: Nested property access (args.field.subfield or context.req.headers)
+  exists(PropAccess innerAcc, PropAccess outerAcc, Function f, Import imp |
+    // Inner property access is the source we're tracking
+    innerAcc = src.asExpr() and
+    
+    // This happens in a function with GraphQL imports
+    innerAcc.getEnclosingFunction() = f and
+    imp.getImportedPath().getValue().regexpMatch(".*(graphql|apollo).*") and
+    imp.getFile() = f.getFile() and
+    
+    // Get the base object access (outer property access)
+    exists(Expr innerBase | 
+      innerBase = innerAcc.getBase() and
+      
+      // Either directly or through a chain of property accesses
+      (
+        innerBase = outerAcc or 
+        innerBase.getAChildExpr*() = outerAcc
+      )
+    ) and
+    
+    // Outer access is to a parameter in resolver position
+    (
+      outerAcc.getBase() = f.getParameter(1).getAVariable().getAnAccess() or
+      outerAcc.getBase() = f.getParameter(2).getAVariable().getAnAccess() or
+      (f.getNumParameter() = 4 and outerAcc.getBase() = f.getParameter(3).getAVariable().getAnAccess())
+    ) and
+    
+    // Function has resolver pattern
+    f.getNumParameter() in [3, 4]
+  )
+  or
+  
+  // Case 3: Variables derived from resolver parameters
+  exists(Variable v, Function f, VariableDeclarator decl, Import imp |
+    // Source is a property access on this variable
+    exists(PropAccess pa |
+      pa = src.asExpr() and
+      pa.getBase() = v.getAnAccess()
+    ) and
+    
+    // The variable was declared and initialized from a parameter
+    decl.getBindingPattern().getAVariable() = v and 
+    decl.getInit() = f.getParameter(1).getAVariable().getAnAccess() and
+    f.getParameter(1).getName() in ["args", "arg", "arguments"] and
+    
+    // In the same function
+    decl.getContainer() = f and
+    
+    // GraphQL verification
+    imp.getImportedPath().getValue().regexpMatch(".*(graphql|apollo).*") and
+    imp.getFile() = f.getFile() and
+    f.getNumParameter() in [3, 4]
+  )
+  or
+  
+  // Case 4: Destructured parameters
+  exists(Function f, Import imp |
+    // GraphQL imports
+    imp.getImportedPath().getValue().regexpMatch(".*(graphql|apollo).*") and
+    imp.getFile() = f.getFile() and
+    
+    // Function has resolver signature
+    f.getNumParameter() in [3, 4] and
+    
+    // First parameter is typically parent/root, check second parameter (the args position)
+    exists(Parameter p |
+      p = f.getParameter(1) and
+      
+      // No direct way to check for destructuring pattern, but we can check its string representation
+      p.toString().matches("{%}") // Pattern like: {id, data}
+    ) and
+    
+    // Source comes from within this function
+    src.asExpr().getEnclosingFunction() = f and
+    
+    // Source is a variable reference that exists in destructuring scope
+    exists(VarRef ref | 
+      ref = src.asExpr() and
+      ref.getVariable().getScope() = f.getScope() and
+      // Not a parameter variable
+      not exists(Parameter fp | fp.getAVariable() = ref.getVariable()) and
+      // Common GraphQL field names
+      ref.getVariable().getName() in ["id", "input", "data", "filter", "where", "variables"]
+    )
+  )
+}
+
+/* Client-Side & DOM Sources. */
+// some might be covered by RemoteFlowSource, but we will include them for completeness.
+
+// In a client-side context, form and input elements can be directly controlled by the user
+predicate isFormInputSource(DataFlow::Node src) {
+  exists(PropAccess acc |
+    acc = src.asExpr() and
+    acc.getPropertyName() in ["value", "innerText", "textContent"] and
+    (
+      acc.getBase().getType().hasUnderlyingType("HTMLInputElement") or
+      acc.getBase().getType().hasUnderlyingType("HTMLTextAreaElement") or
+      acc.getBase().getType().hasUnderlyingType("HTMLSelectElement") or
+      acc.getBase().getType().hasUnderlyingType("HTMLElement")
+    )
+  )
+}
+
+// Data stored in cookies, localStorage, or sessionStorage can be modified by the user or exploited by malicious scripts.
+predicate isStorageSource(DataFlow::Node src) {
+  exists(PropAccess acc |
+    acc = src.asExpr() and
+    acc.getPropertyName() in ["cookie", "localStorage", "sessionStorage"]
+  )
+}
+
+// The URL and location-based data (e.g., query parameters, URL hash) can contain untrusted information
+predicate isURLSource(DataFlow::Node src) {
+  exists(PropAccess acc |
+    acc = src.asExpr() and
+    acc.getPropertyName() in ["href", "search", "hash", "name"] and
+    (
+      acc.getBase().getType().hasUnderlyingType("Location") or
+      acc.getBase().getType().hasUnderlyingType("Window")
+    )
+  )
+}
+
+// Detects tainted data from postMessage-based communication.
+predicate isPostMessageSource(DataFlow::Node src) {
+  // Case 1: addEventListener with message event
+  exists(DataFlow::MethodCallNode call |
+    call.getMethodName() = "addEventListener" and
+    call.getArgument(0).mayHaveStringValue("message") and
+    
+    exists(DataFlow::FunctionNode callback, DataFlow::ParameterNode event, DataFlow::PropRead dataAccess |
+      callback = call.getArgument(1).getAFunctionValue() and
+      event.getParameter() = callback.getFunction().getParameter(0) and
+      dataAccess = event.getAPropertyRead("data") and
+      dataAccess = src
+    )
+  )
+  or
+  // Case 2: onmessage property assignments
+  exists(DataFlow::PropWrite propWrite, DataFlow::FunctionNode callback, DataFlow::ParameterNode event, DataFlow::PropRead dataAccess |
+    propWrite.getPropertyName() = "onmessage" and
+    callback = propWrite.getRhs().getAFunctionValue() and
+    event.getParameter() = callback.getFunction().getParameter(0) and
+    dataAccess = event.getAPropertyRead("data") and
+    dataAccess = src
+  )
+  or
+  // Case 3: nested property access from event.data
+  exists(DataFlow::Node eventData, DataFlow::PropRead nestedAccess |
+    isEventDataAccess(eventData) and
+    nestedAccess.getBase() = eventData and
+    nestedAccess = src
+  )
+  or
+    // Case 4: variable assignment from event.data
+    exists(DataFlow::Node eventData, AssignExpr assign, DataFlow::Node lhs |
+      isEventDataAccess(eventData) and
+      assign.getRhs() = eventData.asExpr() and
+      lhs.asExpr() = assign.getLhs() and
+      lhs = src
+    )
+}
+
+// Helper predicate to identify event.data access in message event handlers
+private predicate isEventDataAccess(DataFlow::Node node) {
+  exists(DataFlow::FunctionNode messageHandler, DataFlow::ParameterNode event |
+    // Find message event handler functions
+    (
+      // Via addEventListener
+      exists(DataFlow::MethodCallNode call |
+        call.getMethodName() = "addEventListener" and
+        call.getArgument(0).mayHaveStringValue("message") and
+        messageHandler = call.getArgument(1).getAFunctionValue()
+      )
+      or
+      // Via onmessage property
+      exists(DataFlow::PropWrite propWrite |
+        propWrite.getPropertyName() = "onmessage" and
+        messageHandler = propWrite.getRhs().getAFunctionValue()
+      )
+    ) and
+    // Get the event parameter
+    event.getParameter() = messageHandler.getFunction().getParameter(0) and
+    // Access to event.data
+    node = event.getAPropertyRead("data")
+  )
+}
+
+predicate isClientSideSource(DataFlow::Node src) {
+  isFormInputSource(src) or
+  isStorageSource(src) or
+  isURLSource(src) or
+  isPostMessageSource(src)
+}
+
+
+ /* -- Environment variables and command-line inputs -- */
+ // Access to process.env.X environment variables, process.stdin, and process.argv[X] command-line arguments
+ // are considered taint sources (untrusted data).
+ class ProcessSource extends DataFlow::SourceNode {
+  ProcessSource() {
+    this = any(
+      DataFlow::globalVarRef("process").
+      getAPropertyRead(["env","argv", "stdin"]).
+      getAPropertyReference()
+    )
+  }  
+ }
+
+ /* -- File system read sources -- */
+ // File system read sources are considered taint sources (untrusted data).
+ predicate isFsReadCall(DataFlow::CallNode call) {
+  exists(DataFlow::CallNode c |
+    (
+      c = DataFlow::moduleMember("fs", _).getACall() and
+      c.getCalleeName() = ["readFile", "readFileSync", "readSync", "createReadStream"]
+    )
+    |
+    call = c
+  )
+}
+
+ from DataFlow::Node src, string description
+ where isRemoteSource(src) and description = "Remote/user input source" or
+        isHeuristicHttpRequestSource(src) and description = "HTTP request source" or
+        isGraphQLRequestSource(src) and description = "GraphQL request source" or
+        isClientSideSource(src) and description = "Client-side source" or
+       src instanceof ProcessSource and description = "Environment variable or command-line input source" or
+       isFsReadCall(src) and description = "File read source"
+ select src.asExpr(), description, src.getLocation()
