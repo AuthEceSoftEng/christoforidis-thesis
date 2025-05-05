@@ -98,6 +98,58 @@ predicate isHeuristicHttpRequestSource(DataFlow::Node src) {
   )
 }
 
+// Detects data returned from Fetch API calls, which may contain untrusted content from external services.
+// Covers both direct response object access and processing methods like .json(), .text(), etc.
+predicate isFetchResponseSource(DataFlow::Node src) {
+  // Case 1: Direct response object methods that extract content
+  exists(DataFlow::MethodCallNode methodCall, DataFlow::Node responseObject |
+    isFetchResponse(responseObject) and
+    methodCall.getReceiver() = responseObject and
+    methodCall.getMethodName() in ["json", "text", "blob", "formData", "arrayBuffer"] and
+    src = methodCall
+  )
+  or
+  // Case 2: Parsed response data
+  exists(DataFlow::MethodCallNode jsonMethod, Variable responseJsonVar |
+    // Find the response.json() method call
+    jsonMethod.getMethodName() = "json" and
+    isFetchResponse(jsonMethod.getReceiver()) and
+    
+    // Find where it's assigned to a variable
+    exists(VariableDeclarator decl |
+      decl.getInit() = jsonMethod.asExpr() or
+      decl.getInit().(AwaitExpr).getOperand() = jsonMethod.asExpr() and
+      responseJsonVar = decl.getBindingPattern().getAVariable()
+    ) and
+    
+    // Track access to the parsed JSON
+    exists(PropAccess acc |
+      acc.getBase() = responseJsonVar.getAnAccess() and
+      src = DataFlow::valueNode(acc)
+    )
+  )
+}
+
+// Helper to identify fetch response objects
+private predicate isFetchResponse(DataFlow::Node node) {
+  // From fetch().then(response => ...)
+  exists(DataFlow::CallNode fetchCall, DataFlow::MethodCallNode thenCall, DataFlow::FunctionNode callback |
+    fetchCall.getCalleeNode().toString() = "fetch" and
+    thenCall.getMethodName() = "then" and
+    thenCall.getReceiver() = fetchCall and
+    callback = thenCall.getArgument(0).getAFunctionValue() and
+    node = callback.getParameter(0)
+  )
+  or
+  // From async/await: const response = await fetch()
+  exists(DataFlow::CallNode fetchCall, AwaitExpr awaitExpr, VariableDeclarator decl |
+    fetchCall.getCalleeNode().toString() = "fetch" and
+    awaitExpr.getOperand() = fetchCall.asExpr() and
+    decl.getInit() = awaitExpr and
+    node = DataFlow::valueNode(decl.getBindingPattern().getAVariable().getAnAccess())
+  )
+}
+
 // Detects untrusted data received through WebSocket connections and similar socket-based communication.
 // Covers both standard WebSocket API (onmessage) and popular libraries like Socket.IO (on/once methods).
 predicate isWebSocketSource(DataFlow::Node src) {
@@ -631,13 +683,14 @@ predicate isFsReadCall(DataFlow::CallNode call) {
 string getSourceCategory(DataFlow::Node src) {
   if isRemoteSource(src) then result = "Remote/user input source"
   else if isHeuristicHttpRequestSource(src) then result = "HTTP request source"
+  else if isFetchResponseSource(src) then result = "Fetch response source"
+  else if isWebSocketSource(src) then result = "WebSocket source"
   else if isGraphQLRequestSource(src) then result = "GraphQL request source"
   else if isClientSideUserInputSource(src) then result = "Client-side source"
   else if isClientStorageSource(src) then result = "Client storage source"
   else if isURLSource(src) then result = "URL source"
   else if isPostMessageSource(src) then result = "postMessage source"
   else if isFsReadCall(src) then result = "File read source"
-  else if isWebSocketSource(src) then result = "WebSocket source"
   else if src instanceof ProcessSource then result = "Environment variable or command-line input source"
   else result = "Unknown source" // Default case
 }
