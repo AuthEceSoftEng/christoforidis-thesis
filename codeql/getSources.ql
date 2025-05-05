@@ -438,11 +438,58 @@ predicate isClientSideUserInputSource(DataFlow::Node src) {
   )
 }
 
-// Data stored in cookies, localStorage, or sessionStorage can be modified by the user or exploited by malicious scripts.
-predicate isStorageSource(DataFlow::Node src) {
+// Data stored in cookies, localStorage, or sessionStorage can be modified by the user.
+predicate isClientStorageSource(DataFlow::Node src) {
+  // Direct property access
   exists(PropAccess acc |
     acc = src.asExpr() and
-    acc.getPropertyName() in ["cookie", "localStorage", "sessionStorage"]
+    (
+      // Document cookie
+      (acc.getPropertyName() = "cookie" and acc.getBase().getType().hasUnderlyingType("Document")) or
+      // Direct storage access
+      acc.getPropertyName() in ["localStorage", "sessionStorage"] and acc.getBase().getType().hasUnderlyingType("Window")
+    )
+  )
+  or
+  // Storage API methods
+  exists(MethodCallExpr call |
+    call = src.asExpr() and
+    call.getMethodName() = "getItem" and (
+      // Direct calls on global objects
+      call.getReceiver().(GlobalVarAccess).getName() in ["localStorage", "sessionStorage"] or
+      // Calls on window.X
+      exists(PropAccess prop | 
+        prop = call.getReceiver() and
+        prop.getPropertyName() in ["localStorage", "sessionStorage"] and
+        prop.getBase().(GlobalVarAccess).getName() = "window"
+      )
+    )
+  )
+  or
+  // Cookie parsing patterns
+  exists(MethodCallExpr call, PropAccess cookieAccess |
+    // Common cookie parsing patterns
+    call = src.asExpr() and
+    call.getMethodName() in ["split", "match", "substring"] and
+    cookieAccess.getPropertyName() = "cookie" and
+    cookieAccess.getBase().getType().hasUnderlyingType("Document") and
+    call.getReceiver() = cookieAccess
+  )
+  or
+  // IndexedDB
+  exists(MethodCallExpr call, Variable dbVar |
+    call = src.asExpr() and
+    call.getMethodName() in ["get", "getAll"] and
+    call.getReceiver() = dbVar.getAnAccess() and
+    (
+      // Variable has IndexedDB-related name
+      dbVar.getName().matches(["%db%", "%store%", "%indexedDB%", "%idb%"]) or
+      // Or variable is initialized from IndexedDB API
+      exists(AssignExpr assign |
+        assign.getLhs() = dbVar.getAnAccess() and
+        assign.getRhs().(MethodCallExpr).getReceiver().toString().matches("%indexedDB%")
+      )
+    )
   )
 }
 
@@ -523,13 +570,6 @@ private predicate isEventDataAccess(DataFlow::Node node) {
   )
 }
 
-predicate isClientSideSource(DataFlow::Node src) {
-  isStorageSource(src) or
-  isURLSource(src) or
-  isPostMessageSource(src)
-}
-
-
  /* -- Environment variables and command-line inputs -- */
  // Access to process.env.X environment variables, process.stdin, and process.argv[X] command-line arguments
  // are considered taint sources (untrusted data).
@@ -561,6 +601,8 @@ predicate isClientSideSource(DataFlow::Node src) {
         isHeuristicHttpRequestSource(src) and description = "HTTP request source" or
         isGraphQLRequestSource(src) and description = "GraphQL request source" or
         isClientSideUserInputSource(src) and description = "Client-side source" or
+        isClientStorageSource(src) and description = "Client storage source" or
+        isPostMessageSource(src) and description = "postMessage source" or
        src instanceof ProcessSource and description = "Environment variable or command-line input source" or
        isFsReadCall(src) and description = "File read source"
  select src.asExpr(), description, src.getLocation()
