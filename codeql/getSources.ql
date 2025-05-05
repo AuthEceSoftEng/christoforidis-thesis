@@ -98,10 +98,10 @@ predicate isHeuristicHttpRequestSource(DataFlow::Node src) {
   )
 }
 
-// Detects data returned from Fetch API calls, which may contain untrusted content from external services.
-// Covers both direct response object access and processing methods like .json(), .text(), etc.
+// Detects data returned from Fetch API and HTTP client libraries, which may contain untrusted content.
+// Covers both native fetch API and popular libraries like axios, superagent, etc.
 predicate isFetchResponseSource(DataFlow::Node src) {
-  // Case 1: Direct response object methods that extract content
+  // Case 1: Direct fetch response object methods
   exists(DataFlow::MethodCallNode methodCall, DataFlow::Node responseObject |
     isFetchResponse(responseObject) and
     methodCall.getReceiver() = responseObject and
@@ -109,7 +109,7 @@ predicate isFetchResponseSource(DataFlow::Node src) {
     src = methodCall
   )
   or
-  // Case 2: Parsed response data
+  // Case 2: Parsed fetch response data
   exists(DataFlow::MethodCallNode jsonMethod, Variable responseJsonVar |
     // Find the response.json() method call
     jsonMethod.getMethodName() = "json" and
@@ -126,6 +126,107 @@ predicate isFetchResponseSource(DataFlow::Node src) {
     exists(PropAccess acc |
       acc.getBase() = responseJsonVar.getAnAccess() and
       src = DataFlow::valueNode(acc)
+    )
+  )
+  or
+  // Case 3: HTTP client libraries with promise-based APIs
+  exists(DataFlow::ModuleImportNode client, DataFlow::CallNode request, DataFlow::MethodCallNode thenCall,
+         DataFlow::FunctionNode callback, string clientName |
+    // Common HTTP client libraries
+    clientName in ["axios", "superagent", "request-promise", "got", "node-fetch", "ky", "needle"] and
+    client.getPath() = clientName and
+    
+    // Handle library-specific request calls
+    (
+      // Direct client call: axios(url), request(url)
+      request = client.getACall() or
+      // Method call: axios.get(), axios.post()
+      request = client.getAMemberCall(["get", "post", "put", "delete", "patch", "head"])
+    ) and
+    
+    // Promise chain
+    thenCall.getMethodName() = "then" and
+    thenCall.getReceiver() = request and
+    callback = thenCall.getArgument(0).getAFunctionValue() and
+    
+    // Different libraries have different response structures
+    (
+      // Direct response parameter
+      src = callback.getParameter(0) or
+      
+      // Library-specific response property patterns
+      exists(DataFlow::PropRead dataProp |
+        dataProp.getBase() = callback.getParameter(0) and
+        dataProp.getPropertyName() in ["data", "body", "responseText", "json"] and
+        src = dataProp
+      )
+    )
+  )
+  or
+  // Case 4: HTTP client libraries with async/await
+  exists(DataFlow::ModuleImportNode client, DataFlow::CallNode request, 
+         AwaitExpr awaitExpr, Variable responseVar, string clientName |
+    // Common HTTP client libraries
+    clientName in ["axios", "superagent", "request-promise", "got", "node-fetch", "ky"] and
+    client.getPath() = clientName and
+    
+    // Handle library-specific request calls
+    (
+      // Direct client call: await axios(url)
+      request = client.getACall() or
+      // Method call: await axios.get()
+      request = client.getAMemberCall(["get", "post", "put", "delete", "patch", "head"])
+    ) and
+    
+    // Await the request
+    awaitExpr.getOperand() = request.asExpr() and
+    
+    // Store in variable
+    exists(VariableDeclarator decl |
+      decl.getInit() = awaitExpr and
+      responseVar = decl.getBindingPattern().getAVariable()
+    ) and
+    
+    // Access the response data
+    (
+      // Direct response variable
+      src.asExpr() = responseVar.getAnAccess() or
+      
+      // Library-specific response property access
+      exists(PropAccess acc |
+        acc.getBase() = responseVar.getAnAccess() and
+        acc.getPropertyName() in ["data", "body", "responseText", "json"] and
+        src.asExpr() = acc
+      )
+    )
+  )
+  or
+  // Case 5: Callback-based HTTP clients
+  exists(DataFlow::ModuleImportNode client, DataFlow::CallNode request, 
+         DataFlow::FunctionNode callback, string clientName |
+    clientName in ["request", "superagent", "needle", "http", "https"] and
+    client.getPath() = clientName and
+    
+    (
+      // Direct request with callback
+      request = client.getACall() or
+      // Method with callback
+      request = client.getAMemberCall(["get", "post", "put", "delete"])
+    ) and
+    
+    // Last argument is callback function
+    callback = request.getLastArgument().getAFunctionValue() and
+    
+    (
+      // Common callback patterns: (err, response, body) => { ... }
+      src = callback.getParameter([1, 2]) or
+      
+      // Response property access in callback
+      exists(DataFlow::PropRead propRead |
+        propRead.getBase() = callback.getParameter(1) and
+        propRead.getPropertyName() in ["body", "data"] and
+        src = propRead
+      )
     )
   )
 }
