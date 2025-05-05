@@ -691,14 +691,19 @@ predicate isFsReadCall(DataFlow::CallNode call) {
   )
 }
 
- from DataFlow::Node src, string description
- where isRemoteSource(src) and description = "Remote/user input source" or
-        isHeuristicHttpRequestSource(src) and description = "HTTP request source" or
-        isGraphQLRequestSource(src) and description = "GraphQL request source" or
-        isClientSideUserInputSource(src) and description = "Client-side source" or
-        isClientStorageSource(src) and description = "Client storage source" or
-        isURLSource(src) and description = "URL source" or
-        isPostMessageSource(src) and description = "postMessage source" or
-        isFsReadCall(src) and description = "File read source" or
-       src instanceof ProcessSource and description = "Environment variable or command-line input source"
- select src.asExpr(), description, src.getLocation()
+string getSourceCategory(DataFlow::Node src) {
+  if isRemoteSource(src) then result = "Remote/user input source"
+  else if isHeuristicHttpRequestSource(src) then result = "HTTP request source"
+  else if isGraphQLRequestSource(src) then result = "GraphQL request source"
+  else if isClientSideUserInputSource(src) then result = "Client-side source"
+  else if isClientStorageSource(src) then result = "Client storage source"
+  else if isURLSource(src) then result = "URL source"
+  else if isPostMessageSource(src) then result = "postMessage source"
+  else if isFsReadCall(src) then result = "File read source"
+  else if src instanceof ProcessSource then result = "Environment variable or command-line input source"
+  else result = "Unknown source" // Default case
+}
+
+from DataFlow::Node src
+where getSourceCategory(src) != "Unknown source"
+select src.asExpr(), getSourceCategory(src), src.getLocation()
