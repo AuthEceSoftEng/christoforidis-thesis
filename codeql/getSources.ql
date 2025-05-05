@@ -495,12 +495,59 @@ predicate isClientStorageSource(DataFlow::Node src) {
 
 // The URL and location-based data (e.g., query parameters, URL hash) can contain untrusted information
 predicate isURLSource(DataFlow::Node src) {
+  // Direct property access to Location/Window
   exists(PropAccess acc |
     acc = src.asExpr() and
-    acc.getPropertyName() in ["href", "search", "hash", "name"] and
+    acc.getPropertyName() in ["href", "search", "hash", "pathname", "hostname", "protocol", "origin", "name"] and
     (
       acc.getBase().getType().hasUnderlyingType("Location") or
-      acc.getBase().getType().hasUnderlyingType("Window")
+      acc.getBase().getType().hasUnderlyingType("Window") or
+      acc.getBase().(GlobalVarAccess).getName() = "location" or
+      acc.getBase().(PropAccess).getPropertyName() = "location"
+    )
+  )
+  or
+  // URLSearchParams API
+  exists(DataFlow::NewNode newUrl |
+    newUrl.getCalleeName() = "URLSearchParams" and
+    (
+      // Direct access to URLSearchParams object
+      src = newUrl or
+      // Method calls on URLSearchParams
+      exists(MethodCallExpr call |
+        call = src.asExpr() and
+        call.getMethodName() in ["get", "getAll", "has", "entries", "forEach", "keys", "values"] and
+        call.getReceiver() = newUrl.asExpr()
+      )
+    )
+  )
+  or
+  // URL constructor
+  exists(DataFlow::NewNode newUrl |
+    newUrl.getCalleeName() = "URL" and
+    (
+      // Property access on URL object
+      exists(PropAccess acc |
+        acc = src.asExpr() and
+        acc.getBase() = newUrl.asExpr() and
+        acc.getPropertyName() in ["search", "hash", "searchParams", "pathname", "href"]
+      )
+    )
+  )
+  or
+  // Framework-specific patterns (React Router, etc.)
+  exists(CallExpr call |
+    call = src.asExpr().getParent*() and
+    call.getCalleeName() in ["useLocation", "useParams", "useSearchParams", "getParam"] and
+    (
+      // Direct usage of hook result
+      src.asExpr() = call or
+      // Access to properties of hook result
+      exists(PropAccess acc |
+        acc = src.asExpr() and
+        acc.getBase() = call and
+        acc.getPropertyName() in ["search", "pathname", "hash", "state", "query", "params"]
+      )
     )
   )
 }
@@ -602,6 +649,7 @@ private predicate isEventDataAccess(DataFlow::Node node) {
         isGraphQLRequestSource(src) and description = "GraphQL request source" or
         isClientSideUserInputSource(src) and description = "Client-side source" or
         isClientStorageSource(src) and description = "Client storage source" or
+        isURLSource(src) and description = "URL source" or
         isPostMessageSource(src) and description = "postMessage source" or
        src instanceof ProcessSource and description = "Environment variable or command-line input source" or
        isFsReadCall(src) and description = "File read source"
