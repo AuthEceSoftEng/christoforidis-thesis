@@ -652,14 +652,42 @@ class ProcessSource extends DataFlow::SourceNode {
 
  /* -- File system read sources -- */
  // File system read sources are considered taint sources (untrusted data).
- predicate isFsReadCall(DataFlow::CallNode call) {
-  exists(DataFlow::CallNode c |
+predicate isFsReadCall(DataFlow::CallNode call) {
+  // Standard fs module
+  exists(DataFlow::ModuleImportNode fs |
+    fs.getPath() = "fs" and
     (
-      c = DataFlow::moduleMember("fs", _).getACall() and
-      c.getCalleeName() = ["readFile", "readFileSync", "readSync", "createReadStream"]
+      // Direct synchronous methods
+      call = fs.getAMemberCall(["readFile", "readFileSync", "read", "readSync", "readdir", 
+                              "readdirSync", "readlink", "readlinkSync", "createReadStream"]) or
+      // Promise-based methods
+      exists(DataFlow::PropRead promises |
+        promises = fs.getAPropertyRead("promises") and
+        call = promises.getAMemberCall(["readFile", "read", "readdir", "readlink"])
+      )
     )
-    |
-    call = c
+  )
+  or
+  // Popular third-party fs modules
+  exists(DataFlow::ModuleImportNode fsModule |
+    fsModule.getPath() in ["fs-extra", "graceful-fs", "mz/fs"] and
+    call = fsModule.getAMemberCall(["readFile", "readFileSync", "read", "readSync", "readdir", 
+                                    "readdirSync", "readlink", "readlinkSync", "createReadStream"])
+  )
+  or
+  // File parsers and processors
+  exists(DataFlow::ModuleImportNode parser |
+    parser.getPath() in ["csv-parser", "xml2js", "yaml", "ini", "properties-reader", "toml"] and
+    call = parser.getACall()
+  )
+  or
+  // Common wrapper patterns
+  exists(Function readFileWrapper |
+    readFileWrapper.getName().regexpMatch("(?i).*(read|load|parse|import).*file.*") and
+    exists(DataFlow::FunctionNode fn |
+      fn.getFunction() = readFileWrapper and 
+      call = fn.getACall()
+    )
   )
 }
 
@@ -671,6 +699,6 @@ class ProcessSource extends DataFlow::SourceNode {
         isClientStorageSource(src) and description = "Client storage source" or
         isURLSource(src) and description = "URL source" or
         isPostMessageSource(src) and description = "postMessage source" or
-       src instanceof ProcessSource and description = "Environment variable or command-line input source" or
-       isFsReadCall(src) and description = "File read source"
+        isFsReadCall(src) and description = "File read source" or
+       src instanceof ProcessSource and description = "Environment variable or command-line input source"
  select src.asExpr(), description, src.getLocation()
