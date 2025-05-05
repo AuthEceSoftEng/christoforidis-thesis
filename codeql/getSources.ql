@@ -252,16 +252,188 @@ predicate isGraphQLRequestSource(DataFlow::Node src) {
 /* Client-Side & DOM Sources. */
 // some might be covered by RemoteFlowSource, but we will include them for completeness.
 
-// In a client-side context, form and input elements can be directly controlled by the user
-predicate isFormInputSource(DataFlow::Node src) {
+// Detects client-side user input sources from DOM elements, events, and framework-specific patterns.
+// This covers standard DOM APIs, jQuery, React, Angular, and other common patterns.
+predicate isClientSideUserInputSource(DataFlow::Node src) {
+  // Case 1: Direct property access to DOM elements
   exists(PropAccess acc |
     acc = src.asExpr() and
-    acc.getPropertyName() in ["value", "innerText", "textContent"] and
+    
+    // Properties that contain user input
+    acc.getPropertyName() in [
+      // Standard value properties
+      "value", "innerText", "textContent", "innerHTML", 
+      // Form control specific
+      "checked", "selected", "selectedIndex", "selectedOptions", 
+      // File input specific
+      "files", "fileName",
+      // Custom data attributes
+      "dataset"
+    ] and
+    
+    // Element types that accept user input
     (
       acc.getBase().getType().hasUnderlyingType("HTMLInputElement") or
       acc.getBase().getType().hasUnderlyingType("HTMLTextAreaElement") or
       acc.getBase().getType().hasUnderlyingType("HTMLSelectElement") or
-      acc.getBase().getType().hasUnderlyingType("HTMLElement")
+      acc.getBase().getType().hasUnderlyingType("HTMLElement") or
+      acc.getBase().getType().hasUnderlyingType("HTMLFormElement") or
+      acc.getBase().getType().hasUnderlyingType("Element") or
+      // Fallback for untyped cases with naming patterns
+      exists(VarRef ref |
+        ref = acc.getBase() and
+        ref.getVariable().getName().regexpMatch("(?i).*(input|field|form|select|textarea|control|element).*")
+      )
+    )
+  )
+  or
+  
+  // Case 2: Method-based access to form values
+  exists(MethodCallExpr call |
+    call = src.asExpr() and
+    
+    // Common DOM API methods for accessing values
+    (
+      call.getMethodName() in ["getAttribute", "getAttributeNS"] and
+      call.getArgument(0).mayHaveStringValue(["value", "data-value", "data-input", "data-content"]) 
+    )
+  )
+  or
+  
+  // Case 3: jQuery-specific patterns
+  exists(MethodCallExpr call |
+    call = src.asExpr() and
+    
+    // jQuery method calls that access form values
+    (
+      call.getMethodName() in ["val", "text", "html"] and
+      call.getNumArgument() = 0 and
+      // Identify jQuery objects: $(...) or jQuery(...)
+      exists(CallExpr jqCall | 
+        jqCall = call.getReceiver() and
+        (
+          jqCall.getCalleeName() = "$" or
+          jqCall.getCalleeName() = "jQuery"
+        )
+      )
+    )
+  )
+  or
+  
+  // Case 4: Event objects in event handlers
+  exists(Function f, Parameter p |
+    // Event handler function
+    (
+      // Named with event handler pattern
+      f.getName().regexpMatch("(?i).*(on|handle)(Change|Input|Submit|Click|KeyUp|KeyPress|MouseUp|MouseDown).*") or
+      
+      // Used as event listener
+      exists(MethodCallExpr eventReg |
+        eventReg.getMethodName() in ["addEventListener", "on"] and
+        DataFlow::valueNode(eventReg.getArgument(1)).getAFunctionValue().getFunction() = f
+      )
+    ) and
+    
+    // First parameter is typically the event object
+    p = f.getParameter(0) and
+    
+    // Access to event properties
+    (
+      // Direct target or value access
+      exists(PropAccess acc |
+        acc = src.asExpr() and
+        (
+          // event.target.value pattern
+          exists(PropAccess targetAcc |
+            acc.getBase() = targetAcc and
+            targetAcc.getPropertyName() = "target" and
+            targetAcc.getBase() = p.getAVariable().getAnAccess() and
+            acc.getPropertyName() in ["value", "checked", "innerText", "innerHTML", "selectedOptions"]
+          )
+          or
+          // event.value pattern (direct)
+          acc.getBase() = p.getAVariable().getAnAccess() and
+          acc.getPropertyName() in ["data", "value", "key", "clipboardData"]
+        )
+      )
+      or
+      // event.target reference that flows to a value access
+      exists(PropAccess targetAcc, DataFlow::Node targetNode |
+        targetAcc.getPropertyName() = "target" and
+        targetAcc.getBase() = p.getAVariable().getAnAccess() and
+        targetNode.asExpr() = targetAcc and
+        
+        // Used in a property access that is our source
+        exists(PropAccess valueAcc |
+          valueAcc = src.asExpr() and
+          valueAcc.getBase() = targetNode.asExpr()
+        )
+      )
+    )
+  )
+  or
+  
+  // Case 5: React state and refs holding user input
+  exists(DataFlow::CallNode call, DataFlow::Node stateAccess |
+    // useState hook pattern
+    (
+      call.getCalleeName() = "useState" and
+      // Access to state value (first element of returned array)
+      stateAccess.asExpr().(PropAccess).getPropertyName() = "0" and
+      stateAccess.asExpr().(PropAccess).getBase() = call.getALocalUse().asExpr() and
+      
+      // The source is this state value
+      src = stateAccess
+    )
+    or
+    // useRef hook for form elements
+    (
+      call.getCalleeName() = "useRef" and
+      // Access to ref.current.value pattern
+      exists(PropAccess currentAcc, PropAccess valueAcc |
+        currentAcc.getPropertyName() = "current" and
+        currentAcc.getBase() = call.getALocalUse().asExpr() and
+        
+        valueAcc = src.asExpr() and
+        valueAcc.getPropertyName() in ["value", "checked", "innerText", "files"] and
+        valueAcc.getBase() = currentAcc
+      )
+    )
+  )
+  or
+  
+  // Case 6: Angular FormControl values
+  exists(PropAccess acc, Variable v |
+    acc = src.asExpr() and
+    acc.getPropertyName() = "value" and
+    acc.getBase() = v.getAnAccess() and
+    v.getName().regexpMatch("(?i).*(form|control|input|field).*") and
+    
+    // Type check or method usage check for FormControl
+    (
+      exists(VarAccess varAcc | 
+        varAcc = v.getAnAccess() and
+        varAcc.getType().toString().matches("%FormControl%")
+      ) or
+      // Method usage check
+      exists(MethodCallExpr mce |
+        mce.getReceiver() = v.getAnAccess() and
+        mce.getMethodName() in ["setValue", "patchValue", "reset", "updateValueAndValidity"]
+      )
+    )
+  )
+  or
+  
+  // Case 7: Generic framework patterns (Vue, other frameworks)
+  exists(PropAccess acc |
+    acc = src.asExpr() and
+    // Common model/value property patterns
+    acc.getPropertyName() in ["model", "modelValue", "inputValue", "fieldValue"] and
+    
+    // Context suggesting it's a form control (either by name or usage)
+    exists(Variable v |
+      v.getName().regexpMatch("(?i).*(input|field|form|control|model|value).*") and
+      acc.getBase() = v.getAnAccess()
     )
   )
 }
@@ -352,7 +524,6 @@ private predicate isEventDataAccess(DataFlow::Node node) {
 }
 
 predicate isClientSideSource(DataFlow::Node src) {
-  isFormInputSource(src) or
   isStorageSource(src) or
   isURLSource(src) or
   isPostMessageSource(src)
@@ -389,7 +560,7 @@ predicate isClientSideSource(DataFlow::Node src) {
  where isRemoteSource(src) and description = "Remote/user input source" or
         isHeuristicHttpRequestSource(src) and description = "HTTP request source" or
         isGraphQLRequestSource(src) and description = "GraphQL request source" or
-        isClientSideSource(src) and description = "Client-side source" or
+        isClientSideUserInputSource(src) and description = "Client-side source" or
        src instanceof ProcessSource and description = "Environment variable or command-line input source" or
        isFsReadCall(src) and description = "File read source"
  select src.asExpr(), description, src.getLocation()
