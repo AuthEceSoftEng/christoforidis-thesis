@@ -13,7 +13,8 @@
 
  /* -- Source categories as predicates or classes -- */
  
- /* - Remote/user input sources via CodeQL library models -  */
+ /* - Remote/user input sources -  */
+
  // All instances of RemoteFlowSource (e.g. Express, HTTP, Next.js, Firebase, etc.) 
  // are considered taint sources (remote/user input).
  predicate isRemoteSource(DataFlow::Node src) {
@@ -94,6 +95,52 @@ predicate isHeuristicHttpRequestSource(DataFlow::Node src) {
         )
       )
     )
+  )
+}
+
+// Detects untrusted data received through WebSocket connections and similar socket-based communication.
+// Covers both standard WebSocket API (onmessage) and popular libraries like Socket.IO (on/once methods).
+predicate isWebSocketSource(DataFlow::Node src) {
+  // Case 1: socket.on/once with data events
+  exists(DataFlow::MethodCallNode call, DataFlow::FunctionNode callback |
+    // Common WebSocket methods
+    (call.getMethodName() = "on" or call.getMethodName() = "once" or call.getMethodName() = "addListener") and
+    
+    // Match data-carrying events (not connection events)
+    not call.getArgument(0).mayHaveStringValue(["connect", "disconnect", "error", "connection", "close"]) and
+    
+    // Function callback
+    callback = call.getArgument(1).getAFunctionValue() and
+    
+    // Either parameter itself or property access from parameter
+    (
+      src = callback.getParameter(0) or
+      exists(DataFlow::PropRead propRead |
+        propRead.getBase() = callback.getParameter(0) and // Removed getANode()
+        propRead = src
+      )
+    ) and
+    
+    // WebSocket object detection
+    (
+      exists(DataFlow::NewNode newCall |
+        newCall.getCalleeName() in ["WebSocket", "SockJS", "Socket"] and
+        call.getReceiver().getALocalSource() = newCall
+      ) or
+      call.getReceiver().toString().regexpMatch("(?i).*(socket|io|ws).*")
+    )
+  )
+  or
+  // Case 2: Traditional WebSocket onmessage
+  exists(DataFlow::PropWrite propWrite, DataFlow::FunctionNode callback |
+    propWrite.getPropertyName() in ["onmessage", "ondata"] and
+    callback = propWrite.getRhs().getAFunctionValue() and
+    exists(DataFlow::PropRead eventData |
+      eventData.getBase() = callback.getParameter(0) and // Removed getANode()
+      eventData.getPropertyName() = "data" and
+      eventData = src
+    ) and
+    propWrite.getBase().toString().regexpMatch("(?i).*(socket|ws|websocket).*")
   )
 }
 
@@ -578,50 +625,6 @@ predicate isFsReadCall(DataFlow::CallNode call) {
       fn.getFunction() = readFileWrapper and 
       call = fn.getACall()
     )
-  )
-}
-
-predicate isWebSocketSource(DataFlow::Node src) {
-  // Case 1: socket.on/once with data events
-  exists(DataFlow::MethodCallNode call, DataFlow::FunctionNode callback |
-    // Common WebSocket methods
-    (call.getMethodName() = "on" or call.getMethodName() = "once" or call.getMethodName() = "addListener") and
-    
-    // Match data-carrying events (not connection events)
-    not call.getArgument(0).mayHaveStringValue(["connect", "disconnect", "error", "connection", "close"]) and
-    
-    // Function callback
-    callback = call.getArgument(1).getAFunctionValue() and
-    
-    // Either parameter itself or property access from parameter
-    (
-      src = callback.getParameter(0) or
-      exists(DataFlow::PropRead propRead |
-        propRead.getBase() = callback.getParameter(0) and // Removed getANode()
-        propRead = src
-      )
-    ) and
-    
-    // WebSocket object detection
-    (
-      exists(DataFlow::NewNode newCall |
-        newCall.getCalleeName() in ["WebSocket", "SockJS", "Socket"] and
-        call.getReceiver().getALocalSource() = newCall
-      ) or
-      call.getReceiver().toString().regexpMatch("(?i).*(socket|io|ws).*")
-    )
-  )
-  or
-  // Case 2: Traditional WebSocket onmessage
-  exists(DataFlow::PropWrite propWrite, DataFlow::FunctionNode callback |
-    propWrite.getPropertyName() in ["onmessage", "ondata"] and
-    callback = propWrite.getRhs().getAFunctionValue() and
-    exists(DataFlow::PropRead eventData |
-      eventData.getBase() = callback.getParameter(0) and // Removed getANode()
-      eventData.getPropertyName() = "data" and
-      eventData = src
-    ) and
-    propWrite.getBase().toString().regexpMatch("(?i).*(socket|ws|websocket).*")
   )
 }
 
