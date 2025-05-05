@@ -255,185 +255,75 @@ predicate isGraphQLRequestSource(DataFlow::Node src) {
 // Detects client-side user input sources from DOM elements, events, and framework-specific patterns.
 // This covers standard DOM APIs, jQuery, React, Angular, and other common patterns.
 predicate isClientSideUserInputSource(DataFlow::Node src) {
-  // Case 1: Direct property access to DOM elements
+  // Case 1: Direct property access to DOM elements - ONLY WHEN READING
   exists(PropAccess acc |
     acc = src.asExpr() and
     
     // Properties that contain user input
     acc.getPropertyName() in [
-      // Standard value properties
-      "value", "innerText", "textContent", "innerHTML", 
-      // Form control specific
-      "checked", "selected", "selectedIndex", "selectedOptions", 
-      // File input specific
-      "files", "fileName",
-      // Custom data attributes
-      "dataset"
+      "value", "innerText", "textContent", "innerHTML", "checked", "selected", 
+      "selectedIndex", "selectedOptions", "files"
     ] and
     
-    // Element types that accept user input
+    // ONLY CONSIDER READS, NOT WRITES
+    not exists(AssignExpr assign | assign.getLhs() = acc) and
+    
+    // Strong type evidence - must have proper DOM type
     (
       acc.getBase().getType().hasUnderlyingType("HTMLInputElement") or
       acc.getBase().getType().hasUnderlyingType("HTMLTextAreaElement") or
       acc.getBase().getType().hasUnderlyingType("HTMLSelectElement") or
-      acc.getBase().getType().hasUnderlyingType("HTMLElement") or
       acc.getBase().getType().hasUnderlyingType("HTMLFormElement") or
-      acc.getBase().getType().hasUnderlyingType("Element") or
-      // Fallback for untyped cases with naming patterns
-      exists(VarRef ref |
-        ref = acc.getBase() and
-        ref.getVariable().getName().regexpMatch("(?i).*(input|field|form|select|textarea|control|element).*")
-      )
-    )
-  )
-  or
-  
-  // Case 2: Method-based access to form values
-  exists(MethodCallExpr call |
-    call = src.asExpr() and
-    
-    // Common DOM API methods for accessing values
-    (
-      call.getMethodName() in ["getAttribute", "getAttributeNS"] and
-      call.getArgument(0).mayHaveStringValue(["value", "data-value", "data-input", "data-content"]) 
-    )
-  )
-  or
-  
-  // Case 3: jQuery-specific patterns
-  exists(MethodCallExpr call |
-    call = src.asExpr() and
-    
-    // jQuery method calls that access form values
-    (
-      call.getMethodName() in ["val", "text", "html"] and
-      call.getNumArgument() = 0 and
-      // Identify jQuery objects: $(...) or jQuery(...)
-      exists(CallExpr jqCall | 
-        jqCall = call.getReceiver() and
-        (
-          jqCall.getCalleeName() = "$" or
-          jqCall.getCalleeName() = "jQuery"
-        )
-      )
-    )
-  )
-  or
-  
-  // Case 4: Event objects in event handlers
-  exists(Function f, Parameter p |
-    // Event handler function
-    (
-      // Named with event handler pattern
-      f.getName().regexpMatch("(?i).*(on|handle)(Change|Input|Submit|Click|KeyUp|KeyPress|MouseUp|MouseDown).*") or
       
-      // Used as event listener
+      // Fall back to naming conventions for cases without type information
+      acc.getBase().toString().regexpMatch("(?i)(input|textarea|select|checkbox|form|control)")
+    )
+  )
+  or
+  
+  // Case 2: Event handler pattern with explicit event.target.value/responseText access
+  exists(Function f, Parameter p, PropAccess valueAcc, PropAccess targetAcc |
+    // Must be in an event handler function
+    (
+      f.getName().regexpMatch("(?i)^(on|handle)(Change|Input|Submit|Load|Response|Message).*$") or
       exists(MethodCallExpr eventReg |
-        eventReg.getMethodName() in ["addEventListener", "on"] and
+        eventReg.getMethodName() = "addEventListener" and
+        eventReg.getArgument(0).mayHaveStringValue(["input", "change", "submit", "load", "message"]) and
         DataFlow::valueNode(eventReg.getArgument(1)).getAFunctionValue().getFunction() = f
       )
     ) and
     
-    // First parameter is typically the event object
+    // First parameter is event object
     p = f.getParameter(0) and
     
-    // Access to event properties
-    (
-      // Direct target or value access
-      exists(PropAccess acc |
-        acc = src.asExpr() and
-        (
-          // event.target.value pattern
-          exists(PropAccess targetAcc |
-            acc.getBase() = targetAcc and
-            targetAcc.getPropertyName() = "target" and
-            targetAcc.getBase() = p.getAVariable().getAnAccess() and
-            acc.getPropertyName() in ["value", "checked", "innerText", "innerHTML", "selectedOptions"]
-          )
-          or
-          // event.value pattern (direct)
-          acc.getBase() = p.getAVariable().getAnAccess() and
-          acc.getPropertyName() in ["data", "value", "key", "clipboardData"]
-        )
-      )
-      or
-      // event.target reference that flows to a value access
-      exists(PropAccess targetAcc, DataFlow::Node targetNode |
-        targetAcc.getPropertyName() = "target" and
-        targetAcc.getBase() = p.getAVariable().getAnAccess() and
-        targetNode.asExpr() = targetAcc and
-        
-        // Used in a property access that is our source
-        exists(PropAccess valueAcc |
-          valueAcc = src.asExpr() and
-          valueAcc.getBase() = targetNode.asExpr()
-        )
-      )
+    // event.target.X pattern
+    valueAcc = src.asExpr() and
+    valueAcc.getPropertyName() in ["value", "checked", "selectedOptions", "responseText", "response"] and
+    valueAcc.getBase() = targetAcc and
+    targetAcc.getPropertyName() = "target" and
+    targetAcc.getBase() = p.getAVariable().getAnAccess()
+  )
+  or
+  
+  // Case 3: jQuery val() method with zero arguments (getter mode)
+  exists(MethodCallExpr call |
+    call = src.asExpr() and
+    call.getMethodName() = "val" and
+    call.getNumArgument() = 0 and
+    exists(CallExpr jqCall | 
+      jqCall = call.getReceiver() and
+      jqCall.getCalleeName() = "$"
     )
   )
   or
   
-  // Case 5: React state and refs holding user input
-  exists(DataFlow::CallNode call, DataFlow::Node stateAccess |
-    // useState hook pattern
-    (
-      call.getCalleeName() = "useState" and
-      // Access to state value (first element of returned array)
-      stateAccess.asExpr().(PropAccess).getPropertyName() = "0" and
-      stateAccess.asExpr().(PropAccess).getBase() = call.getALocalUse().asExpr() and
-      
-      // The source is this state value
-      src = stateAccess
-    )
-    or
-    // useRef hook for form elements
-    (
-      call.getCalleeName() = "useRef" and
-      // Access to ref.current.value pattern
-      exists(PropAccess currentAcc, PropAccess valueAcc |
-        currentAcc.getPropertyName() = "current" and
-        currentAcc.getBase() = call.getALocalUse().asExpr() and
-        
-        valueAcc = src.asExpr() and
-        valueAcc.getPropertyName() in ["value", "checked", "innerText", "files"] and
-        valueAcc.getBase() = currentAcc
-      )
-    )
-  )
-  or
-  
-  // Case 6: Angular FormControl values
-  exists(PropAccess acc, Variable v |
-    acc = src.asExpr() and
-    acc.getPropertyName() = "value" and
-    acc.getBase() = v.getAnAccess() and
-    v.getName().regexpMatch("(?i).*(form|control|input|field).*") and
-    
-    // Type check or method usage check for FormControl
-    (
-      exists(VarAccess varAcc | 
-        varAcc = v.getAnAccess() and
-        varAcc.getType().toString().matches("%FormControl%")
-      ) or
-      // Method usage check
-      exists(MethodCallExpr mce |
-        mce.getReceiver() = v.getAnAccess() and
-        mce.getMethodName() in ["setValue", "patchValue", "reset", "updateValueAndValidity"]
-      )
-    )
-  )
-  or
-  
-  // Case 7: Generic framework patterns (Vue, other frameworks)
+  // Case 4: XMLHttpRequest response/responseText
   exists(PropAccess acc |
     acc = src.asExpr() and
-    // Common model/value property patterns
-    acc.getPropertyName() in ["model", "modelValue", "inputValue", "fieldValue"] and
-    
-    // Context suggesting it's a form control (either by name or usage)
-    exists(Variable v |
-      v.getName().regexpMatch("(?i).*(input|field|form|control|model|value).*") and
-      acc.getBase() = v.getAnAccess()
+    acc.getPropertyName() in ["responseText", "response", "responseXML"] and
+    (
+      acc.getBase().getType().hasUnderlyingType("XMLHttpRequest") or
+      acc.getBase().(VarRef).getVariable().getAnAssignedExpr().(NewExpr).getCalleeName() = "XMLHttpRequest"
     )
   )
 }
