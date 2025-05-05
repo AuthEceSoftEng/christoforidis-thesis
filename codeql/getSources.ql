@@ -581,6 +581,50 @@ predicate isFsReadCall(DataFlow::CallNode call) {
   )
 }
 
+predicate isWebSocketSource(DataFlow::Node src) {
+  // Case 1: socket.on/once with data events
+  exists(DataFlow::MethodCallNode call, DataFlow::FunctionNode callback |
+    // Common WebSocket methods
+    (call.getMethodName() = "on" or call.getMethodName() = "once" or call.getMethodName() = "addListener") and
+    
+    // Match data-carrying events (not connection events)
+    not call.getArgument(0).mayHaveStringValue(["connect", "disconnect", "error", "connection", "close"]) and
+    
+    // Function callback
+    callback = call.getArgument(1).getAFunctionValue() and
+    
+    // Either parameter itself or property access from parameter
+    (
+      src = callback.getParameter(0) or
+      exists(DataFlow::PropRead propRead |
+        propRead.getBase() = callback.getParameter(0) and // Removed getANode()
+        propRead = src
+      )
+    ) and
+    
+    // WebSocket object detection
+    (
+      exists(DataFlow::NewNode newCall |
+        newCall.getCalleeName() in ["WebSocket", "SockJS", "Socket"] and
+        call.getReceiver().getALocalSource() = newCall
+      ) or
+      call.getReceiver().toString().regexpMatch("(?i).*(socket|io|ws).*")
+    )
+  )
+  or
+  // Case 2: Traditional WebSocket onmessage
+  exists(DataFlow::PropWrite propWrite, DataFlow::FunctionNode callback |
+    propWrite.getPropertyName() in ["onmessage", "ondata"] and
+    callback = propWrite.getRhs().getAFunctionValue() and
+    exists(DataFlow::PropRead eventData |
+      eventData.getBase() = callback.getParameter(0) and // Removed getANode()
+      eventData.getPropertyName() = "data" and
+      eventData = src
+    ) and
+    propWrite.getBase().toString().regexpMatch("(?i).*(socket|ws|websocket).*")
+  )
+}
+
 string getSourceCategory(DataFlow::Node src) {
   if isRemoteSource(src) then result = "Remote/user input source"
   else if isHeuristicHttpRequestSource(src) then result = "HTTP request source"
@@ -590,6 +634,7 @@ string getSourceCategory(DataFlow::Node src) {
   else if isURLSource(src) then result = "URL source"
   else if isPostMessageSource(src) then result = "postMessage source"
   else if isFsReadCall(src) then result = "File read source"
+  else if isWebSocketSource(src) then result = "WebSocket source"
   else if src instanceof ProcessSource then result = "Environment variable or command-line input source"
   else result = "Unknown source" // Default case
 }
