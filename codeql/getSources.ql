@@ -620,15 +620,35 @@ private predicate isEventDataAccess(DataFlow::Node node) {
  /* -- Environment variables and command-line inputs -- */
  // Access to process.env.X environment variables, process.stdin, and process.argv[X] command-line arguments
  // are considered taint sources (untrusted data).
- class ProcessSource extends DataFlow::SourceNode {
+class ProcessSource extends DataFlow::SourceNode {
   ProcessSource() {
+    // direct property access
     this = any(
       DataFlow::globalVarRef("process").
       getAPropertyRead(["env","argv", "stdin"]).
       getAPropertyReference()
     )
-  }  
- }
+    or
+    // Handle destructuring patterns
+    exists(VariableDeclarator decl, DataFlow::PropRead processEnv, VarRef ref |
+      processEnv = DataFlow::globalVarRef("process").getAPropertyRead("env") and
+      decl.getInit() = processEnv.asExpr() and
+      decl.getBindingPattern() instanceof DestructuringPattern and
+      ref = decl.getBindingPattern().getABindingVarRef() and
+      this = DataFlow::valueNode(ref)
+    )
+    or
+    // Handle variable assignments
+    exists(AssignExpr assign, DataFlow::PropRead propRead |
+      propRead = DataFlow::globalVarRef("process").getAPropertyRead(["env", "argv", "stdin"]) and
+      propRead.asExpr() = assign.getRhs() and
+      this = DataFlow::valueNode(assign.getLhs())
+    )
+    or
+    // Common process methods that provide system info
+    this = DataFlow::globalVarRef("process").getAMethodCall(["cwd", "getuid", "getgid", "getgroups", "getPid"])
+  }
+}
 
  /* -- File system read sources -- */
  // File system read sources are considered taint sources (untrusted data).
