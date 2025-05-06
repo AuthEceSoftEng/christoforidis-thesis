@@ -1,5 +1,6 @@
 import os
 from utils.query_runner import run_codeql_query_tables
+from utils.source_post_process import deduplicate_sources_context
 
 def main():
     database_path = "C:\\Projects\\codeql-dbs\\juice-shop" # temporary path to the database
@@ -20,6 +21,13 @@ def main():
         print(f"Error running source extraction query: {error}")
         return
     print(f"Source extraction completed. Results saved to {results_path}.csv")
+
+    # deduplicate the sources based on context
+    deduplicated_sources = deduplicate_sources_context(results_path + ".csv", output_path=results_path + "_deduped.csv")
+    if deduplicated_sources is not None:
+        print(f"Deduplication completed. Deduplicated sources saved to {results_path}_deduped.csv")
+    else:
+        print("Deduplication failed.")
 
 if __name__ == "__main__":
     main()
