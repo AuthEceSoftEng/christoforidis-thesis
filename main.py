@@ -1,18 +1,28 @@
 import os
 from utils.query_runner import run_codeql_query_tables
-from utils.source_post_process import deduplicate_sources_context
+from utils.source_post_process import process_sources
+from utils.create_db import create_codeql_database
 
 def main():
-    database_path = "C:\\Projects\\codeql-dbs\\juice-shop" # temporary path to the database
-    last_part = os.path.basename(database_path) #database name
-    output_dir = os.path.join(os.path.dirname(__file__), "output")
-    os.makedirs(output_dir, exist_ok=True)  # Create output directory if it doesn't exist
-    output_dir = os.path.join(output_dir, last_part)  # Create a subdirectory for the database
-    os.makedirs(output_dir, exist_ok=True)  # Create subdirectory if it doesn't exist
+    project_name = "juice-shop" # temporary project name
+
+    # create codeql database or use existing one
+    success, message = create_codeql_database(project_name)
+    if not success:
+        print(f"Error creating CodeQL database: {message}")
+        return
+    
+    # get the database path
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__)))
+    database_path = os.path.join(project_root, "databases", project_name)
+
+    # set the output directory
+    output_dir = os.path.join(project_root, "output", project_name)
+    os.makedirs(output_dir, exist_ok=True)
 
     ## SOURCE EXTRACTION ##
     # Define the paths for the query and output files
-    query_path = os.path.join(os.path.dirname(__file__), "codeql", "getSources.ql")
+    query_path = os.path.join(project_root, "codeql", "getSources.ql")
     results_path = os.path.join(output_dir, "sources")
 
     # Run the CodeQL query to extract sources
@@ -22,12 +32,10 @@ def main():
         return
     print(f"Source extraction completed. Results saved to {results_path}.csv")
 
-    # deduplicate the sources based on context
-    deduplicated_sources = deduplicate_sources_context(results_path + ".csv", output_path=results_path + "_deduped.csv")
-    if deduplicated_sources is not None:
-        print(f"Deduplication completed. Deduplicated sources saved to {results_path}_deduped.csv")
-    else:
-        print("Deduplication failed.")
+    # process sources using the process_sources function from utils/source_post_process.py
+    processed_sources = process_sources(f"{results_path}.csv", f"{results_path}_processed.csv")
+    print(f"Processed sources saved to {results_path}_processed.csv")
+    
 
 if __name__ == "__main__":
     main()
