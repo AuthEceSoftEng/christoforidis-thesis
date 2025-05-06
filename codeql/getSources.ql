@@ -796,63 +796,56 @@ string getSourceCategory(DataFlow::Node src) {
   else result = "Unknown source" // Default case
 }
 
-// Gets a string representation of the surrounding code context for a source.
-string getContextCode(DataFlow::Node src) {
+// Gets the line range for a source's context to avoid string truncation
+predicate getContextLineRange(DataFlow::Node src, int startLine, int endLine) {
   // Special case for WebSocket handler parameters
   exists(DataFlow::MethodCallNode call, DataFlow::FunctionNode callback, Parameter param |
-    // Any .on() method call with an event name and callback
     call.getMethodName() in ["on", "once", "addListener"] and
-    call.getArgument(0).mayHaveStringValue(_) and  // Has a string event name
     callback = call.getArgument(1).getAFunctionValue() and
     param = callback.getFunction().getParameter(0) and
     DataFlow::parameterNode(param) = src and
-    // Get full context
-    result = call.asExpr().toString()
+    startLine = call.getLocation().getStartLine() and
+    endLine = call.getLocation().getEndLine()
   )
   or
-  // When we can get a valid expression and enclosing statement
+  // Use statement contexts but just return line numbers
   exists(Expr e | e = src.asExpr() |
     exists(Stmt stmt | stmt = e.getEnclosingStmt() |
-      // Try to get parent statement for better context
-      exists(Stmt parentStmt | parentStmt = stmt.getParent() | 
-        result = parentStmt.toString()
+      exists(Stmt contextStmt |
+        // Find the most appropriate context statement
+        (
+          contextStmt = stmt.getParent() or  // Parent statement
+          contextStmt = stmt.getContainer().(Function).getBody() or // Function body
+          contextStmt = stmt // Statement itself
+        ) and
+        startLine = contextStmt.getLocation().getStartLine() and
+        endLine = contextStmt.getLocation().getEndLine()
       )
-      or
-      // Try to get function containing the statement
-      exists(Function func | func = stmt.getContainer() |
-        // Get function body if available
-        exists(BlockStmt body | body = func.getBody() |
-          result = body.toString()
-        )
-      )
-      or
-      // If no better context, use the statement itself
-      (
-        not exists(Stmt parentStmt | parentStmt = stmt.getParent()) and
-        not exists(Function func | func = stmt.getContainer() and func.getBody().getNumChildStmt() > 1)
-      ) and
-      result = stmt.toString()
     )
   )
   or
-  // Fallback when we can't get statement context
+  // Fallback: use the source's own location
   (
     not exists(Expr e | e = src.asExpr()) or
     not exists(Stmt stmt | stmt = src.asExpr().getEnclosingStmt())
   ) and
-  result = "No statement context available"
+  startLine = src.getLocation().getStartLine() - 5 and
+  endLine = src.getLocation().getStartLine() + 5  // Add a small buffer
 }
 
 // Main query
-from DataFlow::Node src
-where getSourceCategory(src) != "Unknown source"
+from DataFlow::Node src, int contextStartLine, int contextEndLine
+where 
+  getSourceCategory(src) != "Unknown source" and
+  getContextLineRange(src, contextStartLine, contextEndLine)
 select 
-  src.asExpr().toString(),  // The expression as a string
-  getSourceCategory(src),   // Source category 
-  src.getLocation().getFile().getBaseName(),  // File name
-  src.getLocation().getStartLine(),  // Line number
-  src.getLocation().getStartColumn(),  // Column
-  getContextCode(src)       // code context from helper function
+  src.asExpr(),
+  getSourceCategory(src),
+  src.getLocation().getFile().getAbsolutePath(), // Full file path for post-processing
+  src.getLocation().getStartLine(),
+  src.getLocation().getStartColumn(),
+  contextStartLine,
+  contextEndLine
 
 /* 
 from DataFlow::Node src
