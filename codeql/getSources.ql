@@ -847,7 +847,7 @@ string getContextCode(DataFlow::Node src) {
 from DataFlow::Node src
 where getSourceCategory(src) != "Unknown source"
 select 
-  src.asExpr(),//.toString(),  // The expression as a string
+  src.asExpr().toString(),  // The expression as a string
   getSourceCategory(src),   // Source category 
   src.getLocation().getFile().getBaseName(),  // File name
   src.getLocation().getStartLine(),  // Line number
