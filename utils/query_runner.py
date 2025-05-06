@@ -10,6 +10,9 @@ logger = logging.getLogger(__name__)
 def run_codeql_query_tables(database_path: str, query_path: str, output_path: str) -> Tuple[bool, Optional[str]]:
     """
     Run a CodeQL query on a given database and save results to CSV.
+    for @kind table
+    first run the query and save the results to a bqrs file
+    then decode the bqrs file to csv
 
     Args:
         database_path (str): Path to the CodeQL database.
