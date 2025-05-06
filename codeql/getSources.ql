@@ -839,13 +839,13 @@ where
   getSourceCategory(src) != "Unknown source" and
   getContextLineRange(src, contextStartLine, contextEndLine)
 select 
-  src.asExpr(),
-  getSourceCategory(src),
-  src.getLocation().getFile().getAbsolutePath(), // Full file path for post-processing
-  src.getLocation().getStartLine(),
-  src.getLocation().getStartColumn(),
-  contextStartLine,
-  contextEndLine
+  src.asExpr() as expression,
+  getSourceCategory(src) as category,
+  src.getLocation().getFile().getAbsolutePath() as location, // Full file path for post-processing
+  src.getLocation().getStartLine() as startLine,
+  src.getLocation().getStartColumn() as startColumn,
+  contextStartLine as contextStart,
+  contextEndLine as contextEnd
 
 /* 
 from DataFlow::Node src
