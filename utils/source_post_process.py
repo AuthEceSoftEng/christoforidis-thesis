@@ -1,6 +1,8 @@
+import json
 import os
 import pandas as pd
 import logging
+from utils.general import extract_context_from_file
 
 # set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -311,3 +313,81 @@ def validate_context_ranges(df: pd.DataFrame, max_context_lines: int = 20, outpu
         logger.info(f"Results with validated contexts saved to: {output_path}")
 
     return df
+
+def sources_to_json(df: pd.DataFrame, output_path: str = None, project_name = None) -> list:
+    """
+    Convert sources DataFrame to JSON format.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing source information.
+        output_path (str, optional): Path to save the JSON file.
+    
+    Returns:
+        list: list of source objects.
+    """
+
+    logger.info("Converting sources to JSON format")
+
+    sources = []
+    for idx, row in df.iterrows():
+        try:
+            # extract info from df
+            start_line = int(row['startLine'])
+            start_column = int(row['startColumn'])
+            context_start = int(row['contextStart'])
+            context_end = int(row['contextEnd'])
+            expression = row['full_expression']
+            file_path = row['location']
+
+            # create file path without machine specific info
+            if project_name:
+                # find project name in path and get everything after it
+                project_name_index = file_path.find(project_name)
+                if project_name_index != -1:
+                    short_path = file_path[project_name_index + len(project_name) + 1:]
+                else:
+                    # if project name not found, use file name only
+                    short_path = os.path.basename(file_path)
+            else:
+                # if project name is not provided, use file name only
+                short_path = os.path.basename(file_path)
+
+            # extract context with highlighted source line
+            context_text = extract_context_from_file(
+                file_path = file_path,
+                context_start = context_start,
+                context_end = context_end,
+                highlight_line = start_line
+            )
+
+            # create source object
+            source = {
+                "id": row['source_id'],
+                "location": {
+                    "file": short_path,
+                    "line": start_line,
+                    "column": start_column
+                },
+                "category": row['category'],
+                "expression": expression,
+                "context": {
+                    "start_line": context_start,
+                    "end_line": context_end,
+                    "text": context_text
+                }
+            }
+            sources.append(source)
+
+        except Exception as e:
+            logger.error(f"Error processing row {idx}: {e}")
+
+    # save to json file if output_path is provided
+    if output_path:
+        try:
+            with open(output_path, 'w', encoding='utf-8') as f:
+                json.dump(sources, f, indent=2, ensure_ascii=False)
+            logger.info(f"Sources saved to {output_path}")
+        except Exception as e:
+            logger.error(f"Error saving sources to JSON: {e}")
+
+    return sources
