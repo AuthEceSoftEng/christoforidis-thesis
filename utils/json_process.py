@@ -52,7 +52,7 @@ def extract_context_from_file(file_path: str, context_start: int, context_end: i
         return ""
 
 
-def sources_to_json(df: pd.DataFrame, output_path: str = None) -> list:
+def sources_to_json(df: pd.DataFrame, output_path: str = None, project_name = None) -> list:
     """
     Convert sources DataFrame to JSON format.
 
@@ -70,12 +70,25 @@ def sources_to_json(df: pd.DataFrame, output_path: str = None) -> list:
     for idx, row in df.iterrows():
         try:
             # extract info from df
-            file_path = row['location']
             start_line = int(row['startLine'])
             start_column = int(row['startColumn'])
             context_start = int(row['contextStart'])
             context_end = int(row['contextEnd'])
             expression = row['full_expression']
+            file_path = row['location']
+
+            # create file path without machine specific info
+            if project_name:
+                # find project name in path and get everything after it
+                project_name_index = file_path.find(project_name)
+                if project_name_index != -1:
+                    short_path = file_path[project_name_index + len(project_name) + 1:]
+                else:
+                    # if project name not found, use file name only
+                    short_path = os.path.basename(file_path)
+            else:
+                # if project name is not provided, use file name only
+                short_path = os.path.basename(file_path)
 
             # extract context with highlighted source line
             context_text = extract_context_from_file(
@@ -89,7 +102,7 @@ def sources_to_json(df: pd.DataFrame, output_path: str = None) -> list:
             source = {
                 "id": row['source_id'],
                 "location": {
-                    "file": file_path,
+                    "file": short_path,
                     "line": start_line,
                     "column": start_column
                 },

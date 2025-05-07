@@ -38,7 +38,7 @@ def main():
     processed_sources = process_sources(f"{results_path}.csv", f"{results_path}_processed.csv")
 
     # turn csv to json using the sources_to_json function from utils/json_process.py
-    sources_json = sources_to_json(processed_sources, f"{results_path}.json")
+    sources_json = sources_to_json(processed_sources, f"{results_path}.json", project_name)
     
 
 if __name__ == "__main__":

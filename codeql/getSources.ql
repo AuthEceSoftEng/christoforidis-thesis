@@ -876,17 +876,17 @@ private predicate isEventDataAccess(DataFlow::Node node) {
 }
 
 string getSourceCategory(DataFlow::Node src) {
-  if isRemoteSource(src) then result = "Remote/user input source"
-  else if isHeuristicHttpRequestSource(src) then result = "HTTP request source"
-  else if isFetchResponseSource(src) then result = "Fetch response source"
-  else if isWebSocketSource(src) then result = "WebSocket source"
-  else if isGraphQLRequestSource(src) then result = "GraphQL request source"
-  else if isClientSideUserInputSource(src) then result = "Client-side source"
-  else if isClientStorageSource(src) then result = "Client storage source"
+  if isRemoteSource(src) then result = "Remote/user input"
+  else if isHeuristicHttpRequestSource(src) then result = "HTTP request"
+  else if isFetchResponseSource(src) then result = "Fetch response"
+  else if isWebSocketSource(src) then result = "WebSocket"
+  else if isGraphQLRequestSource(src) then result = "GraphQL request"
+  else if isClientSideUserInputSource(src) then result = "Client-side"
+  else if isClientStorageSource(src) then result = "Client storage"
   else if isURLSource(src) then result = "URL source"
   else if isPostMessageSource(src) then result = "postMessage source"
-  else if isFsReadCall(src) then result = "File read source"
-  else if src instanceof ProcessSource then result = "Environment variable or command-line input source"
+  else if isFsReadCall(src) then result = "File read"
+  else if src instanceof ProcessSource then result = "Env variable/command-line input"
   else result = "Unknown source" // Default case
 }
 
