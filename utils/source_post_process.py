@@ -185,7 +185,7 @@ def deduplicate_by_expression(df: pd.DataFrame, output_path: str = None) -> pd.D
 
     # create unique identifier for each source
     df['location_id'] = df.apply(
-        lambda row: f"{os.path.basename(row['location'])}:{row['startLine']}:{row['startColumn']}:{row['category']}",
+        lambda row: f"{os.path.basename(row['location'])}:{row['startLine']}:{row['startColumn']}",
         axis = 1
     )
 
