@@ -4,6 +4,7 @@ from utils.source_post_process import process_sources
 from utils.create_db import create_codeql_database
 
 def main():
+    ## CODEQL DATABASE CREATION ##
     project_name = "juice-shop" # temporary project name
 
     # create codeql database or use existing one
