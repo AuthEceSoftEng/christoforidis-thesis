@@ -280,7 +280,7 @@ predicate isWebSocketSource(DataFlow::Node src) {
         newCall.getCalleeName() in ["WebSocket", "SockJS", "Socket"] and
         call.getReceiver().getALocalSource() = newCall
       ) or
-      call.getReceiver().toString().regexpMatch("(?i).*(socket|io|ws).*")
+      call.getReceiver().toString().regexpMatch("(?i)(^|\\W)(socket|io|ws)(\\W|$)")
     )
   )
   or
@@ -314,22 +314,45 @@ predicate isGraphQLRequestSource(DataFlow::Node src) {
     // The function has a resolver-like signature (3-4 parameters)
     f.getNumParameter() in [3, 4] and
     
-    // Additional resolver identification heuristics
+    // Improved resolver identification heuristics
     (
-      // Within a resolver object map (most common case)
+      // Within a resolver object map (most common case - keep this as is)
       exists(ObjectExpr obj |
         obj.getPropertyByName(["Query", "Mutation", "Subscription"]).getInit() = f or
         obj.getPropertyByName(["Query", "Mutation", "Subscription"]).getInit()
           .(ObjectExpr).getAProperty().getInit() = f
       )
       or
-      // Named with resolver-indicating name
-      f.getName().regexpMatch(".*(query|resolver|mutation|subscription|Query|Resolver|Mutation|Subscription).*")
+      // More specific function naming patterns that reduce false positives
+      (
+        // Must start with or end with specific resolver terms
+        f.getName().regexpMatch("^(resolve|query|get|fetch)[A-Z].*") or
+        f.getName().regexpMatch(".*Resolver$") or
+        f.getName().regexpMatch("^(create|update|delete)[A-Z].*Mutation$") or
+        f.getName().regexpMatch("^(subscribe|watch|on)[A-Z].*Subscription$") or
+        
+        // Exact matches for common resolver naming patterns
+        f.getName() in [
+          "resolve", "resolver", "queryResolver", "mutationResolver", "subscriptionResolver"
+        ]
+      )
       or
-      // Default case: rely on parameter pattern
-      f.getParameter(0).getName() in ["parent", "root", "_", "obj", "source"] and
-      f.getParameter(1).getName() in ["args", "arg", "arguments"] and
-      f.getParameter(2).getName() in ["context", "ctx", "contextValue"]
+      // Default case: stricter parameter pattern + additional evidence
+      (
+        // Standard resolver parameter pattern
+        f.getParameter(0).getName() in ["parent", "root", "_", "obj", "source"] and
+        f.getParameter(1).getName() in ["args", "arg", "arguments"] and
+        f.getParameter(2).getName() in ["context", "ctx", "contextValue"] and
+        
+        // Additional evidence: file has resolver-related naming or type definitions
+        (
+          f.getFile().getBaseName().regexpMatch(".*(resolver|schema|graphql|apollo).*\\.(js|ts)$") or
+          exists(ObjectExpr obj | 
+            obj.getFile() = f.getFile() and 
+            obj.getPropertyByName(["typeDefs", "resolvers", "schema"]).getInit() instanceof ObjectExpr
+          )
+        )
+      )
     ) and
     
     // Common GraphQL resolver parameter patterns
@@ -389,8 +412,19 @@ predicate isGraphQLRequestSource(DataFlow::Node src) {
       (f.getNumParameter() = 4 and outerAcc.getBase() = f.getParameter(3).getAVariable().getAnAccess())
     ) and
     
-    // Function has resolver pattern
-    f.getNumParameter() in [3, 4]
+    // Function has resolver pattern and exists in a resolver context
+    f.getNumParameter() in [3, 4] and
+    (
+      // Within a resolver object map
+      exists(ObjectExpr obj |
+        obj.getPropertyByName(["Query", "Mutation", "Subscription"]).getInit() = f or
+        obj.getPropertyByName(["Query", "Mutation", "Subscription"]).getInit()
+          .(ObjectExpr).getAProperty().getInit() = f
+      )
+      or
+      // File has resolver-related naming
+      f.getFile().getBaseName().regexpMatch(".*(resolver|schema).*\\.(js|ts)$")
+    )
   )
   or
   
@@ -402,49 +436,31 @@ predicate isGraphQLRequestSource(DataFlow::Node src) {
       pa.getBase() = v.getAnAccess()
     ) and
     
+    // GraphQL context verification
+    imp.getImportedPath().getValue().regexpMatch(".*(graphql|apollo).*") and
+    imp.getFile() = f.getFile() and
+    
     // The variable was declared and initialized from a parameter
     decl.getBindingPattern().getAVariable() = v and 
     decl.getInit() = f.getParameter(1).getAVariable().getAnAccess() and
     f.getParameter(1).getName() in ["args", "arg", "arguments"] and
     
     // In the same function
-    decl.getContainer() = f and
-    
-    // GraphQL verification
-    imp.getImportedPath().getValue().regexpMatch(".*(graphql|apollo).*") and
-    imp.getFile() = f.getFile() and
-    f.getNumParameter() in [3, 4]
-  )
-  or
-  
-  // Case 4: Destructured parameters
-  exists(Function f, Import imp |
-    // GraphQL imports
-    imp.getImportedPath().getValue().regexpMatch(".*(graphql|apollo).*") and
-    imp.getFile() = f.getFile() and
-    
-    // Function has resolver signature
+    decl.getContainer() = f and    
     f.getNumParameter() in [3, 4] and
     
-    // First parameter is typically parent/root, check second parameter (the args position)
-    exists(Parameter p |
-      p = f.getParameter(1) and
-      
-      // No direct way to check for destructuring pattern, but we can check its string representation
-      p.toString().matches("{%}") // Pattern like: {id, data}
-    ) and
-    
-    // Source comes from within this function
-    src.asExpr().getEnclosingFunction() = f and
-    
-    // Source is a variable reference that exists in destructuring scope
-    exists(VarRef ref | 
-      ref = src.asExpr() and
-      ref.getVariable().getScope() = f.getScope() and
-      // Not a parameter variable
-      not exists(Parameter fp | fp.getAVariable() = ref.getVariable()) and
-      // Common GraphQL field names
-      ref.getVariable().getName() in ["id", "input", "data", "filter", "where", "variables"]
+    // Additional resolver context evidence
+    (
+      // Within a resolver object structure
+      exists(ObjectExpr obj |
+        obj.getPropertyByName(["Query", "Mutation", "Subscription"]).getInit() = f or
+        obj.getPropertyByName(["Query", "Mutation", "Subscription"]).getInit()
+          .(ObjectExpr).getAProperty().getInit() = f
+      )
+      or
+      // Function name matches resolver pattern
+      f.getName().regexpMatch("^(resolve|query|get|create|update|delete)[A-Z].*") or
+      f.getName().regexpMatch(".*Resolver$")
     )
   )
 }
@@ -468,15 +484,56 @@ predicate isClientSideUserInputSource(DataFlow::Node src) {
     // ONLY CONSIDER READS, NOT WRITES
     not exists(AssignExpr assign | assign.getLhs() = acc) and
     
-    // Strong type evidence - must have proper DOM type
     (
+      // Strong type evidence - must have proper DOM type
       acc.getBase().getType().hasUnderlyingType("HTMLInputElement") or
       acc.getBase().getType().hasUnderlyingType("HTMLTextAreaElement") or
       acc.getBase().getType().hasUnderlyingType("HTMLSelectElement") or
       acc.getBase().getType().hasUnderlyingType("HTMLFormElement") or
       
-      // Fall back to naming conventions for cases without type information
-      acc.getBase().toString().regexpMatch("(?i)(input|textarea|select|checkbox|form|control)")
+      // DOM element retrieval context
+      exists(MethodCallExpr domMethod, Variable v |
+        // Element retrieved using DOM methods
+        domMethod.getMethodName() in [
+          "getElementById", "querySelector", "getElementsByTagName", 
+          "getElementsByClassName", "getElementsByName"
+        ] and
+        exists(VariableDeclarator decl |
+          decl.getBindingPattern().getAVariable() = v and
+          decl.getInit() = domMethod
+        ) and
+        // And property access is on this variable
+        acc.getBase() = v.getAnAccess()
+      )
+      or
+      // Restricted name-based matching with word boundaries
+      exists(string pattern |
+        pattern = "(?i)(^|\\W)(input|textarea|select|checkbox|form|button|control)(\\W|$)" and
+        acc.getBase().toString().regexpMatch(pattern)
+      ) and
+      // Plus additional DOM context evidence
+      exists(Stmt stmt |
+        stmt = acc.getEnclosingStmt() and
+        (
+          // In a function with event handler naming
+          stmt.getContainer().(Function).getName().regexpMatch("(?i)(^|\\W)(on|handle)(Submit|Change|Input|Click)(\\W|$)") or
+          
+          // In a file with form processing context
+          exists(Expr formExpr |
+            formExpr.getFile() = acc.getFile() and
+            (
+              exists(MethodCallExpr formMethod |
+                formMethod.getMethodName() in ["preventDefault", "stopPropagation", "submit", "validate", "serialize"] and
+                formMethod = formExpr
+              ) or
+              exists(PropAccess formProp |
+                formProp.getPropertyName() in ["elements", "length", "action", "method", "target"] and
+                formProp.getBase().getType().hasUnderlyingType("HTMLFormElement")
+              )
+            )
+          )
+        )
+      )
     )
   )
   or
@@ -485,11 +542,14 @@ predicate isClientSideUserInputSource(DataFlow::Node src) {
   exists(Function f, Parameter p, PropAccess valueAcc, PropAccess targetAcc |
     // Must be in an event handler function
     (
-      f.getName().regexpMatch("(?i)^(on|handle)(Change|Input|Submit|Load|Response|Message).*$") or
+      // event handler function name pattern with word boundaries
+      f.getName().regexpMatch("(?i)(^|\\W)(on|handle)(Change|Input|Submit|Click)(\\W|$)") or
+      
+      // Explicit event registration
       exists(MethodCallExpr eventReg |
         eventReg.getMethodName() = "addEventListener" and
-        eventReg.getArgument(0).mayHaveStringValue(["input", "change", "submit", "load", "message"]) and
-        DataFlow::valueNode(eventReg.getArgument(1)).getAFunctionValue().getFunction() = f
+        eventReg.getArgument(0).mayHaveStringValue(["input", "change", "submit", "click"]) and
+        eventReg.getArgument(1) = DataFlow::valueNode(f).(DataFlow::FunctionNode).getFunction()
       )
     ) and
     
@@ -498,7 +558,7 @@ predicate isClientSideUserInputSource(DataFlow::Node src) {
     
     // event.target.X pattern
     valueAcc = src.asExpr() and
-    valueAcc.getPropertyName() in ["value", "checked", "selectedOptions", "responseText", "response"] and
+    valueAcc.getPropertyName() in ["value", "checked", "selectedOptions", "files"] and
     valueAcc.getBase() = targetAcc and
     targetAcc.getPropertyName() = "target" and
     targetAcc.getBase() = p.getAVariable().getAnAccess()
@@ -510,11 +570,17 @@ predicate isClientSideUserInputSource(DataFlow::Node src) {
     call = src.asExpr() and
     call.getMethodName() = "val" and
     call.getNumArgument() = 0 and
-    exists(CallExpr jqCall | 
-      jqCall = call.getReceiver() and
-      jqCall.getCalleeName() = "$"
+    (
+      // Ensure it's actually jQuery
+      exists(CallExpr jqCall | 
+        jqCall = call.getReceiver() and
+        jqCall.getCalleeName() = "$"
+      ) or
+      // Or explicitly jQuery object
+      call.getReceiver().getType().toString().matches("%jQuery%")
     )
   )
+  
   or
   
   // Case 4: XMLHttpRequest response/responseText
@@ -710,73 +776,101 @@ private predicate isEventDataAccess(DataFlow::Node node) {
  /* -- Environment variables and command-line inputs -- */
  // Access to process.env.X environment variables, process.stdin, and process.argv[X] command-line arguments
  // are considered taint sources (untrusted data).
-class ProcessSource extends DataFlow::SourceNode {
+ class ProcessSource extends DataFlow::SourceNode {
   ProcessSource() {
-    // direct property access
-    this = any(
-      DataFlow::globalVarRef("process").
-      getAPropertyRead(["env","argv", "stdin"]).
-      getAPropertyReference()
+    // Focus on security-sensitive environment variables
+    exists(string envVarName, DataFlow::PropRead envVar |
+      envVar = DataFlow::globalVarRef("process").getAPropertyRead("env").getAPropertyRead() and
+      envVarName = envVar.getPropertyName() and
+      (
+        // HIGH RISK: Security-critical patterns
+        envVarName.regexpMatch("(?i).*(SECRET|KEY|TOKEN|PASS|AUTH|PWD|CREDENTIAL).*") or
+        
+        // MEDIUM RISK: Configuration endpoints and connection strings
+        envVarName.regexpMatch("(?i).*(URL|ENDPOINT|API|WEBHOOK).*") or
+        
+        // LOW RISK but still included: Other variables except common safe ones
+        not (
+          envVarName in ["NODE_ENV", "PORT", "HOST", "DEBUG", "LOG_LEVEL", "ENV", "ENVIRONMENT"] or
+          // Filter out system information variables
+          envVarName.regexpMatch("(?i).*(PATH|HOME|USER|DIR|VERSION|ARCH|OS|TYPE|TEMP|TMP).*")
+        )
+      ) and
+      this = envVar
     )
     or
-    // Handle destructuring patterns
-    exists(VariableDeclarator decl, DataFlow::PropRead processEnv, VarRef ref |
-      processEnv = DataFlow::globalVarRef("process").getAPropertyRead("env") and
-      decl.getInit() = processEnv.asExpr() and
-      decl.getBindingPattern() instanceof DestructuringPattern and
-      ref = decl.getBindingPattern().getABindingVarRef() and
-      this = DataFlow::valueNode(ref)
+    // Only include command line args beyond the standard ones (which are rarely attack vectors)
+    exists(DataFlow::PropRead argvRead, DataFlow::PropRead indexExpr, int index |
+      argvRead = DataFlow::globalVarRef("process").getAPropertyRead("argv") and
+      indexExpr = argvRead.getAPropertyRead() and
+      index = indexExpr.getPropertyName().toInt() and
+      // Skip standard args (0=node path, 1=script path)
+      not index in [0, 1] and
+      this = indexExpr
     )
     or
-    // Handle variable assignments
-    exists(AssignExpr assign, DataFlow::PropRead propRead |
-      propRead = DataFlow::globalVarRef("process").getAPropertyRead(["env", "argv", "stdin"]) and
-      propRead.asExpr() = assign.getRhs() and
-      this = DataFlow::valueNode(assign.getLhs())
-    )
-    or
-    // Common process methods that provide system info
-    this = DataFlow::globalVarRef("process").getAMethodCall(["cwd", "getuid", "getgid", "getgroups", "getPid"])
+    // process.stdin is always external input
+    this = DataFlow::globalVarRef("process").getAPropertyRead("stdin")
   }
 }
 
  /* -- File system read sources -- */
  // File system read sources are considered taint sources (untrusted data).
-predicate isFsReadCall(DataFlow::CallNode call) {
-  // Standard fs module
-  exists(DataFlow::ModuleImportNode fs |
-    fs.getPath() = "fs" and
-    (
-      // Direct synchronous methods
-      call = fs.getAMemberCall(["readFile", "readFileSync", "read", "readSync", "readdir", 
-                              "readdirSync", "readlink", "readlinkSync", "createReadStream"]) or
-      // Promise-based methods
-      exists(DataFlow::PropRead promises |
-        promises = fs.getAPropertyRead("promises") and
-        call = promises.getAMemberCall(["readFile", "read", "readdir", "readlink"])
+ predicate isFsReadCall(DataFlow::Node node) {
+  exists(DataFlow::CallNode call |
+    call = node and (
+      // Standard fs module
+      exists(DataFlow::ModuleImportNode fs |
+        fs.getPath() = "fs" and
+        (
+          // Direct synchronous/async methods that read external content
+          call = fs.getAMemberCall(["readFile", "readFileSync", "createReadStream"]) or
+          
+          // Promise-based methods
+          exists(DataFlow::PropRead promises |
+            promises = fs.getAPropertyRead("promises") and
+            call = promises.getAMemberCall("readFile")
+          )
+        )
       )
-    )
-  )
-  or
-  // Popular third-party fs modules
-  exists(DataFlow::ModuleImportNode fsModule |
-    fsModule.getPath() in ["fs-extra", "graceful-fs", "mz/fs"] and
-    call = fsModule.getAMemberCall(["readFile", "readFileSync", "read", "readSync", "readdir", 
-                                    "readdirSync", "readlink", "readlinkSync", "createReadStream"])
-  )
-  or
-  // File parsers and processors
-  exists(DataFlow::ModuleImportNode parser |
-    parser.getPath() in ["csv-parser", "xml2js", "yaml", "ini", "properties-reader", "toml"] and
-    call = parser.getACall()
-  )
-  or
-  // Common wrapper patterns
-  exists(Function readFileWrapper |
-    readFileWrapper.getName().regexpMatch("(?i).*(read|load|parse|import).*file.*") and
-    exists(DataFlow::FunctionNode fn |
-      fn.getFunction() = readFileWrapper and 
-      call = fn.getACall()
+      or
+      // Popular third-party fs modules (more focused)
+      exists(DataFlow::ModuleImportNode fsModule |
+        fsModule.getPath() in ["fs-extra", "graceful-fs", "mz/fs"] and
+        call = fsModule.getAMemberCall(["readFile", "readFileSync", "createReadStream"])
+      )
+      or
+      // File parsers - focus on actual parsing methods
+      exists(DataFlow::ModuleImportNode parser |
+        parser.getPath() in ["csv-parser", "xml2js", "yaml", "ini", "properties-reader", "toml"] and
+        (
+          call = parser.getACall() or
+          call = parser.getAMemberCall(["parse", "load", "parseFile", "loadFile"])
+        )
+      )
+      or
+      // Improved custom wrapper pattern detection
+      exists(Function readFileWrapper |
+        // More specific function name patterns
+        (
+          // Must start with read/load/parse + "File"
+          readFileWrapper.getName().regexpMatch("^(?i)(read|load|parse|import)File[A-Z0-9_].*") or
+          
+          // Or exact matches for common patterns
+          readFileWrapper.getName() in ["readFile", "loadFile", "parseFile", "readFileContent"]
+        ) and
+        
+        // Require fs-related imports in the same file
+        exists(Import imp |
+          imp.getFile() = readFileWrapper.getFile() and
+          imp.getImportedPath().getValue() in ["fs", "fs-extra", "graceful-fs", "path"] 
+        ) and
+        
+        exists(DataFlow::FunctionNode fn |
+          fn.getFunction() = readFileWrapper and 
+          call = fn.getACall()
+        )
+      )
     )
   )
 }
@@ -836,15 +930,29 @@ predicate getContextLineRange(DataFlow::Node src, int startLine, int endLine) {
 // exclude test files from the scanning
 predicate isTestFile(File file) {
   exists(string path | path = file.getAbsolutePath() |
-    // Common test file patterns
+    // Common test directories
     path.matches("%/test/%") or
     path.matches("%/tests/%") or
     path.matches("%/__tests__/%") or
     path.matches("%/__mocks__/%") or
     path.matches("%/cypress/%") or
+    
+    // JavaScript test files
     path.matches("%.spec.js") or
     path.matches("%.test.js") or
-    path.matches("%.cy.js")
+    path.matches("%.cy.js") or
+    
+    // TypeScript test files
+    path.matches("%.spec.ts") or
+    path.matches("%.test.ts") or
+    path.matches("%.cy.ts") or
+    path.matches("%.spec.tsx") or
+    path.matches("%.test.tsx") or
+    
+    // Additional TypeScript-specific test patterns
+    path.matches("%.e2e.ts") or
+    path.matches("%.fixture.ts") or
+    path.matches("%.mock.ts")
   )
 }
 
