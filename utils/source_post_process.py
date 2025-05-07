@@ -15,6 +15,7 @@ def process_sources(csv_path: str, output_path: str = None) -> pd.DataFrame:
         print("Deduplication failed.")
         return
 
+    # extract full expressions using the extract_full_expressions function
     full_expressions = extract_full_expressions(deduplicated_context)
     if full_expressions is not None:
         print(f"Full expressions extraction completed.")
@@ -22,14 +23,23 @@ def process_sources(csv_path: str, output_path: str = None) -> pd.DataFrame:
         print("Full expressions extraction failed.")
         return
     
-    deduplicated_expressions = deduplicate_by_expression(full_expressions, output_path)
+    # deduplicate by expression using the deduplicate_by_expression function
+    deduplicated_expressions = deduplicate_by_expression(full_expressions)
     if deduplicated_expressions is not None:
         print(f"Deduplication by expression completed.")
     else:
         print("Deduplication by expression failed.")
         return
     
-    return deduplicated_expressions
+    # validate context ranges using the validate_context_ranges function
+    validated_context = validate_context_ranges(deduplicated_expressions, output_path=output_path)
+    if validated_context is not None:
+        print(f"Context validation completed.")
+    else:
+        print("Context validation failed.")
+        return
+    
+    return validated_context
 
 def deduplicate_sources_context(csv_path: str, output_path: str = None) -> pd.DataFrame:
     """
@@ -58,7 +68,7 @@ def deduplicate_sources_context(csv_path: str, output_path: str = None) -> pd.Da
     df['context_size'] = df['contextEnd'] - df['contextStart']
 
     # sort by context size (descending) and drop duplicates
-    df.sort_values(by='context_size', ascending=False)
+    df = df.sort_values(by='context_size', ascending=False)
     deduplicated = df.drop_duplicates(subset=['source_id'])
 
     # remove the temporary 'source_id' and 'context_size' columns
@@ -190,14 +200,14 @@ def deduplicate_by_expression(df: pd.DataFrame, output_path: str = None) -> pd.D
     )
 
     # calculate expression length
-    df['expr_lenght'] = df['full_expression'].str.len()
+    df['expr_length'] = df['full_expression'].str.len()
 
     # sort by location_id and expression length (descending) and drop duplicates
-    df = df.sort_values(by=['location_id', 'expr_lenght'], ascending=[True, False])
+    df = df.sort_values(by=['location_id', 'expr_length'], ascending=[True, False])
     deduplicated = df.drop_duplicates(subset=['location_id'], keep='first')
 
     # remove the temporary 'location_id' and 'expr_length' columns
-    deduplicated = deduplicated.drop(columns=['location_id', 'expr_lenght'])
+    deduplicated = deduplicated.drop(columns=['location_id', 'expr_length'])
 
     new_count = len(deduplicated)
     logger.info(f"Removed {original_count - new_count} duplicates based on expressions. Remaining sources: {new_count}")
@@ -207,3 +217,89 @@ def deduplicate_by_expression(df: pd.DataFrame, output_path: str = None) -> pd.D
         logger.info(f"Deduplicated sources saved to: {output_path}")
 
     return deduplicated
+
+def validate_context_ranges(df: pd.DataFrame, max_context_lines: int = 20, output_path: str = None) -> pd.DataFrame:
+    """
+    Validate and improve context ranges
+    1. Ensure context doesn't exceed file boundaries
+    2. Trim large context ranges to a maximum size
+    3. Make sure source line is always included in the context
+    
+    Args:
+        df (pd.DataFrame): DataFrame with source results.
+        max_context_lines (int): Maximum number of context lines to keep (default 20).
+
+    Returns:
+        pd.DataFrame: DataFrame with validated context ranges.
+    """
+
+    logger.info("Validating and correcting context ranges")
+
+    # ensure numeric types for calculations
+    df['startLine'] = pd.to_numeric(df['startLine'], errors='coerce')
+    df['contextStart'] = pd.to_numeric(df['contextStart'], errors='coerce')
+    df['contextEnd'] = pd.to_numeric(df['contextEnd'], errors='coerce')
+    
+    # process each row
+    for idx, row in df.iterrows():
+        try:
+            file_path = row['location']
+            start_line = int(row['startLine'])
+            context_start = int(row['contextStart'])
+            context_end = int(row['contextEnd'])
+
+            # check if file exists
+            if not os.path.exists(file_path):
+                logger.warning(f"File not found: {file_path}. Skipping this entry.")
+                continue
+
+            # get the file lines
+            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                total_lines = sum(1 for _ in f)
+
+            corrected_start = max(1, context_start) # context start doesnt start before line 1
+            corrected_end = min(total_lines, context_end) # context end doesnt exceed file length
+
+            # ensure the source line is within the context range
+            corrected_start = min(corrected_start, start_line)
+            corrected_end = max(corrected_end, start_line)
+
+            # if only one line of context, add 5 lines before and after the source line
+            if corrected_start == corrected_end:
+                corrected_start = max(1, start_line - 5)
+                corrected_end = min(total_lines, start_line + 5)
+
+
+            # trim oversized context ranges
+            context_size = corrected_end - corrected_start + 1
+            if context_size > max_context_lines:
+                # center the context around the source line
+                lines_before = min(max_context_lines // 2, start_line - 1)
+                lines_after = max_context_lines - lines_before - 1
+
+                corrected_start = start_line - lines_before
+                corrected_end = min(total_lines, start_line + lines_after)
+
+                # if we are at the end shift lines before
+                if corrected_end < start_line + lines_after:
+                    additional_lines = start_line + lines_after - corrected_end
+                    corrected_start = max(1, corrected_start - additional_lines)
+
+                # if we are at the beginning shift lines after
+                if corrected_start == 1 and (corrected_end - corrected_start + 1) < max_context_lines:
+                    additional_lines = max_context_lines - (corrected_end - corrected_start + 1)
+                    corrected_end = min(total_lines, corrected_end + additional_lines)
+
+            # update df
+            df.at[idx, 'contextStart'] = corrected_start
+            df.at[idx, 'contextEnd'] = corrected_end
+
+        except Exception as e:
+            logger.error(f"Error validating context ranges for {row['location']}:{row['startLine']}: {e}")
+
+    # save the updated DataFrame to a new CSV file if output_path is provided
+    if output_path:
+        df.to_csv(output_path, index=False)
+        logger.info(f"Results with validated contexts saved to: {output_path}")
+
+    return df
