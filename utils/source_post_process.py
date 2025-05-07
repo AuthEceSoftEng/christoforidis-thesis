@@ -8,18 +8,28 @@ logger = logging.getLogger(__name__)
 
 def process_sources(csv_path: str, output_path: str = None) -> pd.DataFrame:
     # deduplicate sources using the deduplicate_sources_context function
-    deduplicated = deduplicate_sources_context(csv_path)
-    if deduplicated is not None:
-        print(f"Deduplication completed.")
+    deduplicated_context = deduplicate_sources_context(csv_path)
+    if deduplicated_context is not None:
+        print(f"Deduplication by context completed.")
     else:
         print("Deduplication failed.")
+        return
 
-    full_expressions = extract_full_expressions(deduplicated, output_path)
+    full_expressions = extract_full_expressions(deduplicated_context)
     if full_expressions is not None:
         print(f"Full expressions extraction completed.")
     else:
         print("Full expressions extraction failed.")
-    return full_expressions
+        return
+    
+    deduplicated_expressions = deduplicate_by_expression(full_expressions, output_path)
+    if deduplicated_expressions is not None:
+        print(f"Deduplication by expression completed.")
+    else:
+        print("Deduplication by expression failed.")
+        return
+    
+    return deduplicated_expressions
 
 def deduplicate_sources_context(csv_path: str, output_path: str = None) -> pd.DataFrame:
     """
@@ -55,7 +65,7 @@ def deduplicate_sources_context(csv_path: str, output_path: str = None) -> pd.Da
     deduplicated = deduplicated.drop(columns=['source_id', 'context_size'], axis=1)
 
     new_count = len(deduplicated)
-    logger.info(f"Removed {original_count - new_count} duplicates. Remaining sources: {new_count}")
+    logger.info(f"Removed {original_count - new_count} duplicates based on context. Remaining sources: {new_count}")
 
     # save the deduplicated DataFrame to a new CSV file if output_path is provided
     if output_path:
@@ -157,3 +167,43 @@ def extract_full_expressions(df: pd.DataFrame, output_path: str = None) -> pd.Da
         logger.info(f"Results with full expression saved to: {output_path}")
 
     return df
+
+def deduplicate_by_expression(df: pd.DataFrame, output_path: str = None) -> pd.DataFrame:
+    """
+    Remove duplicate sources keeping the entry with the largest full expression
+    Should be used after the full expression extraction
+    
+    Args:
+        df (pd.DataFrame): DataFrame with full_expression column from previous processing.
+        output_path (str, optional): Path to save the deduplicated CSV file.
+
+    Returns:
+        pd.DataFrame: DataFrame containing the deduplicated results.
+    """
+    logger.info("Deduplicating by full expression")
+    original_count = len(df)
+
+    # create unique identifier for each source
+    df['location_id'] = df.apply(
+        lambda row: f"{os.path.basename(row['location'])}:{row['startLine']}:{row['startColumn']}:{row['category']}",
+        axis = 1
+    )
+
+    # calculate expression length
+    df['expr_lenght'] = df['full_expression'].str.len()
+
+    # sort by location_id and expression length (descending) and drop duplicates
+    df = df.sort_values(by=['location_id', 'expr_lenght'], ascending=[True, False])
+    deduplicated = df.drop_duplicates(subset=['location_id'], keep='first')
+
+    # remove the temporary 'location_id' and 'expr_length' columns
+    deduplicated = deduplicated.drop(columns=['location_id', 'expr_lenght'])
+
+    new_count = len(deduplicated)
+    logger.info(f"Removed {original_count - new_count} duplicates based on expressions. Remaining sources: {new_count}")
+
+    if output_path:
+        deduplicated.to_csv(output_path, index=False)
+        logger.info(f"Deduplicated sources saved to: {output_path}")
+
+    return deduplicated
