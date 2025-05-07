@@ -2,6 +2,7 @@ import os
 from utils.query_runner import run_codeql_query_tables
 from utils.source_post_process import process_sources
 from utils.create_db import create_codeql_database
+from utils.json_process import sources_to_json
 
 def main():
     ## CODEQL DATABASE CREATION ##
@@ -35,6 +36,9 @@ def main():
 
     # process sources using the process_sources function from utils/source_post_process.py
     processed_sources = process_sources(f"{results_path}.csv", f"{results_path}_processed.csv")
+
+    # turn csv to json using the sources_to_json function from utils/json_process.py
+    sources_json = sources_to_json(processed_sources, f"{results_path}.json")
     
 
 if __name__ == "__main__":

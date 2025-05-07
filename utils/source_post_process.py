@@ -247,11 +247,6 @@ def validate_context_ranges(df: pd.DataFrame, max_context_lines: int = 20, outpu
     """
 
     logger.info("Validating and correcting context ranges")
-
-    # ensure numeric types for calculations
-    df['startLine'] = pd.to_numeric(df['startLine'], errors='coerce')
-    df['contextStart'] = pd.to_numeric(df['contextStart'], errors='coerce')
-    df['contextEnd'] = pd.to_numeric(df['contextEnd'], errors='coerce')
     
     # process each row
     for idx, row in df.iterrows():
