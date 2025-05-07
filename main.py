@@ -31,11 +31,11 @@ def main():
     if not success:
         print(f"Error running source extraction query: {error}")
         return
-    print(f"Source extraction completed. Results saved to {results_path}.csv")
+    print(f"Source extraction completed. Results saved to output/{project_name}/{results_path}.csv")
 
     # process sources using the process_sources function from utils/source_post_process.py
     processed_sources = process_sources(f"{results_path}.csv", f"{results_path}_processed.csv")
-    print(f"Processed sources saved to {results_path}_processed.csv")
+    print(f"Processed sources saved to output/{project_name}/{results_path}_processed.csv")
     
 
 if __name__ == "__main__":

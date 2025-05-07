@@ -833,11 +833,27 @@ predicate getContextLineRange(DataFlow::Node src, int startLine, int endLine) {
   endLine = src.getLocation().getStartLine() + 5  // Add a small buffer
 }
 
+// exclude test files from the scanning
+predicate isTestFile(File file) {
+  exists(string path | path = file.getAbsolutePath() |
+    // Common test file patterns
+    path.matches("%/test/%") or
+    path.matches("%/tests/%") or
+    path.matches("%/__tests__/%") or
+    path.matches("%/__mocks__/%") or
+    path.matches("%/cypress/%") or
+    path.matches("%.spec.js") or
+    path.matches("%.test.js") or
+    path.matches("%.cy.js")
+  )
+}
+
 // Main query
 from DataFlow::Node src, int contextStartLine, int contextEndLine
 where 
   getSourceCategory(src) != "Unknown source" and
-  getContextLineRange(src, contextStartLine, contextEndLine)
+  getContextLineRange(src, contextStartLine, contextEndLine) and
+  not isTestFile(src.getFile())
 select 
   src.asExpr() as expression,
   getSourceCategory(src) as category,
