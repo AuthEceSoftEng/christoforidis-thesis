@@ -32,14 +32,27 @@ def process_sources(csv_path: str, output_path: str = None) -> pd.DataFrame:
         return
     
     # validate context ranges using the validate_context_ranges function
-    validated_context = validate_context_ranges(deduplicated_expressions, output_path=output_path)
+    validated_context = validate_context_ranges(deduplicated_expressions)
     if validated_context is not None:
         print(f"Context validation completed.")
     else:
         print("Context validation failed.")
         return
     
-    return validated_context
+    sources = validated_context.copy() # this should change if we process more
+
+    # add source_id column
+    logger.info("Adding source_id column")
+    sources['source_id'] = sources.apply(
+        lambda row: f"SRC-{os.path.basename(row['location']).split('.')[0]}-L{int(row['startLine'])}-C{int(row['startColumn'])}",
+        axis=1
+    )
+
+    if output_path:
+        sources.to_csv(output_path, index=False)
+        logger.info(f"Processed sources saved to: {output_path}")
+    
+    return sources
 
 def deduplicate_sources_context(csv_path: str, output_path: str = None) -> pd.DataFrame:
     """
