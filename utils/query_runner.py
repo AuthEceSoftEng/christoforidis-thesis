@@ -59,7 +59,7 @@ def run_codeql_query_tables(database_path: str, query_path: str, output_path: st
             capture_output=True
         )
 
-        logger.info(f"Query completed successfully. Results saved to {output_path}")
+        logger.info(f"Query completed successfully. Results saved to {output_path}.bqrs")
 
         try:
             # execute the command_decode
@@ -70,7 +70,7 @@ def run_codeql_query_tables(database_path: str, query_path: str, output_path: st
                 capture_output=True
             )
 
-            logger.info(f"Query completed successfully. Results saved to {output_path}")
+            logger.info(f"Query completed successfully. Results saved to {output_path}.csv")
             return True, None
         
         except subprocess.CalledProcessError as e:

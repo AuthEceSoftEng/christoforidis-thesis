@@ -1,8 +1,8 @@
 import os
 from utils.query_runner import run_codeql_query_tables
-from utils.source_post_process import process_sources
+from utils.source_post_process import process_sources, sources_to_json
 from utils.create_db import create_codeql_database
-from utils.json_process import sources_to_json
+from utils.methods_post_process import deduplicate_methods, methods_to_json
 
 def main():
     ## CODEQL DATABASE CREATION ##
@@ -38,8 +38,24 @@ def main():
     processed_sources = process_sources(f"{results_path}.csv", f"{results_path}_processed.csv")
 
     # turn csv to json using the sources_to_json function from utils/json_process.py
-    sources_json = sources_to_json(processed_sources, f"{results_path}.json", project_name)
+    sources_json = sources_to_json(processed_sources, f"{results_path}.json", project_name) # leave this as is for now
+
+    ## EXTRACT METHODS FROM DEPENDENCIES ##
+    query_path = os.path.join(project_root, "codeql", "getPackageMethods.ql")
+    results_path = os.path.join(output_dir, "methods")
+
+    # run the CodeQL query to extract methods from dependencies
+    success, error = run_codeql_query_tables(database_path, query_path, results_path)
+    if not success:
+        print(f"Error running methods extraction query: {error}")
+        return
+    print(f"Methods extraction completed. Results saved to {results_path}.csv")
     
+    # deduplicate the df in case codeql returns duplicates
+    processed_methods = deduplicate_methods(f"{results_path}.csv", f"{results_path}_processed.csv")
+
+    # turn csv to json
+    methods_json = methods_to_json(processed_methods, f"{results_path}.json") ## leave this as is for now
 
 if __name__ == "__main__":
     main()
