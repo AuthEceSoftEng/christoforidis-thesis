@@ -5,16 +5,10 @@
  * @id js/all-possible-sources
  * @tags inventory
  *       sources
- *       taint
- *       security
  */
 
  import javascript
  import isTestFile
-
- /* -- Source categories as predicates or classes -- */
- 
- /* - Remote/user input sources -  */
 
  // All instances of RemoteFlowSource (e.g. Express, HTTP, Next.js, Firebase, etc.) 
  // are considered taint sources (remote/user input).
@@ -26,11 +20,6 @@
  // even though RemoteFlowSource might cover most of the cases we will make sure to include all possible sources.
 
 // Uses multiple heuristics to identify HTTP request sources across standard and custom frameworks:
-// - Property name patterns (query, body, params, etc.)
-// - Request object type detection
-// - Parameter and variable name patterns
-// - Property access patterns
-// - Express-style route handler detection
 // This complements RemoteFlowSource by catching sources in custom frameworks or non-standard patterns
 predicate isHeuristicHttpRequestSource(DataFlow::Node src) {
   // Direct property access based on property names
@@ -299,7 +288,6 @@ predicate isWebSocketSource(DataFlow::Node src) {
 }
 
 // Detects GraphQL resolver arguments and context objects as sources of untrusted data.
-// Identifies data coming from client requests through the GraphQL protocol in resolvers.
 predicate isGraphQLRequestSource(DataFlow::Node src) {
   // Case 1: Direct property access to resolver arguments
   exists(PropAccess acc, Function f, Import imp |
@@ -466,11 +454,7 @@ predicate isGraphQLRequestSource(DataFlow::Node src) {
   )
 }
 
-/* Client-Side & DOM Sources. */
-// some might be covered by RemoteFlowSource, but we will include them for completeness.
-
 // Detects client-side user input sources from DOM elements, events, and framework-specific patterns.
-// This covers standard DOM APIs, jQuery, React, Angular, and other common patterns.
 predicate isClientSideUserInputSource(DataFlow::Node src) {
   // Case 1: Direct property access to DOM elements - ONLY WHEN READING
   exists(PropAccess acc |
@@ -774,9 +758,7 @@ private predicate isEventDataAccess(DataFlow::Node node) {
   )
 }
 
- /* -- Environment variables and command-line inputs -- */
  // Access to process.env.X environment variables, process.stdin, and process.argv[X] command-line arguments
- // are considered taint sources (untrusted data).
  class ProcessSource extends DataFlow::SourceNode {
   ProcessSource() {
     // Focus on security-sensitive environment variables
@@ -815,7 +797,6 @@ private predicate isEventDataAccess(DataFlow::Node node) {
   }
 }
 
- /* -- File system read sources -- */
  // File system read sources are considered taint sources (untrusted data).
  predicate isFsReadCall(DataFlow::Node node) {
   exists(DataFlow::CallNode call |
@@ -937,14 +918,8 @@ where
 select 
   src.asExpr() as expression,
   getSourceCategory(src) as category,
-  src.getLocation().getFile().getAbsolutePath() as location, // Full file path for post-processing
+  src.getLocation().getFile().getAbsolutePath() as location,
   src.getLocation().getStartLine() as startLine,
   src.getLocation().getStartColumn() as startColumn,
   contextStartLine as contextStart,
   contextEndLine as contextEnd
-
-/* 
-from DataFlow::Node src
-where getSourceCategory(src) != "Unknown source"
-select src.asExpr(), getSourceCategory(src), src.getLocation()
- */
