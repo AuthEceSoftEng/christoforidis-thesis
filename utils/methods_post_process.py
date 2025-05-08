@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 def deduplicate_methods(csv_path: str, output_path: str = None) -> pd.DataFrame:
     """
-    Deduplicate methods dataframe based on packageName, version, and methodCalled.
+    Deduplicate methods dataframe based on packageName, version, and methodName.
     
     Args:
         csv_path (str): Path to the input CSV file.
@@ -22,10 +22,10 @@ def deduplicate_methods(csv_path: str, output_path: str = None) -> pd.DataFrame:
         df = df = pd.read_csv(csv_path, header = 0)
 
         # drop duplicates
-        unique_df = df.drop_duplicates(["packageName", "version", "methodCalled"])
+        unique_df = df.drop_duplicates(["packageName", "version", "methodName"])
 
         # sort for readability
-        unique_df = unique_df.sort_values(by=["packageName", "methodCalled"])
+        unique_df = unique_df.sort_values(by=["packageName", "methodName"])
 
         # Save to CSV if output path is provided
         if output_path:
@@ -56,7 +56,7 @@ def methods_to_json(df: pd.DataFrame, output_path: str = None) -> list:
         package = {
             "package": package_name,
             "version": version,
-            "methods": group['methodCalled'].tolist()
+            "methods": group['methodName'].tolist()
         }
         methods.append(package)
 
