@@ -2,7 +2,7 @@ import os
 from utils.query_runner import run_codeql_query_tables
 from utils.source_post_process import process_sources, sources_to_json
 from utils.create_db import create_codeql_database
-from utils.methods_post_process import deduplicate_methods, methods_to_json
+from utils.methods_post_process import deduplicate_methods, methods_to_json, compare_with_advisories
 
 def main():
     ## CODEQL DATABASE CREATION ##
@@ -56,6 +56,9 @@ def main():
 
     # turn csv to json
     methods_json = methods_to_json(processed_methods, f"{results_path}.json") ## leave this as is for now
+
+    # check for vulnerable npm packages
+    compare_with_advisories(methods_json, output_path=f"{results_path}_vulnerable.json")
 
 if __name__ == "__main__":
     main()
