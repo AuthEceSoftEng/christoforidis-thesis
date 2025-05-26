@@ -12,6 +12,7 @@
  import semmle.javascript.security.dataflow.StoredXssQuery as StoredXss
  import semmle.javascript.security.dataflow.CodeInjectionQuery as CodeInjection
  import semmle.javascript.security.dataflow.UnsafeDeserializationQuery as UnsafeDeserialization
+ import semmle.javascript.security.dataflow.LogInjectionQuery as LogInjection
 
 
  /* POTENTIAL SINKS PREDICATES */
@@ -219,6 +220,61 @@ predicate isDeserializationSink(DataFlow::Node node) {
     |
       call = qs.getAMemberCall("parse") and
       node = call.getArgument(0)
+    )
+  )
+}
+
+// holds if the given node is a logging sink
+predicate isLoggingSink(DataFlow::Node node) {
+  node instanceof LogInjection::Sink
+  or
+  // Console logging
+  exists(DataFlow::CallNode call |
+    call.getCalleeNode() = DataFlow::globalVarRef("console").getAPropertyRead(["log", "error", "warn", "info", "debug"]) and
+    node = call.getAnArgument()
+  )
+  or
+  // Winston logger
+  exists(DataFlow::CallNode call, DataFlow::SourceNode winston |
+    winston = DataFlow::moduleImport("winston") and
+    (
+      // winston.log/info/warn/error
+      call = winston.getAMemberCall(["log", "info", "warn", "error", "debug"]) or
+      // logger instance methods
+      exists(DataFlow::SourceNode logger |
+        logger = winston.getAPropertyRead("createLogger").getACall() and
+        call = logger.getAMemberCall(["log", "info", "warn", "error", "debug"])
+      )
+    ) and
+    node = call.getAnArgument()
+  )
+  or
+  // Bunyan
+  exists(DataFlow::CallNode call, DataFlow::SourceNode bunyan |
+    bunyan = DataFlow::moduleImport("bunyan") and
+    exists(DataFlow::SourceNode logger |
+      logger = bunyan.getAMethodCall("createLogger") and
+      call = logger.getAMemberCall(["info", "warn", "error", "debug", "trace"]) and
+      node = call.getAnArgument()
+    )
+  )
+  or
+  // Pino
+  exists(DataFlow::CallNode call, DataFlow::SourceNode pino |
+    pino = DataFlow::moduleImport("pino") and
+    exists(DataFlow::SourceNode logger |
+      logger = pino.getACall() and
+      call = logger.getAMemberCall(["info", "warn", "error", "debug", "trace", "fatal"]) and
+      node = call.getAnArgument()
+    )
+  )
+  or
+  // Morgan (Express logging middleware)
+  exists(DataFlow::CallNode call |
+    call = DataFlow::moduleImport("morgan").getACall() and
+    exists(DataFlow::ObjectLiteralNode options |
+      options = call.getArgument(1) and
+      node = options.getAPropertyWrite("stream").getRhs()
     )
   )
 }
