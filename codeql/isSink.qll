@@ -10,6 +10,7 @@
  import semmle.javascript.security.dataflow.SecondOrderCommandInjectionQuery as SecondOrderCommandInjection
  import semmle.javascript.security.dataflow.ReflectedXssQuery as ReflectedXss
  import semmle.javascript.security.dataflow.StoredXssQuery as StoredXss
+ import semmle.javascript.security.dataflow.CodeInjectionQuery as CodeInjection
 
 
  /* POTENTIAL SINKS PREDICATES */
@@ -119,6 +120,52 @@ predicate isHttpResponseSink(DataFlow::Node node) {
       bodyWrite.getBase().(DataFlow::PropRead).getPropertyName() in ["ctx", "context", "response"]
     ) and
     node = bodyWrite.getRhs()
+  )
+}
+
+// holds if the given node is a dynamic code execution sink
+predicate isDynamicCodeExecutionSink(DataFlow::Node node) {
+  node instanceof CodeInjection::Sink
+  or
+  exists(DataFlow::CallNode call |
+    // Direct eval calls
+    call.getCalleeNode().getALocalSource() = DataFlow::globalVarRef("eval") and
+    node = call.getArgument(0)
+    or
+    // Function constructor
+    call instanceof DataFlow::NewNode and
+    call.getCalleeNode().getALocalSource() = DataFlow::globalVarRef("Function") and
+    (node = call.getAnArgument() and not node = call.getLastArgument())
+    or
+    // setTimeout/setInterval with string first argument
+    call.getCalleeNode().getALocalSource() = DataFlow::globalVarRef(["setTimeout", "setInterval"]) and
+    node = call.getArgument(0) and
+    not exists(DataFlow::FunctionNode f | f.flowsTo(node))
+    or
+    // Indirect eval via window/global/this
+    call.getCalleeNode().(DataFlow::PropRead).getPropertyName() = "eval" and
+    call.getCalleeNode().(DataFlow::PropRead).getBase().getALocalSource() = 
+      DataFlow::globalVarRef(["window", "global", "globalThis"]) and
+    node = call.getArgument(0)
+    or
+    // Template engine sinks
+    (
+      // EJS template rendering
+      call.getCalleeNode().(DataFlow::PropRead).getPropertyName() = "render" and
+      exists(DataFlow::SourceNode base | base = call.getCalleeNode().(DataFlow::PropRead).getBase().getALocalSource() |
+        base.toString().matches("%ejs%")
+      ) and
+      node = call.getArgument(0)
+    )
+    or
+    (
+      // Handlebars/Pug compilation
+      call.getCalleeNode().(DataFlow::PropRead).getPropertyName() = "compile" and
+      exists(DataFlow::SourceNode base | base = call.getCalleeNode().(DataFlow::PropRead).getBase().getALocalSource() |
+        base.toString().matches("%handlebars%") or base.toString().matches("%pug%")
+      ) and
+      node = call.getArgument(0)
+    )
   )
 }
 
