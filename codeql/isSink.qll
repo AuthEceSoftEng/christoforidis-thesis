@@ -8,6 +8,8 @@
  import semmle.javascript.security.dataflow.CommandInjectionQuery as CommandInjection
  import semmle.javascript.security.dataflow.IndirectCommandInjectionQuery as IndirectCommandInjection
  import semmle.javascript.security.dataflow.SecondOrderCommandInjectionQuery as SecondOrderCommandInjection
+ import semmle.javascript.security.dataflow.ReflectedXssQuery as ReflectedXss
+ import semmle.javascript.security.dataflow.StoredXssQuery as StoredXss
 
 
  /* POTENTIAL SINKS PREDICATES */
@@ -59,6 +61,65 @@ predicate isFileSystemSink(DataFlow::Node node) {
   or
   // File create operations
   isFileCreateSink(node)
+}
+
+// holds if the given node is an HTTP response sink
+predicate isHttpResponseSink(DataFlow::Node node) {
+  // Standard XSS sinks from the libraries
+  node instanceof ReflectedXss::Sink
+  or
+  node instanceof StoredXss::Sink
+  or
+  // Express.js response methods
+  exists(DataFlow::CallNode call |
+    // Express response methods - broader list
+    call.getCalleeNode().(DataFlow::PropRead).getPropertyName() in [
+      "send", "write", "end", "json", "jsonp", "render", "sendFile", 
+      "sendStatus", "setHeader", "attachment", "download", "type"
+    ] and
+    // Improved response object detection
+    (
+      // By parameter name (res or response)
+      exists(Parameter p |
+        p = call.getCalleeNode().(DataFlow::PropRead).getBase().getALocalSource().asExpr().(VarAccess).getVariable().getADeclaration() and
+        (p.getName() = "res" or p.getName() = "response")
+      )
+      or
+      // By route handler position
+      exists(DataFlow::CallNode routeCall |
+        routeCall.getCalleeNode().(DataFlow::PropRead).getPropertyName() in ["get", "post", "put", "delete", "use", "all"] and
+        call.getCalleeNode().(DataFlow::PropRead).getBase().getALocalSource() = 
+          routeCall.getArgument(1).getAFunctionValue().getParameter(1)
+      )
+    ) and
+    // Content being sent - could be 1st or 2nd argument depending on method
+    (
+      node = call.getArgument(0) or 
+      node = call.getArgument(1)
+    )
+  )
+  or
+  // Chained Express methods (status().json(), etc.)
+  exists(DataFlow::CallNode chainedCall |
+    // Terminal methods that output content
+    chainedCall.getCalleeNode().(DataFlow::PropRead).getPropertyName() in [
+      "json", "send", "end", "render"
+    ] and
+    // The base is another method call (like status())
+    chainedCall.getCalleeNode().(DataFlow::PropRead).getBase() instanceof DataFlow::CallNode and
+    // The content
+    node = chainedCall.getArgument(0)
+  )
+  or
+  // Koa response patterns
+  exists(DataFlow::PropWrite bodyWrite |
+    bodyWrite.getPropertyName() = "body" and
+    (
+      bodyWrite.getBase().asExpr().(VarAccess).getVariable().getName() in ["ctx", "context"] or
+      bodyWrite.getBase().(DataFlow::PropRead).getPropertyName() in ["ctx", "context", "response"]
+    ) and
+    node = bodyWrite.getRhs()
+  )
 }
 
 /* PRIVATE HELPING PREDICATES */
