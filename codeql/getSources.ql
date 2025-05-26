@@ -10,6 +10,7 @@
  import javascript
  import isTestFile
  import isSource
+ import helpers
 
 // Main query
 from DataFlow::Node src, int contextStartLine, int contextEndLine
