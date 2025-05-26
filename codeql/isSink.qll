@@ -11,6 +11,7 @@
  import semmle.javascript.security.dataflow.ReflectedXssQuery as ReflectedXss
  import semmle.javascript.security.dataflow.StoredXssQuery as StoredXss
  import semmle.javascript.security.dataflow.CodeInjectionQuery as CodeInjection
+ import semmle.javascript.security.dataflow.UnsafeDeserializationQuery as UnsafeDeserialization
 
 
  /* POTENTIAL SINKS PREDICATES */
@@ -164,6 +165,59 @@ predicate isDynamicCodeExecutionSink(DataFlow::Node node) {
       exists(DataFlow::SourceNode base | base = call.getCalleeNode().(DataFlow::PropRead).getBase().getALocalSource() |
         base.toString().matches("%handlebars%") or base.toString().matches("%pug%")
       ) and
+      node = call.getArgument(0)
+    )
+  )
+}
+
+// holds if the given node is a deserialization sink
+predicate isDeserializationSink(DataFlow::Node node) {
+  node instanceof UnsafeDeserialization::Sink
+  or
+  exists(DataFlow::CallNode call |
+    // JSON.parse
+    call.getCalleeNode() = DataFlow::globalVarRef("JSON").getAPropertyRead("parse") and
+    node = call.getArgument(0)
+    or
+    // YAML libraries (js-yaml)
+    exists(DataFlow::SourceNode yaml |
+      yaml = DataFlow::moduleImport("js-yaml") or
+      yaml = DataFlow::moduleImport("yaml")
+    |
+      call = yaml.getAMemberCall("load") and
+      node = call.getArgument(0)
+    )
+    or
+    // Node-serialize
+    exists(DataFlow::SourceNode serialize |
+      serialize = DataFlow::moduleImport("node-serialize")
+    |
+      call = serialize.getAMemberCall("unserialize") and 
+      node = call.getArgument(0)
+    )
+    or
+    // XML parsing with XXE risk
+    exists(DataFlow::SourceNode xml2js |
+      xml2js = DataFlow::moduleImport("xml2js")
+    |
+      call = xml2js.getAMemberCall("parseString") and
+      node = call.getArgument(0) and
+      // Look for missing/unsafe XML parser options
+      not exists(DataFlow::ObjectLiteralNode options |
+        options = call.getArgument(1) and
+        exists(BooleanLiteral bl |
+          bl.getValue() = "false" and
+          options.hasPropertyWrite("noent", DataFlow::valueNode(bl))
+        )
+      )
+    )
+    or
+    // Query string parsing
+    exists(DataFlow::SourceNode qs |
+      qs = DataFlow::moduleImport("qs") or
+      qs = DataFlow::moduleImport("querystring")
+    |
+      call = qs.getAMemberCall("parse") and
       node = call.getArgument(0)
     )
   )
