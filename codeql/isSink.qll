@@ -5,11 +5,20 @@
  import javascript
  import semmle.javascript.security.dataflow.SqlInjectionQuery as SqlInjection
  import semmle.javascript.security.dataflow.NosqlInjectionQuery as NosqlInjection
+ import semmle.javascript.security.dataflow.CommandInjectionQuery as CommandInjection
+ import semmle.javascript.security.dataflow.IndirectCommandInjectionQuery as IndirectCommandInjection
+ import semmle.javascript.security.dataflow.SecondOrderCommandInjectionQuery as SecondOrderCommandInjection
 
 
  /* POTENTIAL SINKS PREDICATES */
 // holds if the given node is a command execution sink
 predicate isCommandExecutionSink(DataFlow::Node node) {
+  node instanceof CommandInjection::Sink
+  or
+  node instanceof IndirectCommandInjection::Sink
+  or
+  node instanceof SecondOrderCommandInjection::Sink
+  or
   exists(DataFlow::CallNode call |
     // The command argument is usually the first argument
     node = call.getArgument(0) and
