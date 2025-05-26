@@ -13,7 +13,8 @@
  import semmle.javascript.security.dataflow.CodeInjectionQuery as CodeInjection
  import semmle.javascript.security.dataflow.UnsafeDeserializationQuery as UnsafeDeserialization
  import semmle.javascript.security.dataflow.LogInjectionQuery as LogInjection
-
+ import semmle.javascript.security.dataflow.ClientSideRequestForgeryQuery as ClientSideRequestForgery
+ import semmle.javascript.security.dataflow.RequestForgeryQuery as RequestForgery
 
  /* POTENTIAL SINKS PREDICATES */
 
@@ -275,6 +276,85 @@ predicate isLoggingSink(DataFlow::Node node) {
     exists(DataFlow::ObjectLiteralNode options |
       options = call.getArgument(1) and
       node = options.getAPropertyWrite("stream").getRhs()
+    )
+  )
+}
+
+// holds if the given node is an external API call sink
+predicate isExternalApiSink(DataFlow::Node node) {
+  node instanceof ClientSideRequestForgery::Sink
+  or
+  node instanceof RequestForgery::Sink
+  or
+  // Axios library
+  exists(DataFlow::CallNode call |
+    (
+      // axios(config) or axios.get/post/put/delete/etc
+      (
+        call.getCalleeNode() = DataFlow::moduleImport("axios") or
+        call.getCalleeNode().(DataFlow::PropRead).getBase() = DataFlow::moduleImport("axios")
+      ) and
+      (
+        // URL is first argument for method calls
+        call.getCalleeNode().(DataFlow::PropRead).getPropertyName() in ["get", "post", "put", "delete", "patch", "head", "options"] and
+        node = call.getArgument(0)
+        or
+        // URL is in config object
+        exists(DataFlow::ObjectLiteralNode config |
+          config = call.getArgument(0) and
+          node = config.getAPropertyWrite("url").getRhs()
+        )
+      )
+    )
+  )
+  or
+  // Fetch API (browser or node-fetch)
+  exists(DataFlow::CallNode call |
+    (
+      call.getCalleeNode() = DataFlow::globalVarRef("fetch") or
+      call.getCalleeNode() = DataFlow::moduleImport("node-fetch")
+    ) and
+    node = call.getArgument(0)
+  )
+  or
+  // Request library
+  exists(DataFlow::CallNode call |
+    call.getCalleeNode() = DataFlow::moduleImport("request") and
+    (
+      // String URL as first argument
+      node = call.getArgument(0)
+      or
+      // URL in options object
+      exists(DataFlow::ObjectLiteralNode options |
+        options = call.getArgument(0) and
+        node = options.getAPropertyWrite("url").getRhs()
+      )
+    )
+  )
+  or
+  // Native http/https modules
+  exists(DataFlow::CallNode call |
+    (
+      call.getCalleeNode().(DataFlow::PropRead).getPropertyName() = "request" and
+      (
+        call.getCalleeNode().(DataFlow::PropRead).getBase() = DataFlow::moduleImport("http") or
+        call.getCalleeNode().(DataFlow::PropRead).getBase() = DataFlow::moduleImport("https")
+      )
+    ) and
+    (
+      // String URL as first argument
+      node = call.getArgument(0)
+      or
+      // URL in options object
+      exists(DataFlow::ObjectLiteralNode options |
+        options = call.getArgument(0) and
+        (
+          node = options.getAPropertyWrite("host").getRhs() or
+          node = options.getAPropertyWrite("hostname").getRhs() or
+          node = options.getAPropertyWrite("path").getRhs() or
+          node = options.getAPropertyWrite("port").getRhs()
+        )
+      )
     )
   )
 }
