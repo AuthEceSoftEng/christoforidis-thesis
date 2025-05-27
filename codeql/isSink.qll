@@ -15,6 +15,9 @@
  import semmle.javascript.security.dataflow.LogInjectionQuery as LogInjection
  import semmle.javascript.security.dataflow.ClientSideRequestForgeryQuery as ClientSideRequestForgery
  import semmle.javascript.security.dataflow.RequestForgeryQuery as RequestForgery
+ import semmle.javascript.security.dataflow.DomBasedXssQuery as DomBasedXss
+ import semmle.javascript.security.dataflow.UnsafeHtmlConstructionQuery as UnsafeHtmlConstruction
+ import semmle.javascript.security.dataflow.UnsafeJQueryPluginQuery as UnsafeJQueryPlugin
 
  /* POTENTIAL SINKS PREDICATES */
 
@@ -356,6 +359,54 @@ predicate isExternalApiSink(DataFlow::Node node) {
         )
       )
     )
+  )
+}
+
+// holds if the given node is a DOM manipulation sink
+predicate isDomManipulationSink(DataFlow::Node node) {
+  node instanceof DomBasedXss::Sink
+  or
+  node instanceof UnsafeHtmlConstruction::Sink
+  or
+  node instanceof UnsafeJQueryPlugin::Sink
+  or
+  // Direct property assignments
+  exists(DataFlow::PropWrite write |
+    // innerHTML, outerHTML assignments
+    write.getPropertyName() in ["innerHTML", "outerHTML", "insertAdjacentHTML"] and
+    node = write.getRhs()
+  )
+  or
+  // document.write/writeln
+  exists(DataFlow::CallNode call |
+    call.getCalleeNode().(DataFlow::PropRead).getPropertyName() in ["write", "writeln"] and
+    call.getCalleeNode().(DataFlow::PropRead).getBase().getALocalSource() = DataFlow::globalVarRef("document") and
+    node = call.getArgument(0)
+  )
+  or
+  // jQuery methods
+  exists(DataFlow::CallNode call |
+    // jQuery objects identified by $ or jQuery
+    exists(DataFlow::SourceNode jquery |
+      jquery = DataFlow::globalVarRef(["$", "jQuery"])
+    |
+      // Method calls on jQuery objects
+      call = jquery.getACall().getAMethodCall(["html", "append", "prepend", "after", "before", "replaceWith"]) and
+      node = call.getArgument(0)
+    )
+  )
+  or
+  // location assignments
+  exists(DataFlow::PropWrite write |
+    write.getBase().getALocalSource() = DataFlow::globalVarRef("location") and
+    write.getPropertyName() in ["href", "hash", "search", "pathname", "protocol", "host"] and
+    node = write.getRhs()
+  )
+  or
+  // React's dangerouslySetInnerHTML
+  exists(DataFlow::ObjectLiteralNode props |
+    props.getAPropertyWrite("dangerouslySetInnerHTML").getRhs() instanceof DataFlow::ObjectLiteralNode and
+    node = props.getAPropertyWrite("dangerouslySetInnerHTML").getRhs().(DataFlow::ObjectLiteralNode).getAPropertyWrite("__html").getRhs()
   )
 }
 
