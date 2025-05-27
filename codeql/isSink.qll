@@ -252,6 +252,15 @@ predicate isDeserializationSink(DataFlow::Node node) {
       node = call.getArgument(0)
     )
   )
+  or
+  // jQuery.parseJSON / $.parseJSON
+  exists(DataFlow::CallNode call |
+    (
+      call = DataFlow::globalVarRef("$").getAPropertyRead("parseJSON").getACall() or
+      call = DataFlow::globalVarRef("jQuery").getAPropertyRead("parseJSON").getACall()
+    ) and
+    node = call.getArgument(0)
+  )
 }
 
 // holds if the given node is a logging sink
