@@ -381,6 +381,11 @@ predicate isDomManipulationSink(DataFlow::Node node) {
     write.getPropertyName() = "domain" and
     write.getBase().getALocalSource() = DataFlow::globalVarRef("document") and
     node = write.getRhs()
+    or
+    // document.cookie assignment
+    write.getPropertyName() = "cookie" and
+    write.getBase().getALocalSource() = DataFlow::globalVarRef("document") and
+    node = write.getRhs()
   )
   or
   // Event handler assignments on window, document, etc.
