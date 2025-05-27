@@ -721,3 +721,18 @@ private predicate isFileCreateMethodName(string name) {
   name = "copyFile" or name = "copyFileSync" or
   name = "rename" or name = "renameSync"
 }
+
+string getSinkCategory(DataFlow::Node sink) {
+  if isCommandExecutionSink(sink) then result = "Command execution"
+  else if isDatabaseQuerySink(sink) then result = "Database query"
+  else if isFileSystemSink(sink) then result = "File system operation"
+  else if isHttpResponseSink(sink) then result = "HTTP response"
+  else if isDynamicCodeExecutionSink(sink) then result = "Dynamic code execution"
+  else if isDeserializationSink(sink) then result = "Deserialization"
+  else if isLoggingSink(sink) then result = "Logging"
+  else if isExternalApiSink(sink) then result = "External API call"
+  else if isDomManipulationSink(sink) then result = "DOM manipulation"
+  else if isOpenRedirectSink(sink) then result = "Open redirect"
+  else if isXPathInjectionSink(sink) then result = "XPath injection"
+  else result = "Unknown sink" // Default case
+}

@@ -8,9 +8,9 @@ from utils.general import extract_context_from_file
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-def process_sources(csv_path: str, output_path: str = None) -> pd.DataFrame:
-    # deduplicate sources using the deduplicate_sources_context function
-    deduplicated_context = deduplicate_sources_context(csv_path)
+def process_nodes(csv_path: str, node_type: str, output_path: str = None) -> pd.DataFrame:
+    # deduplicate nodes using the deduplicate_nodes_context function
+    deduplicated_context = deduplicate_nodes_context(csv_path, node_type)
     if deduplicated_context is not None:
         print(f"Deduplication by context completed.")
     else:
@@ -26,7 +26,7 @@ def process_sources(csv_path: str, output_path: str = None) -> pd.DataFrame:
         return
     
     # deduplicate by expression using the deduplicate_by_expression function
-    deduplicated_expressions = deduplicate_by_expression(full_expressions)
+    deduplicated_expressions = deduplicate_by_expression(full_expressions, node_type)
     if deduplicated_expressions is not None:
         print(f"Deduplication by expression completed.")
     else:
@@ -41,22 +41,22 @@ def process_sources(csv_path: str, output_path: str = None) -> pd.DataFrame:
         print("Context validation failed.")
         return
     
-    sources = validated_context.copy() # this should change if we process more
+    nodes = validated_context.copy() # this should change if we process more
 
-    # add source_id column
-    logger.info("Adding source_id column")
-    sources['source_id'] = sources.apply(
-        lambda row: f"SRC-{os.path.basename(row['location']).split('.')[0]}-L{int(row['startLine'])}-C{int(row['startColumn'])}",
+    # add id column
+    logger.info("Adding id column")
+    nodes['id'] = nodes.apply(
+        lambda row: f"{"SRC" if node_type == "source" else "SNK"}-{os.path.basename(row['location']).split('.')[0]}-L{int(row['startLine'])}-C{int(row['startColumn'])}",
         axis=1
     )
 
     if output_path:
-        sources.to_csv(output_path, index=False)
-        logger.info(f"Processed sources saved to: {output_path}")
+        nodes.to_csv(output_path, index=False)
+        logger.info(f"Processed {node_type}s saved to: {output_path}")
     
-    return sources
+    return nodes
 
-def deduplicate_sources_context(csv_path: str, output_path: str = None) -> pd.DataFrame:
+def deduplicate_nodes_context(csv_path: str, node_type: str, output_path: str = None) -> pd.DataFrame:
     """
     Read a CSV file of CodeQL query results amd remove duplicates,
     keeping the entry with the most context lines.
@@ -73,8 +73,8 @@ def deduplicate_sources_context(csv_path: str, output_path: str = None) -> pd.Da
     df = pd.read_csv(csv_path, header = 0)
     original_count = len(df)
 
-    # create unique identifier for each source
-    df['source_id'] = df.apply(
+    # create unique identifier for each node
+    df['id'] = df.apply(
         lambda row: f"{os.path.basename(row['location'])}:{row['startLine']}:{row['startColumn']}:{row['category']}:{row['expression']}",
         axis=1
     )
@@ -84,18 +84,18 @@ def deduplicate_sources_context(csv_path: str, output_path: str = None) -> pd.Da
 
     # sort by context size (descending) and drop duplicates
     df = df.sort_values(by='context_size', ascending=False)
-    deduplicated = df.drop_duplicates(subset=['source_id'])
+    deduplicated = df.drop_duplicates(subset=['id'])
 
-    # remove the temporary 'source_id' and 'context_size' columns
-    deduplicated = deduplicated.drop(columns=['source_id', 'context_size'], axis=1)
+    # remove the temporary 'id' and 'context_size' columns
+    deduplicated = deduplicated.drop(columns=['id', 'context_size'], axis=1)
 
     new_count = len(deduplicated)
-    logger.info(f"Removed {original_count - new_count} duplicates based on context. Remaining sources: {new_count}")
+    logger.info(f"Removed {original_count - new_count} duplicates based on context. Remaining {node_type}s: {new_count}")
 
     # save the deduplicated DataFrame to a new CSV file if output_path is provided
     if output_path:
         deduplicated.to_csv(output_path, index=False)
-        logger.info(f"Deduplicated sources saved to: {output_path}")
+        logger.info(f"Deduplicated {node_type}s saved to: {output_path}")
 
     return deduplicated
 
@@ -193,9 +193,9 @@ def extract_full_expressions(df: pd.DataFrame, output_path: str = None) -> pd.Da
 
     return df
 
-def deduplicate_by_expression(df: pd.DataFrame, output_path: str = None) -> pd.DataFrame:
+def deduplicate_by_expression(df: pd.DataFrame, node_type: str, output_path: str = None) -> pd.DataFrame:
     """
-    Remove duplicate sources keeping the entry with the largest full expression
+    Remove duplicate nodes keeping the entry with the largest full expression
     Should be used after the full expression extraction
     
     Args:
@@ -225,11 +225,11 @@ def deduplicate_by_expression(df: pd.DataFrame, output_path: str = None) -> pd.D
     deduplicated = deduplicated.drop(columns=['location_id', 'expr_length'])
 
     new_count = len(deduplicated)
-    logger.info(f"Removed {original_count - new_count} duplicates based on expressions. Remaining sources: {new_count}")
+    logger.info(f"Removed {original_count - new_count} duplicates based on expressions. Remaining {node_type}s: {new_count}")
 
     if output_path:
         deduplicated.to_csv(output_path, index=False)
-        logger.info(f"Deduplicated sources saved to: {output_path}")
+        logger.info(f"Deduplicated {node_type}s saved to: {output_path}")
 
     return deduplicated
 
@@ -270,11 +270,11 @@ def validate_context_ranges(df: pd.DataFrame, max_context_lines: int = 20, outpu
             corrected_start = max(1, context_start) # context start doesnt start before line 1
             corrected_end = min(total_lines, context_end) # context end doesnt exceed file length
 
-            # ensure the source line is within the context range
+            # ensure the node line is within the context range
             corrected_start = min(corrected_start, start_line)
             corrected_end = max(corrected_end, start_line)
 
-            # if only one line of context, add 5 lines before and after the source line
+            # if only one line of context, add 5 lines before and after the node line
             if corrected_start == corrected_end:
                 corrected_start = max(1, start_line - 5)
                 corrected_end = min(total_lines, start_line + 5)
@@ -283,7 +283,7 @@ def validate_context_ranges(df: pd.DataFrame, max_context_lines: int = 20, outpu
             # trim oversized context ranges
             context_size = corrected_end - corrected_start + 1
             if context_size > max_context_lines:
-                # center the context around the source line
+                # center the context around the node line
                 lines_before = min(max_context_lines // 2, start_line - 1)
                 lines_after = max_context_lines - lines_before - 1
 
@@ -314,21 +314,21 @@ def validate_context_ranges(df: pd.DataFrame, max_context_lines: int = 20, outpu
 
     return df
 
-def sources_to_json(df: pd.DataFrame, output_path: str = None, project_name = None) -> list:
+def nodes_to_json(df: pd.DataFrame, node_type: str, output_path: str = None, project_name = None) -> list:
     """
-    Convert sources DataFrame to JSON format.
+    Convert nodes DataFrame to JSON format.
 
     Args:
-        df (pd.DataFrame): DataFrame containing source information.
+        df (pd.DataFrame): DataFrame containing node information.
         output_path (str, optional): Path to save the JSON file.
     
     Returns:
-        list: list of source objects.
+        list: list of node objects.
     """
 
-    logger.info("Converting sources to JSON format")
+    logger.info(f"Converting {node_type}s to JSON format")
 
-    sources = []
+    nodes = []
     for idx, row in df.iterrows():
         try:
             # extract info from df
@@ -352,7 +352,7 @@ def sources_to_json(df: pd.DataFrame, output_path: str = None, project_name = No
                 # if project name is not provided, use file name only
                 short_path = os.path.basename(file_path)
 
-            # extract context with highlighted source line
+            # extract context with highlighted node line
             context_text = extract_context_from_file(
                 file_path = file_path,
                 context_start = context_start,
@@ -360,9 +360,9 @@ def sources_to_json(df: pd.DataFrame, output_path: str = None, project_name = No
                 highlight_line = start_line
             )
 
-            # create source object
-            source = {
-                "id": row['source_id'],
+            # create node object
+            node = {
+                "id": row['id'],
                 "location": {
                     "file": short_path,
                     "line": start_line,
@@ -376,7 +376,7 @@ def sources_to_json(df: pd.DataFrame, output_path: str = None, project_name = No
                     "text": context_text
                 }
             }
-            sources.append(source)
+            nodes.append(node)
 
         except Exception as e:
             logger.error(f"Error processing row {idx}: {e}")
@@ -385,9 +385,9 @@ def sources_to_json(df: pd.DataFrame, output_path: str = None, project_name = No
     if output_path:
         try:
             with open(output_path, 'w', encoding='utf-8') as f:
-                json.dump(sources, f, indent=2, ensure_ascii=False)
-            logger.info(f"Sources saved to {output_path}")
+                json.dump(nodes, f, indent=2, ensure_ascii=False)
+            logger.info(f"{node_type}s saved to {output_path}")
         except Exception as e:
-            logger.error(f"Error saving sources to JSON: {e}")
+            logger.error(f"Error saving {node_type}s to JSON: {e}")
 
-    return sources
+    return nodes

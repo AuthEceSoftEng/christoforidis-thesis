@@ -3,21 +3,20 @@
  */
 
  import javascript
-
- // Gets the line range for a source's context to avoid string truncation
-predicate getContextLineRange(DataFlow::Node src, int startLine, int endLine) {
+ // Gets the line range for a node's context to avoid string truncation
+predicate getContextLineRange(DataFlow::Node node, int startLine, int endLine) {
   // Special case for WebSocket handler parameters
   exists(DataFlow::MethodCallNode call, DataFlow::FunctionNode callback, Parameter param |
     call.getMethodName() in ["on", "once", "addListener"] and
     callback = call.getArgument(1).getAFunctionValue() and
     param = callback.getFunction().getParameter(0) and
-    DataFlow::parameterNode(param) = src and
+    DataFlow::parameterNode(param) = node and
     startLine = call.getLocation().getStartLine() and
     endLine = call.getLocation().getEndLine()
   )
   or
   // Use statement contexts but just return line numbers
-  exists(Expr e | e = src.asExpr() |
+  exists(Expr e | e = node.asExpr() |
     exists(Stmt stmt | stmt = e.getEnclosingStmt() |
       exists(Stmt contextStmt |
         // Find the most appropriate context statement
@@ -32,13 +31,13 @@ predicate getContextLineRange(DataFlow::Node src, int startLine, int endLine) {
     )
   )
   or
-  // Fallback: use the source's own location
+  // Fallback: use the node's own location
   (
-    not exists(Expr e | e = src.asExpr()) or
-    not exists(Stmt stmt | stmt = src.asExpr().getEnclosingStmt())
+    not exists(Expr e | e = node.asExpr()) or
+    not exists(Stmt stmt | stmt = node.asExpr().getEnclosingStmt())
   ) and
-  startLine = src.getLocation().getStartLine() - 5 and
-  endLine = src.getLocation().getStartLine() + 5  // Add a small buffer
+  startLine = node.getLocation().getStartLine() - 5 and
+  endLine = node.getLocation().getStartLine() + 5  // Add a small buffer
 }
 
 // Holds if the file is a test file based on common naming conventions

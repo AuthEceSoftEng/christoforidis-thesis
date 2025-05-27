@@ -1,6 +1,6 @@
 import os
 from utils.query_runner import run_codeql_query_tables
-from utils.source_post_process import process_sources, sources_to_json
+from utils.node_post_process import process_nodes, nodes_to_json
 from utils.create_db import create_codeql_database
 from utils.methods_post_process import deduplicate_methods, methods_to_json, compare_with_advisories
 
@@ -34,11 +34,29 @@ def main():
         return
     print(f"Source extraction completed. Results saved to {results_path}.csv")
 
-    # process sources using the process_sources function from utils/source_post_process.py
-    processed_sources = process_sources(f"{results_path}.csv", f"{results_path}_processed.csv")
+    # process sources using the process_nodes function from utils/node_post_process.py
+    processed_sources = process_nodes(f"{results_path}.csv", "source", f"{results_path}_processed.csv")
 
-    # turn csv to json using the sources_to_json function from utils/json_process.py
-    sources_json = sources_to_json(processed_sources, f"{results_path}.json", project_name) # leave this as is for now
+    # turn csv to json using the node_to_json function from utils/node_post_process.py
+    sources_json = nodes_to_json(processed_sources, "source", f"{results_path}.json", project_name) # leave this as is for now
+
+    ## SINK EXTRACTION ##
+    # Define the paths for the query and output files
+    query_path = os.path.join(project_root, "codeql", "getSinks.ql")
+    results_path = os.path.join(output_dir, "sinks")
+
+    # Run the CodeQL query to extract sinks
+    success, error = run_codeql_query_tables(database_path, query_path, results_path)
+    if not success:
+        print(f"Error running sink extraction query: {error}")
+        return
+    print(f"Sink extraction completed. Results saved to {results_path}.csv")
+
+    # process sinks using the process_nodes function from utils/node_post_process.py
+    processed_sinks = process_nodes(f"{results_path}.csv", "sink", f"{results_path}_processed.csv")
+
+    # turn csv to json using the nodes_to_json function from utils/node_post_process.py
+    sinks_json = nodes_to_json(processed_sinks, "sink", f"{results_path}.json", project_name) # leave this as is for now
 
     ## EXTRACT METHODS FROM DEPENDENCIES ##
     query_path = os.path.join(project_root, "codeql", "getPackageMethods.ql")
