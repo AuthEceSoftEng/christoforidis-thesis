@@ -154,6 +154,22 @@ predicate isDynamicCodeExecutionSink(DataFlow::Node node) {
       DataFlow::globalVarRef(["window", "global", "globalThis"]) and
     node = call.getArgument(0)
     or
+    // Additional JavaScript injection sinks
+    call.getCalleeNode().getALocalSource() = DataFlow::globalVarRef("setImmediate") and
+    node = call.getArgument(0) and
+    not exists(DataFlow::FunctionNode f | f.flowsTo(node))
+    or
+    call.getCalleeNode().(DataFlow::PropRead).getPropertyName() = "execScript" and
+    (
+      call.getCalleeNode().(DataFlow::PropRead).getBase().getALocalSource() = DataFlow::globalVarRef("window") or
+      call.getCalleeNode().(DataFlow::PropRead).getBase().getALocalSource() = DataFlow::globalVarRef(["document", "window"])
+    ) and
+    node = call.getArgument(0)
+    or
+    call.getCalleeNode().(DataFlow::PropRead).getPropertyName() = "execCommand" and
+    call.getCalleeNode().(DataFlow::PropRead).getBase().getALocalSource() = DataFlow::globalVarRef("document") and
+    node = call.getArgument(0)
+    or
     // Template engine sinks
     (
       // EJS template rendering
