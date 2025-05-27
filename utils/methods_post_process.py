@@ -5,6 +5,9 @@ import json
 import logging
 import pandas as pd
 
+from .LLM import LLMHandler
+from .prompts import get_classifying_methods_prompt
+
 # set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -269,3 +272,52 @@ def clean_version(version):
     
     # Join back together
     return '.'.join(parts)
+
+def classify_vulnerable_methods(vulnerable_packages, output_path=None):
+    llm = LLMHandler('claude')
+
+    classified_methods = []
+
+    for package in vulnerable_packages:
+        package_name = package["package"]
+        version = package["version"]
+        methods = package["detected_package_methods"]
+        advisory = package["advisory"]
+
+        for method in methods:
+            prompt = get_classifying_methods_prompt(package_name, version, method, advisory)
+            response = llm.send_message(prompt)
+
+            # parse the response
+            lines = response.strip().split('\n')
+            classification_data = {}
+
+            for line in lines:
+                if ':' in line:
+                    key, value = line.split(':', 1)
+                    classification_data[key.strip()] = value.strip()
+
+            # Create final classification
+            method_classification = {
+                "package": package_name,
+                "method": method,
+                "full_name": f"{package_name}.{method}",
+                "classification": classification_data.get("CLASSIFICATION", "UNKNOWN"),
+                "bypass_condition": classification_data.get("BYPASS_CONDITION", ""),
+                "data_type": classification_data.get("DATA_TYPE", ""),
+                "reasoning": classification_data.get("REASONING", ""),
+                "advisory": advisory['summary']
+            }
+            
+            classified_methods.append(method_classification)
+    
+    # Save classifications
+    if output_path:
+        try:
+            with open(output_path, 'w') as f:
+                json.dump(classified_methods, f, indent=2)
+            logger.info(f"Classified methods saved to {output_path}")
+        except Exception as e:
+            logger.error(f"Error saving classified methods to JSON: {e}")
+    
+    return classified_methods
