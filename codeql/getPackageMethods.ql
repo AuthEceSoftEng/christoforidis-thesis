@@ -7,7 +7,7 @@
 
  import javascript
  import semmle.javascript.dependencies.Dependencies
- import isTestFile
+ import helpers
  
  from 
    DataFlow::CallNode call,

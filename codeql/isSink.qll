@@ -457,6 +457,66 @@ predicate isDomManipulationSink(DataFlow::Node node) {
   )
 }
 
+// holds if the given node is an open redirect sink
+predicate isOpenRedirectSink(DataFlow::Node node) {
+  // Direct location assignment
+  exists(DataFlow::PropWrite write |
+    write.getBase().getALocalSource() = DataFlow::globalVarRef("location") and
+    // Covers all location properties
+    write.getPropertyName() in ["href", "hash", "search", "pathname", "protocol", "host", "hostname"] and
+    node = write.getRhs()
+  )
+  or
+  // Location methods
+  exists(DataFlow::CallNode call |
+    call.getCalleeNode().(DataFlow::PropRead).getPropertyName() in ["assign", "replace"] and
+    call.getCalleeNode().(DataFlow::PropRead).getBase().getALocalSource() = DataFlow::globalVarRef("location") and
+    node = call.getArgument(0)
+  )
+  or
+  // window.open
+  exists(DataFlow::CallNode call |
+    (
+      call.getCalleeNode().getALocalSource() = DataFlow::globalVarRef("open") or
+      call.getCalleeNode().(DataFlow::PropRead).getPropertyName() = "open" and
+      call.getCalleeNode().(DataFlow::PropRead).getBase().getALocalSource() = DataFlow::globalVarRef("window")
+    ) and
+    node = call.getArgument(0)
+  )
+  or
+  // element.srcdoc
+  exists(DataFlow::PropWrite write |
+    write.getPropertyName() = "srcdoc" and
+    node = write.getRhs()
+  )
+  or
+  // XMLHttpRequest
+  exists(DataFlow::CallNode call, DataFlow::NewNode xhr |
+    xhr.getCalleeNode().getALocalSource() = DataFlow::globalVarRef("XMLHttpRequest") and
+    call.getCalleeNode().(DataFlow::PropRead).getBase().getALocalSource() = xhr and
+    call.getCalleeNode().(DataFlow::PropRead).getPropertyName() = "open" and
+    node = call.getArgument(1)  // URL is the second parameter
+  )
+  or
+  // jQuery.ajax/$.ajax
+  exists(DataFlow::CallNode call |
+    (
+      call = DataFlow::globalVarRef("$").getAPropertyRead("ajax").getACall() or
+      call = DataFlow::globalVarRef("jQuery").getAPropertyRead("ajax").getACall()
+    ) and
+    (
+      // String URL as first argument
+      node = call.getArgument(0) and exists(StringLiteral str | node.asExpr() = str)
+      or
+      // URL in options object
+      exists(DataFlow::ObjectLiteralNode options |
+        options = call.getArgument(0) and
+        node = options.getAPropertyWrite("url").getRhs()
+      )
+    )
+  )
+}
+
 /* PRIVATE HELPING PREDICATES */
 
 // Command execution method names
