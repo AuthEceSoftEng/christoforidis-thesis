@@ -18,6 +18,7 @@
  import semmle.javascript.security.dataflow.DomBasedXssQuery as DomBasedXss
  import semmle.javascript.security.dataflow.UnsafeHtmlConstructionQuery as UnsafeHtmlConstruction
  import semmle.javascript.security.dataflow.UnsafeJQueryPluginQuery as UnsafeJQueryPlugin
+ import semmle.javascript.security.dataflow.XpathInjectionQuery as XpathInjection
 
  /* POTENTIAL SINKS PREDICATES */
 
@@ -188,6 +189,15 @@ predicate isDynamicCodeExecutionSink(DataFlow::Node node) {
       ) and
       node = call.getArgument(0)
     )
+  )
+  or
+  // jQuery.globalEval / $.globalEval
+  exists(DataFlow::CallNode call |
+    (
+      call = DataFlow::globalVarRef("$").getAPropertyRead("globalEval").getACall() or
+      call = DataFlow::globalVarRef("jQuery").getAPropertyRead("globalEval").getACall()
+    ) and
+    node = call.getArgument(0)
   )
 }
 
@@ -535,6 +545,56 @@ predicate isOpenRedirectSink(DataFlow::Node node) {
         node = options.getAPropertyWrite("url").getRhs()
       )
     )
+  )
+}
+
+// holds if the given node is an XPath injection sink
+predicate isXPathInjectionSink(DataFlow::Node node) {
+  node instanceof XpathInjection::Sink
+  or
+  exists(DataFlow::CallNode call |
+    // Find calls to evaluate method
+    call.getCalleeNode().(DataFlow::PropRead).getPropertyName() = "evaluate" and
+    (
+      // Direct document.evaluate
+      call.getCalleeNode().(DataFlow::PropRead).getBase().getALocalSource() = DataFlow::globalVarRef("document")
+      or
+      // Element.evaluate with variable tracking - fixed approach
+      exists(Variable element, VariableDeclarator decl |
+        // Track variable declaration
+        decl.getBindingPattern().(VarRef).getVariable() = element and
+        exists(CallExpr getElementCall |
+          // Connect to document.getElement* initialization
+          decl.getInit() = getElementCall and
+          // Fixed: properly access method name from call expression
+          getElementCall.getCallee().(PropAccess).getPropertyName().matches("getElementById|querySelector") and
+          getElementCall.getCallee().(PropAccess).getBase().(VarRef).getName() = "document"
+        ) and
+        // Connect to evaluate call on that variable
+        call.getCalleeNode().(DataFlow::PropRead).getBase().asExpr().(VarAccess).getVariable() = element
+      ) and
+      node = call.getArgument(0)
+      or
+      // Direct method chaining
+      exists(DataFlow::CallNode elemCall |
+        elemCall.getCalleeNode().(DataFlow::PropRead).getPropertyName().matches("querySelector%|getElementById|getElementsBy%") and
+        elemCall.getCalleeNode().(DataFlow::PropRead).getBase().getALocalSource() = DataFlow::globalVarRef("document") and
+        call.getCalleeNode().(DataFlow::PropRead).getBase() = elemCall
+      )
+      or
+      // Array indexing
+      exists(DataFlow::PropRead indexAccess |
+        indexAccess.getPropertyName().regexpMatch("[0-9]+") and
+        exists(DataFlow::CallNode docSelection |
+          docSelection.getCalleeNode().(DataFlow::PropRead).getPropertyName().matches("getElementsBy%") and
+          docSelection.getCalleeNode().(DataFlow::PropRead).getBase().getALocalSource() = DataFlow::globalVarRef("document") and
+          indexAccess.getBase().getALocalSource() = docSelection and
+          call.getCalleeNode().(DataFlow::PropRead).getBase().getALocalSource() = indexAccess
+        )
+      )
+    ) and
+    // First argument is the XPath expression
+    node = call.getArgument(0)
   )
 }
 
