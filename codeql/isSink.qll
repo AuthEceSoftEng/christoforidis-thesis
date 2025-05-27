@@ -364,6 +364,7 @@ predicate isExternalApiSink(DataFlow::Node node) {
 
 // holds if the given node is a DOM manipulation sink
 predicate isDomManipulationSink(DataFlow::Node node) {
+  // Built-in DOM-based XSS sink detection
   node instanceof DomBasedXss::Sink
   or
   node instanceof UnsafeHtmlConstruction::Sink
@@ -375,6 +376,40 @@ predicate isDomManipulationSink(DataFlow::Node node) {
     // innerHTML, outerHTML assignments
     write.getPropertyName() in ["innerHTML", "outerHTML", "insertAdjacentHTML"] and
     node = write.getRhs()
+    or
+    // document.domain assignment
+    write.getPropertyName() = "domain" and
+    write.getBase().getALocalSource() = DataFlow::globalVarRef("document") and
+    node = write.getRhs()
+  )
+  or
+  // Event handler assignments on window, document, etc.
+  exists(DataFlow::PropWrite write |
+    write.getPropertyName().regexpMatch("on[a-zA-Z]+") and
+    exists(string domObjName |
+      domObjName in ["document", "window", "document.body", "document.head", "document.documentElement"] and
+      write.getBase().getALocalSource() = DataFlow::globalVarRef(domObjName)
+    ) and
+    node = write.getRhs()
+  )
+  or
+  // Direct AST-based approach for event handlers with new Function
+  exists(AssignExpr assign, PropAccess propAccess, MethodCallExpr domMethod, NewExpr newFunc |
+    // Assignment's left-hand side is a property access with event handler name
+    assign.getLhs() = propAccess and
+    propAccess.getPropertyName().regexpMatch("on[a-zA-Z]+") and
+    
+    // Property base is a DOM element getter
+    propAccess.getBase() = domMethod and
+    domMethod.getMethodName().matches("getElementById|querySelector|getElementsBy%|getElementBy(TagName|ClassName)") and
+    domMethod.getReceiver().(VarRef).getName() = "document" and
+    
+    // Right-hand side is new Function
+    assign.getRhs() = newFunc and
+    newFunc.getCalleeName() = "Function" and
+    
+    // The sink is the argument to new Function
+    node = DataFlow::valueNode(newFunc.getAnArgument())
   )
   or
   // document.write/writeln
@@ -386,14 +421,26 @@ predicate isDomManipulationSink(DataFlow::Node node) {
   or
   // jQuery methods
   exists(DataFlow::CallNode call |
-    // jQuery objects identified by $ or jQuery
     exists(DataFlow::SourceNode jquery |
       jquery = DataFlow::globalVarRef(["$", "jQuery"])
     |
-      // Method calls on jQuery objects
-      call = jquery.getACall().getAMethodCall(["html", "append", "prepend", "after", "before", "replaceWith"]) and
+      call = jquery.getACall().getAMethodCall([
+        "html", "append", "prepend", "after", "before", "replaceWith",
+        "add", "animate", "insertAfter", "insertBefore", "replaceAll",
+        "wrap", "wrapInner", "wrapAll", "has", "constructor", "init", 
+        "index"
+      ]) and
       node = call.getArgument(0)
     )
+  )
+  or
+  // jQuery.parseHTML / $.parseHTML
+  exists(DataFlow::CallNode call |
+    (
+      call = DataFlow::globalVarRef("$").getAPropertyRead("parseHTML").getACall() or
+      call = DataFlow::globalVarRef("jQuery").getAPropertyRead("parseHTML").getACall()
+    ) and
+    node = call.getArgument(0)
   )
   or
   // location assignments

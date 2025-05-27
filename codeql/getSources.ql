@@ -8,7 +8,6 @@
  */
 
  import javascript
- import isTestFile
  import isSource
  import helpers
 
