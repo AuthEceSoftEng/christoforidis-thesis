@@ -186,6 +186,11 @@ def is_version_vulnerable(package_version, vulnerable_range, patched_version):
         bool: True if the version is vulnerable, False otherwise
     """
     try:
+        # If version is unknown, conservatively treat it as vulnerable
+        if package_version == "unknown":
+            logger.warning(f"Package with unknown version detected. Conservatively marking as vulnerable.")
+            return True
+        
         # Clean version strings
         package_version = clean_version(package_version)
         
