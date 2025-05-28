@@ -865,3 +865,17 @@ string getSourceCategory(DataFlow::Node src) {
   else if src instanceof ProcessSource then result = "Env variable/command-line input"
   else result = "Unknown source" // Default case
 }
+
+predicate isSource(DataFlow::Node src) {
+  isRemoteSource(src) or
+  isHeuristicHttpRequestSource(src) or
+  isFetchResponseSource(src) or
+  isWebSocketSource(src) or
+  isGraphQLRequestSource(src) or
+  isClientSideUserInputSource(src) or
+  isClientStorageSource(src) or
+  isURLSource(src) or
+  isPostMessageSource(src) or
+  isFsReadCall(src) or
+  src instanceof ProcessSource
+}

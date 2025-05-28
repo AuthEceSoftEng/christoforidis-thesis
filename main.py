@@ -1,8 +1,10 @@
+import json
 import os
 from utils.query_runner import run_codeql_query_tables
 from utils.node_post_process import process_nodes, nodes_to_json
 from utils.create_db import create_codeql_database
 from utils.methods_post_process import deduplicate_methods, methods_to_json, compare_with_advisories, classify_vulnerable_methods
+from utils.query_generator import generate_codeql_package_classification
 
 def main():
     ## CODEQL DATABASE CREATION ##
@@ -22,7 +24,7 @@ def main():
     output_dir = os.path.join(project_root, "output", project_name)
     os.makedirs(output_dir, exist_ok=True)
 
-    """ ## SOURCE EXTRACTION ##
+    ## SOURCE EXTRACTION ##
     # Define the paths for the query and output files
     query_path = os.path.join(project_root, "codeql", "getSources.ql")
     results_path = os.path.join(output_dir, "sources")
@@ -56,7 +58,7 @@ def main():
     processed_sinks = process_nodes(f"{results_path}.csv", "sink", f"{results_path}_processed.csv")
 
     # turn csv to json using the nodes_to_json function from utils/node_post_process.py
-    sinks_json = nodes_to_json(processed_sinks, "sink", f"{results_path}.json", project_name) # leave this as is for now """
+    sinks_json = nodes_to_json(processed_sinks, "sink", f"{results_path}.json", project_name) # leave this as is for now
 
     ## EXTRACT METHODS FROM DEPENDENCIES ##
     query_path = os.path.join(project_root, "codeql", "getPackageMethods.ql")
@@ -80,6 +82,12 @@ def main():
 
     # classify vulnerable methods
     classified_methods = classify_vulnerable_methods(vulnerable_packages, f"{results_path}_vulnerable_classified.json")
+
+    # generate codeql library for package classifications
+    project_specific_dir = os.path.join(project_root, "codeql", "project_specific", project_name)
+    os.makedirs(project_specific_dir, exist_ok=True)
+    qll_path = os.path.join(project_specific_dir, "VulnerableMethodsClassification.qll")
+    generate_codeql_package_classification(classified_methods, qll_path)
 
 if __name__ == "__main__":
     main()

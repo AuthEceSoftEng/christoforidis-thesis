@@ -736,3 +736,17 @@ string getSinkCategory(DataFlow::Node sink) {
   else if isXPathInjectionSink(sink) then result = "XPath injection"
   else result = "Unknown sink" // Default case
 }
+
+predicate isSink(DataFlow::Node node) {
+  isCommandExecutionSink(node) or
+  isDatabaseQuerySink(node) or
+  isFileSystemSink(node) or
+  isHttpResponseSink(node) or
+  isDynamicCodeExecutionSink(node) or
+  isDeserializationSink(node) or
+  isLoggingSink(node) or
+  isExternalApiSink(node) or
+  isDomManipulationSink(node) or
+  isOpenRedirectSink(node) or
+  isXPathInjectionSink(node)
+}
