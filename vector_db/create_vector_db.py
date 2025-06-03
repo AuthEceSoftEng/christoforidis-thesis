@@ -2,7 +2,6 @@ import os
 import glob
 import logging
 from tqdm import tqdm
-from sentence_transformers import SentenceTransformer
 import chromadb
 from chromadb.utils import embedding_functions
 
@@ -49,46 +48,6 @@ def load_documents(docs_dir):
     logger.info(f"Successfully loaded {len(documents)} documents")
     return documents
 
-def chunk_document(document, chunk_size=1000, overlap=200):
-    """Split a document into smaller chunks with overlap."""
-    content = document["content"]
-    chunks = []
-    
-    # Simple paragraph-based splitting
-    paragraphs = content.split("\n\n")
-    
-    current_chunk = ""
-    for paragraph in paragraphs:
-        # If adding this paragraph would exceed chunk size, save current chunk
-        if len(current_chunk) + len(paragraph) > chunk_size and current_chunk:
-            chunks.append({
-                "content": current_chunk,
-                "metadata": {
-                    **document["metadata"],
-                    "chunk_id": len(chunks)
-                }
-            })
-            # Keep overlap from the end of the previous chunk
-            overlap_text = current_chunk[-overlap:] if len(current_chunk) > overlap else ""
-            current_chunk = overlap_text + paragraph
-        else:
-            # Add separator if needed
-            if current_chunk:
-                current_chunk += "\n\n"
-            current_chunk += paragraph
-    
-    # Add the last chunk if it's not empty
-    if current_chunk:
-        chunks.append({
-            "content": current_chunk,
-            "metadata": {
-                **document["metadata"],
-                "chunk_id": len(chunks)
-            }
-        })
-    
-    return chunks
-
 def create_vector_db(db_path, model_name="all-MiniLM-L6-v2"):
     """Initialize and return a ChromaDB collection."""
     # Create directories if they don't exist
@@ -124,26 +83,21 @@ def main():
         logger.error("No documents loaded. Exiting.")
         return
     
-    # Chunk documents
-    logger.info("Chunking documents...")
-    all_chunks = []
-    for doc in tqdm(documents):
-        chunks = chunk_document(doc)
-        all_chunks.extend(chunks)
+    all_documents = documents  # Use complete documents
     
-    logger.info(f"Created {len(all_chunks)} chunks from {len(documents)} documents")
+    logger.info(f"Using {len(all_documents)} complete documents")
     
     # Create vector database and collection
     collection = create_vector_db(db_path)
     
-    # Add chunks to collection
-    logger.info("Adding chunks to vector database...")
+    # Add whole documents to collection
+    logger.info("Adding documents to vector database...")
     batch_size = 100
-    for i in tqdm(range(0, len(all_chunks), batch_size)):
-        batch = all_chunks[i:i+batch_size]
+    for i in tqdm(range(0, len(all_documents), batch_size)):
+        batch = all_documents[i:i+batch_size]
         
         # Prepare batch data
-        ids = [f"chunk_{doc['metadata']['file_name']}_{doc['metadata']['chunk_id']}" for doc in batch]
+        ids = [f"doc_{doc['metadata']['file_name']}" for doc in batch]
         documents = [doc["content"] for doc in batch]
         metadatas = [doc["metadata"] for doc in batch]
         
@@ -154,7 +108,7 @@ def main():
             metadatas=metadatas
         )
     
-    logger.info(f"Successfully added {len(all_chunks)} chunks to vector database")
+    logger.info(f"Successfully added {len(all_documents)} documents to vector database")
     logger.info(f"Vector database created at {db_path}")
 
 if __name__ == "__main__":

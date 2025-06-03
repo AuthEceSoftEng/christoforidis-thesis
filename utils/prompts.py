@@ -1,3 +1,83 @@
+def get_initial_sanitizer_prompt(sanitizer):
+    package = sanitizer["package"]
+    method = sanitizer["method"]
+    bypass_condition = sanitizer["bypass_condition"]
+    data_type = sanitizer.get("data_type", "data")
+    predicate_name = sanitizer["predicate_name"]
+    
+    return [
+        {
+            "role": "user",
+            "message": f"""You are a CodeQL expert specialized in security vulnerabilities for Javascript projects. Write a predicate to detect when a conditional sanitizer can be bypassed.
+
+SANITIZER DETAILS:
+Package: {package}
+Method: {method}
+Data Type: {data_type}
+Bypass Condition: {bypass_condition}
+Predicate Name: {predicate_name}
+
+REQUIREMENTS:
+1. Use EXACTLY the predicate name specified above
+2. The predicate should take a DataFlow::CallNode parameter
+3. First check that the call is to the right package/method using isConditionalSanitizer (takes call, "package-name", "methodName" as arguments)
+4. Then analyze call arguments to detect the specific bypass condition
+5. Write only the predicate code, properly formatted for a .qll file
+6. Create public predicates only - DO NOT use the 'private' keyword
+7. Predicate holds only when the vulnerable configuration is detected
+
+Write only the predicate implementation without explanation.
+DO NOT ADD ANY OTHER PREDICATES ONLY THE ONE REQUESTED.
+"""
+        }
+    ]
+
+def get_refinement_sanitizer_prompt(sanitizer, initial_predicate, docs_text, errors):
+    package = sanitizer["package"]
+    method = sanitizer["method"]
+    bypass_condition = sanitizer["bypass_condition"]
+    predicate_name = sanitizer["predicate_name"]
+
+    return [
+        {
+            "role": "user",
+            "message": f"""You are a CodeQL expert specialized in security vulnerabilities for Javascript projects. You previously wrote a predicate to detect when a conditional sanitizer can be bypassed:
+
+SANITIZER DETAILS:
+Package: {package}
+Method: {method}
+Bypass Condition: {bypass_condition}
+Predicate Name: {predicate_name}
+
+YOUR INITIAL IMPLEMENTATION:
+{initial_predicate}
+
+Errors in your implementation:
+{errors}
+
+Now I have relevant to the errors CodeQL documentation that might help improve this predicate:
+{docs_text}
+
+Please refine your predicate implementation based on this documentation. Focus on:
+
+1. Correct usage of CodeQL syntax and patterns
+2. Incorrect type access - make sure you're using the right methods for each type
+3. Incorrect property access - verify property names exist on the types
+
+REQUIREMENTS:
+1. Use EXACTLY the predicate name specified above
+2. The predicate should take a DataFlow::CallNode parameter
+3. First check that the call is to the right package/method using isConditionalSanitizer (takes call, "package-name", "methodName" as arguments)
+4. Then analyze call arguments to detect the specific bypass condition
+5. Write only the predicate code, properly formatted for a .qll file
+6. Create public predicates only - DO NOT use the 'private' keyword
+7. Predicate holds only when the vulnerable configuration is detected
+
+Write only the improved predicate code without explanation or commentary and extra reasoning.
+DO NOT ADD ANY OTHER PREDICATES ONLY THE ONE REQUESTED.
+""" } ]
+
+
 def get_classifying_methods_prompt(package_name, version, method, advisory):
     CLASSIFYING_METHODS_PROMPT = [
         {

@@ -1,9 +1,9 @@
 import re
 import os
 import logging
-from io import StringIO
+""" from io import StringIO
 from bs4 import BeautifulSoup
-from docutils.core import publish_parts
+from docutils.core import publish_parts """
 
 # Set up logger
 def setup_logger(log_file='extraction.log'):
@@ -30,8 +30,7 @@ def setup_logger(log_file='extraction.log'):
 # Create logger
 logger = setup_logger()
 
-def extract_rst_content(file_path):
-    """Extract content from RST files, handling includes gracefully."""
+""" def extract_rst_content(file_path):
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             content = f.read()
@@ -58,7 +57,20 @@ def extract_rst_content(file_path):
     
     except Exception as e:
         logger.error(f"Error extracting content from {file_path}: {str(e)}")
+        return None """
+
+def clean_document_content(content):
+    if content is None:
         return None
+        
+    # Remove URL links (matching <http...> pattern)
+    cleaned_content = re.sub(r'<https?://[^>]+>', '', content)
+    
+    # Remove excessive whitespace
+    cleaned_content = re.sub(r'\n{3,}', '\n\n', cleaned_content)
+    
+    return cleaned_content
+
 
 def extract_text(file_path):
     """Extract text from .md, .ql, and .qll files."""
@@ -76,12 +88,14 @@ def process_file(file_path):
     """Process a file based on its extension."""
     logger.info(f"Processing file: {file_path}")
     if file_path.endswith('.rst'):
-        return extract_rst_content(file_path)
+        content = extract_text(file_path)
+        # content = extract_rst_content(file_path)
     elif file_path.endswith(('.md', '.ql', '.qll')):
-        return extract_text(file_path)
+        content = extract_text(file_path)
     else:
         logger.info(f"Skipping unsupported file: {file_path}")
         return None
+    return clean_document_content(content)
 
 def save_extracted_text(file_path, content, output_folder):
     """Save extracted text into a .txt file."""

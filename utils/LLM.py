@@ -27,7 +27,7 @@ class LLMHandler:
         
         self.claude_session = boto3.Session()
         self.claude_client = self.claude_session.client(service_name="bedrock-runtime", region_name="eu-central-1")
-        self.claude_model_id = "anthropic.claude-3-sonnet-20240229-v1:0"
+        self.claude_model_id = "arn:aws:bedrock:eu-central-1:ACCOUNT_ID:inference-profile/eu.anthropic.claude-3-7-sonnet-20250219-v1:0"
     
     def send_message(self, messages):
         formatted_messages = self._format_messages(messages)

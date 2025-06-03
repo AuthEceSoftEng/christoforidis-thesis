@@ -4,7 +4,7 @@ from utils.query_runner import run_codeql_query_tables
 from utils.node_post_process import process_nodes, nodes_to_json
 from utils.create_db import create_codeql_database
 from utils.methods_post_process import deduplicate_methods, methods_to_json, compare_with_advisories, classify_vulnerable_methods
-from utils.query_generator import generate_codeql_package_classification
+from utils.query_generator import generate_codeql_package_classification, generate_conditional_sanitizer_library, cleanup_test_queries
 
 def main():
     ## CODEQL DATABASE CREATION ##
@@ -83,11 +83,18 @@ def main():
     # classify vulnerable methods
     classified_methods = classify_vulnerable_methods(vulnerable_packages, f"{results_path}_vulnerable_classified.json")
 
-    # generate codeql library for package classifications
+    # generate codeql library for package classifications (source, sinks, propagators)
     project_specific_dir = os.path.join(project_root, "codeql", "project_specific", project_name)
     os.makedirs(project_specific_dir, exist_ok=True)
     qll_path = os.path.join(project_specific_dir, "VulnerableMethodsClassification.qll")
     generate_codeql_package_classification(classified_methods, qll_path)
+    
+    # conditional sanitizers
+    qll_path = os.path.join(project_specific_dir, "ConditionalSanitizers.qll")
+    generate_conditional_sanitizer_library(classified_methods, qll_path)
+
+    # cleanup test queries
+    cleanup_test_queries(project_specific_dir)
 
 if __name__ == "__main__":
     main()
