@@ -20,14 +20,17 @@ class LLMHandler:
             raise ValueError("Unsupported model. Choose from 'gpt', 'llama', or 'claude'.")
 
         # self.gpt_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+        ACCOUNT_ID = os.environ.get("ACCOUNT_ID")
+        if not ACCOUNT_ID:
+            raise ValueError("ACCOUNT_ID environment variable is not set.")
         
         self.llama_session = boto3.Session()
         self.llama_client = self.llama_session.client(service_name="bedrock-runtime", region_name="eu-central-1")
-        self.llama_model_id = "arn:aws:bedrock:eu-central-1:ACCOUNT_ID:inference-profile/eu.meta.llama3-2-3b-instruct-v1:0"
+        self.llama_model_id = f"arn:aws:bedrock:eu-central-1:{ACCOUNT_ID}:inference-profile/eu.meta.llama3-2-3b-instruct-v1:0"
         
         self.claude_session = boto3.Session()
         self.claude_client = self.claude_session.client(service_name="bedrock-runtime", region_name="eu-central-1")
-        self.claude_model_id = "arn:aws:bedrock:eu-central-1:ACCOUNT_ID:inference-profile/eu.anthropic.claude-3-7-sonnet-20250219-v1:0"
+        self.claude_model_id = f"arn:aws:bedrock:eu-central-1:{ACCOUNT_ID}:inference-profile/eu.anthropic.claude-3-7-sonnet-20250219-v1:0"
     
     def send_message(self, messages):
         formatted_messages = self._format_messages(messages)
