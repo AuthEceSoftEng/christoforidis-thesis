@@ -198,7 +198,7 @@ def generate_conditional_sanitizer_library(classified_methods, output_path):
             predicate_name_counts[base_name] += 1
     
     # Initialize LLM handler
-    llm_handler = LLMHandler('claude')
+    llm_handler = LLMHandler('claude', temperature=0.2)
     
     with open(output_path, 'w') as f:
         # Write library header
@@ -263,16 +263,32 @@ def generate_conditional_sanitizer_library(classified_methods, output_path):
                     success, error = run_codeql_query_tables(database_path, test_query_path, os.path.dirname(output_path))
                     tries += 1
 
-
-                # Write predicate header comment
-                f.write(f"  /**\n")
-                f.write(f"   * Holds if a call to {package}.{method} is potentially bypassable.\n")
-                f.write(f"   * Bypass condition: {bypass_condition}\n")
-                f.write(f"   */\n")
-                
-                # Write the predicate implementation
-                f.write(clean_response)
-                f.write("\n\n")
+                if success:
+                    logger.info(f"Successfully validated predicate for sanitizer {sanitizer['predicate_name']}")
+                    # Write predicate header comment
+                    f.write(f"  /**\n")
+                    f.write(f"   * Holds if a call to {package}.{method} is potentially bypassable.\n")
+                    f.write(f"   * Bypass condition: {bypass_condition}\n")
+                    f.write(f"   */\n")
+                    
+                    # Write the predicate implementation
+                    f.write(clean_response)
+                    f.write("\n\n")
+                else:
+                    logger.error(f"Failed to validate predicate for sanitizer {sanitizer['predicate_name']} after 5 tries")
+                    # Write fallback predicates for this sanitizer
+                    f.write(f"  /**\n")
+                    f.write(f"   * Holds if a call to {package}.{method} is potentially bypassable.\n")
+                    f.write(f"   * Bypass condition: {bypass_condition}\n")
+                    f.write(f"   */\n")
+                    f.write(f"  predicate {predicate_name}(DataFlow::CallNode call) {{\n")
+                    f.write(f"    // TODO: Implement detection for: {bypass_condition}\n")
+                    f.write(f"    isConditionalSanitizer(call, \"{package}\", \"{method}\") and\n")
+                    f.write(f"    exists(DataFlow::Node config |\n")
+                    f.write(f"      config = call.getArgument(0)\n")
+                    f.write(f"      // Add specific bypass condition detection here\n")
+                    f.write(f"    )\n")
+                    f.write(f"  }}\n\n")
 
             except Exception as e:
                 logger.error(f"Error processing sanitizer {sanitizer['predicate_name']}: {str(e)}")

@@ -7,8 +7,9 @@ from dotenv import load_dotenv # type: ignore
 load_dotenv()
 
 class LLMHandler:
-    def __init__(self, model):
+    def __init__(self, model, temperature=1.0):
         self.model = model.lower()
+        self.temperature = temperature
         
         self.model_apis = {
             'gpt': self._gpt_api,
@@ -82,6 +83,7 @@ class LLMHandler:
         response = self.gpt_client.chat.completions.create(
             model="gpt-4o",
             messages=formatted_messages,
+            temperature=self.temperature,
         )
         return response.choices[0].message.content
     
@@ -103,6 +105,7 @@ class LLMHandler:
                         "anthropic_version": "bedrock-2023-05-31",
                         "max_tokens": 4096,
                         "messages": formatted_messages,
+                        "temperature": self.temperature,
                     }
                 ),
             )
