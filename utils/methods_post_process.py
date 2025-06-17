@@ -4,6 +4,7 @@ import subprocess
 import json
 import logging
 import pandas as pd
+from fuzzywuzzy import fuzz
 
 from .LLM import LLMHandler
 from .prompts import get_classifying_methods_prompt
@@ -306,16 +307,74 @@ def classify_vulnerable_methods(vulnerable_packages, output_path=None):
                 "bypass_condition": classification_data.get("BYPASS_CONDITION", ""),
                 "data_type": classification_data.get("DATA_TYPE", ""),
                 "reasoning": classification_data.get("REASONING", ""),
-                "advisory": advisory['summary']
+                "advisory": advisory['summary'],
+                "cwes": advisory['cwes'] if 'cwes' in advisory else [],
             }
             
             classified_methods.append(method_classification)
+
+    # deduplicate sanitizers
+    sanitizers = [m for m in classified_methods if m["classification"] == "CONDITIONAL_SANITIZER"]
+    non_sanitizers = [m for m in classified_methods if m["classification"] != "CONDITIONAL_SANITIZER"]
+
+    sanitizer_groups = {}
+    for sanitizer in sanitizers:
+        cwe_ids = sorted([cwe["cwe_id"] for cwe in sanitizer["cwes"]]) if sanitizer.get("cwes") else []
+        key = f"{sanitizer['package']}|{sanitizer['method']}|{','.join(cwe_ids)}"
+        
+        if key not in sanitizer_groups:
+            sanitizer_groups[key] = []
+        
+        sanitizer_groups[key].append(sanitizer)
+    
+    # handle similar bypass conditions
+    deduplicated_sanitizers = []
+    SIMILARITY_THRESHOLD = 80
+
+    for key, group in sanitizer_groups.items():
+        if len(group) == 1:
+            deduplicated_sanitizers.append(group[0])
+        else:
+            # unique bypass conditions using similarity threshold
+            unique_sanitizers = []
+            
+            for sanitizer in group:
+                if not sanitizer["bypass_condition"]:
+                    continue  # skip empty bypass conditions
+                    
+                is_unique = True
+                for i, unique in enumerate(unique_sanitizers):
+                    similarity = fuzz.token_sort_ratio(
+                        sanitizer["bypass_condition"], 
+                        unique["bypass_condition"]
+                    )
+                    
+                    if similarity >= SIMILARITY_THRESHOLD:
+                        is_unique = False
+                        # keep the longer description
+                        if len(sanitizer["bypass_condition"]) > len(unique["bypass_condition"]):
+                            unique_sanitizers[i] = sanitizer
+                        break
+                
+                if is_unique:
+                    unique_sanitizers.append(sanitizer)
+            
+            # no unique sanitizers (e.g., all empty bypass conditions)
+            # use the first one from the group
+            if not unique_sanitizers and group:
+                unique_sanitizers.append(group[0])
+                
+            deduplicated_sanitizers.extend(unique_sanitizers)
+
+    final_methods = non_sanitizers + deduplicated_sanitizers
+    
+    logger.info(f"Deduplicated {len(sanitizers) - len(deduplicated_sanitizers)} conditional sanitizers")
     
     # Save classifications
     if output_path:
         try:
             with open(output_path, 'w') as f:
-                json.dump(classified_methods, f, indent=2)
+                json.dump(final_methods, f, indent=2)
             logger.info(f"Classified methods saved to {output_path}")
         except Exception as e:
             logger.error(f"Error saving classified methods to JSON: {e}")

@@ -20,6 +20,20 @@ def generate_codeql_package_classification(classified_methods, output_path):
     sources = [m for m in classified_methods if m["classification"] == "SOURCE"]
     sinks = [m for m in classified_methods if m["classification"] == "SINK"]
     propagators = [m for m in classified_methods if m["classification"] == "PROPAGATOR"]
+
+    # Group sinks by CWE
+    cwe_sinks = {}
+    general_sinks = []
+    
+    for sink in sinks:
+        if "cwes" in sink and sink["cwes"]:
+            for cwe in sink["cwes"]:
+                cwe_id = cwe["cwe_id"].replace("CWE-", "")
+                if cwe_id not in cwe_sinks:
+                    cwe_sinks[cwe_id] = []
+                cwe_sinks[cwe_id].append(sink)
+        else:
+            general_sinks.append(sink)
     
     logger.info(f"Found {len(sources)} SOURCE methods, {len(sinks)} SINK methods, and {len(propagators)} PROPAGATOR methods")
     
@@ -57,28 +71,50 @@ def generate_codeql_package_classification(classified_methods, output_path):
         f.write("  }\n\n")
         
         # Define sinks
-        f.write("  /** Holds if the call is to a method classified as a SINK */\n")
-        f.write("  predicate isVulnerableSink(DataFlow::CallNode call) {\n")
-        f.write("    exists(string packageName, string methodName |\n")
+        # Generate generic sink predicate
+        f.write("""  /** Holds if the call is to a method classified as a SINK */
+  predicate isVulnerableSink(DataFlow::CallNode call) {
+    exists(string packageName, string methodName |
+""")
+        all_sinks = [s for category in cwe_sinks.values() for s in category] + general_sinks
+        for i, sink in enumerate(all_sinks):
+            or_str = " or" if i < len(all_sinks) - 1 else ""
+            f.write(f'      (packageName = "{sink["package"]}" and methodName = "{sink["method"]}"){or_str}\n')
         
-        if sinks:
-            for i, method in enumerate(sinks):
-                package = method["package"]
-                method_name = method["method"]
-                f.write(f"      (packageName = \"{package}\" and methodName = \"{method_name}\")")
-                if i < len(sinks) - 1:
-                    f.write(" or\n")
-            f.write(" |\n")
-        else:
-            f.write("      none() |\n")
-        
-        f.write("      // Get the module import reference\n")
-        f.write("      exists(DataFlow::SourceNode mod |\n")
-        f.write("        mod = DataFlow::moduleImport(packageName) and\n")
-        f.write("        call = mod.getAMemberCall(methodName)\n")
-        f.write("      )\n")
-        f.write("    )\n")
-        f.write("  }\n\n")
+        f.write("""      |
+      // Get the module import reference
+      exists(DataFlow::SourceNode mod |
+        mod = DataFlow::moduleImport(packageName) and
+        call = mod.getAMemberCall(methodName)
+      )
+    )
+  }
+
+""")
+
+        # Generate CWE-specific sink predicates
+        for cwe_id, cwe_specific_sinks in cwe_sinks.items():
+            cwe_name = cwe_specific_sinks[0]["cwes"][0]["name"].replace(" ", "")
+            f.write(f"""  /** 
+   * Holds if the call is to a method classified as a sink for CWE-{cwe_id} ({cwe_name})
+   */
+  predicate isCWE{cwe_id}Sink(DataFlow::CallNode call) {{
+    exists(string packageName, string methodName |
+""")
+            for i, sink in enumerate(cwe_specific_sinks):
+                or_str = " or" if i < len(cwe_specific_sinks) - 1 else ""
+                f.write(f'      (packageName = "{sink["package"]}" and methodName = "{sink["method"]}"){or_str}\n')
+            
+            f.write("""      |
+      // Get the module import reference
+      exists(DataFlow::SourceNode mod |
+        mod = DataFlow::moduleImport(packageName) and
+        call = mod.getAMemberCall(methodName)
+      )
+    )
+  }
+
+""")
         
         # Define propagators
         f.write("  /** Holds if the call is to a method classified as a PROPAGATOR */\n")
@@ -135,7 +171,7 @@ def _get_relevant_documentation(queries, collection):
     # sort by relevance (distance)
     docs_text = ""
     sorted_docs = sorted(all_docs.values(), key=lambda x: x['distance'])
-    top_docs = sorted_docs[:3]  # take top 5 most relevant documents
+    top_docs = sorted_docs[:3]  # take top 3 most relevant documents
 
     for i, doc in enumerate(top_docs, 1):
         docs_text += f"\n--- DOCUMENT {i} (from {doc['source']}) ---\n{doc['content']}\n"
@@ -185,7 +221,11 @@ def generate_conditional_sanitizer_library(classified_methods, output_path):
     for sanitizer in conditional_sanitizers:
         package = sanitizer["package"]
         method = sanitizer["method"]
-        base_name = f"is{package.replace('-', '_').title()}_{method}Bypassable"
+        base_name = "is"
+        for cwe in sanitizer.get("cwes", []):
+            if "cwe_id" in cwe:
+                base_name += f"CWE_{cwe['cwe_id'].replace('CWE-', '')}_"
+        base_name += f"{package.replace('-', '_').title()}_{method}"
         
         # If this is the first occurrence, use the base name
         if base_name not in predicate_name_counts:
