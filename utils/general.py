@@ -67,9 +67,9 @@ def get_cwe_details(cwe_id):
             "description": df.loc[df['CWE-ID'].astype(str) == str(cwe_id), 'Description'].values[0],
         }
     else:
-        logger.warning(f"CWE ID {cwe_id} not found in the database.")
+        logger.warning(f"CWE ID {cwe_id} not found in the dataframe.")
         return {
             "id": cwe_id,
-            "name": "Unknown",
+            "name": f"CWE{cwe_id}Vulnerability",
             "description": "No description available."
         }

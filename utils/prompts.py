@@ -126,3 +126,28 @@ Only provide the output in this format. Do not include any explanations or comme
     ]
 
     return CLASSIFYING_METHODS_PROMPT
+
+def get_sink_selection_prompt(cwe_details):
+    sink_selection_prompt = f"""
+You are a security analyst tasked with selecting the most relevant sinks for a given CWE (Common Weakness Enumeration) vulnerability.
+Select the appropriate sink categories from the following list for detecting the following CWE:
+CWE ID: {cwe_details['id']}
+CWE Name: {cwe_details['name']}
+CWE Description: {cwe_details['description']}
+
+Available Sink Categories:
+- isCommandExecutionSink
+- isDatabaseQuerySink
+- isFileSystemSink
+- isHttpResponseSink
+- isDynamicCodeExecutionSink
+- isDeserializationSink
+- isLoggingSink
+- isExternalApiSink
+- isDomManipulationSink
+- isOpenRedirectSink
+- isXPathInjectionSink
+
+Return only the selected sink categories in a comma-separated format without any additional text or explanation.
+"""
+    return [{"role": "user", "message": sink_selection_prompt}]

@@ -5,8 +5,9 @@ import logging
 import chromadb
 from chromadb.utils import embedding_functions
 from .LLM import LLMHandler
-from .prompts import get_initial_sanitizer_prompt, get_refinement_sanitizer_prompt
+from .prompts import get_initial_sanitizer_prompt, get_refinement_sanitizer_prompt, get_sink_selection_prompt
 from .query_runner import run_codeql_query_tables
+from .general import get_cwe_details
 
 # set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -494,3 +495,33 @@ def cleanup_test_queries(dir):
             logger.error(f"Failed to remove test query file {file}: {str(e)}")
 
     logger.info(f"Removed {count} test query files from {dir}")
+
+def get_cwe_specific_sinks(cwe_id, project_name):
+    llm = LLMHandler('claude', temperature=0.2)
+
+    cwe_details = get_cwe_details(cwe_id)
+
+    # get sinks from the isSink.qll
+    sink_selection_prompt = get_sink_selection_prompt(cwe_details)
+    sink_categories = llm.send_message(sink_selection_prompt).strip().split(',')
+    sink_categories = [cat.strip() for cat in sink_categories]
+    
+    # get method sinks
+    predicates = []
+    pattern = re.compile(r"predicate\s+(isCWE(\d+)Sink)\s*\(")
+    ql_file_path = os.path.join(os.path.dirname(__file__), "..", "codeql", "project_specific", project_name, "VulnerableMethodsClassification.qll")
+    with open(ql_file_path, 'r') as f:
+        for line in f:
+            match = pattern.search(line)
+            if match:
+                pred_name, pred_cwe_id = match.groups()
+                if str(pred_cwe_id) == str(cwe_id):
+                    predicates.append(pred_name)
+
+    return {
+        "classic_categories": sink_categories,
+        "predicates": predicates,
+    }
+
+def get_cwe_specific_sanitizers(cwe_id, project_name):
+    pass
