@@ -49,3 +49,27 @@ def extract_context_from_file(file_path: str, context_start: int, context_end: i
     except Exception as e:
         logger.error(f"Error extracting context from {file_path}: {e}")
         return ""
+    
+def get_cwe_details(cwe_id):
+    logger.info(f"Fetching details for CWE ID: {cwe_id}")
+
+    # read csv
+    csv_path = os.path.join(os.path.dirname(__file__), "..", "docs", "cwes.csv")
+    df = pd.read_csv(csv_path, index_col=False)
+
+    df['CWE-ID'] = df['CWE-ID'].astype(str).str.strip()
+    
+    # check if cwe_id is in the dataframe
+    if str(cwe_id) in df['CWE-ID'].astype(str).values:
+        return {
+            "id": cwe_id,
+            "name": df.loc[df['CWE-ID'].astype(str) == str(cwe_id), 'Name'].values[0],
+            "description": df.loc[df['CWE-ID'].astype(str) == str(cwe_id), 'Description'].values[0],
+        }
+    else:
+        logger.warning(f"CWE ID {cwe_id} not found in the database.")
+        return {
+            "id": cwe_id,
+            "name": "Unknown",
+            "description": "No description available."
+        }
