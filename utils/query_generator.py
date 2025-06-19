@@ -45,7 +45,7 @@ def generate_codeql_package_classification(classified_methods, output_path):
         f.write("import DataFlow\n\n")
         
         # Write module declaration
-        f.write("module VulnerableMethodsClassification {\n")
+        f.write("module VulnerableMethodsClassificationLib {\n")
         
         # Define sources
         f.write("  /** Holds if the call is to a method classified as a SOURCE */\n")
@@ -140,6 +140,20 @@ def generate_codeql_package_classification(classified_methods, output_path):
         f.write("      )\n")
         f.write("    )\n")
         f.write("  }\n")
+        
+        f.write("\n  // propagator bridge predicate\n")
+        f.write("  predicate propagates(DataFlow::Node pred, DataFlow::Node succ) {\n")
+        f.write("    exists(DataFlow::CallNode call |\n")
+        f.write("      isVulnerablePropagator(call) and\n")
+        f.write("      (\n")
+        f.write("        pred = call.getAnArgument() and\n")
+        f.write("        succ = call\n")
+        f.write("        or\n")
+        f.write("        pred = call.getReceiver() and\n")
+        f.write("        succ = call\n")
+        f.write("      )\n")
+        f.write("    )\n")
+        f.write("  }\n\n")
         
         # Close module
         f.write("}\n")
@@ -524,4 +538,169 @@ def get_cwe_specific_sinks(cwe_id, project_name):
     }
 
 def get_cwe_specific_sanitizers(cwe_id, project_name):
-    pass
+    predicates = {}
+    pattern = re.compile(r'predicate\s+(isCWE(?:_\d+)+_[A-Za-z0-9_]+)\s*\(')
+    ql_file_path = os.path.join(os.path.dirname(__file__), "..", "codeql", "project_specific", project_name, "ConditionalSanitizers.qll")
+
+    with open(ql_file_path, 'r') as f:
+        content = f.read()
+        for match in pattern.finditer(content):
+            predicate_name = match.group(1)
+            cwes = re.findall(r'CWE_(\d+)', predicate_name)
+            for cwe in cwes:
+                if cwe not in predicates:
+                    predicates[cwe] = []
+                predicates[cwe].append(predicate_name)
+
+    return predicates.get(str(cwe_id), [])
+
+def generate_vulnerability_query(cwe_id, project_name):
+    sinks = get_cwe_specific_sinks(cwe_id, project_name)
+    sanitizers = get_cwe_specific_sanitizers(cwe_id, project_name)
+    cwe_details = get_cwe_details(cwe_id)
+
+    sink_predicate_parts = []
+    for category in sinks["classic_categories"]:
+        sink_predicate_parts.append(f'{category.replace(" ", "")}(sink)')
+    for pred in sinks['predicates']:
+        sink_predicate_parts.append(f'exists(DataFlow::CallNode call | {pred}(call) and sink = call)')
+
+    sink_predicate = f"""  predicate isSink(DataFlow::Node sink) {{
+    {' or\n    '.join(sink_predicate_parts)}
+  }}"""
+    
+    sanitizer_predicate_parts = []
+    for pred in sanitizers:
+        sanitizer_predicate_parts.append(f'ConditionalSanitizerLib::{pred}(call)')
+
+    sanitizer_predicate = f"""predicate isBarrier(DataFlow::Node node) {{
+    (TaintTracking::defaultSanitizer(node)
+    or
+    node instanceof TaintTracking::AdHocWhitelistCheckSanitizer
+    or
+    node instanceof TaintTracking::AdditionalBarrierGuard
+    or
+    node instanceof TaintTracking::InSanitizer
+    or
+    node instanceof TaintTracking::MembershipTestSanitizer
+    or
+    node instanceof TaintTracking::PositiveIndexOfSanitizer
+    or
+    node instanceof TaintTracking::WhitelistContainmentCallSanitizer
+    or
+    node instanceof TaintTracking::SanitizingRegExpTest)}}"""
+    
+    if sanitizer_predicate_parts:
+        sanitizer_conditions = " or\n    ".join(sanitizer_predicate_parts)
+        sanitizer_predicate = sanitizer_predicate[:-1]
+        sanitizer_predicate +=f"""\n
+    and not
+    // Project-specific conditional sanitizers
+    exists(DataFlow::CallNode call |
+    (
+    {sanitizer_conditions}
+    ) and
+    node = call
+    )
+  }}"""
+        
+    query = f"""/**
+    * @name Vulnerability Query for CWE-{cwe_id}
+    * @description This query identifies potential vulnerabilities related to CWE-{cwe_id} using custom sources, sinks, sanitizers, and propagators.
+    * @kind path-problem
+    * @problem.severity error
+    * @precision high
+    * @id js/cwe-{cwe_id}-vulnerability
+    * @tags security
+    */
+
+    import javascript
+    import DataFlow
+    import isSource
+    import isSink
+    import VulnerableMethodsClassification
+    import ConditionalSanitizers
+    import CWE{cwe_details['id']}Flow::PathGraph
+
+    /**
+    * Configuration for {cwe_details['name']} vulnerabilities
+    */
+    module CWE{cwe_details['id']}Configuration implements DataFlow::ConfigSig {{
+    predicate isSource(DataFlow::Node source) {{
+        isSources(source)
+        or
+        exists(DataFlow::CallNode call |
+            VulnerableMethodsClassificationLib::isVulnerableSource(call) and
+            source = call
+        )
+    }}
+
+    {sink_predicate}
+
+    {sanitizer_predicate}
+
+    predicate isAdditionalFlowStep(DataFlow::Node pred, DataFlow::Node succ) {{
+        TaintTracking::defaultTaintStep(pred, succ)
+        or
+        TaintTracking::deserializeStep(pred, succ)
+        or
+        TaintTracking::heapStep(pred, succ)
+        or
+        TaintTracking::arrayStep(pred, succ)
+        or
+        TaintTracking::persistentStorageStep(pred, succ)
+        or
+        TaintTracking::promiseStep(pred, succ)
+        or
+        TaintTracking::serializeStep(pred, succ)
+        or
+        TaintTracking::sharedTaintStep(pred, succ)
+        or
+        TaintTracking::stringConcatenationStep(pred, succ)
+        or
+        TaintTracking::stringManipulationStep(pred, succ)
+        or
+        TaintTracking::uriStep(pred, succ)
+        or
+        TaintTracking::viewComponentStep(pred, succ)
+        or
+        exists(TaintTracking::AdditionalTaintStep additionalStep |
+            additionalStep.step(pred, succ)
+        )
+        or
+        exists(TaintTracking::SharedTaintStep additionalStep |
+            additionalStep.step(pred, succ)
+        )
+        or
+        exists(TaintTracking::StringConcatenationTaintStep additionalStep |
+            additionalStep.step(pred, succ)
+        )
+        or
+        exists(TaintTracking::UtilInspectTaintStep additionalStep |
+            additionalStep.step(pred, succ)
+        )
+        or
+        exists(TaintTracking::LegacyTaintStep additionalStep |
+            additionalStep.step(pred, succ)
+        )
+        or
+        exists(TaintTracking::ErrorConstructorTaintStep additionalStep |
+            additionalStep.step(pred, succ)
+        )
+        or
+        VulnerableMethodsClassificationLib::propagates(pred, succ)
+    }}
+    }}
+
+    // Create global taint tracking configuration
+    module CWE{cwe_details['id']}Flow = TaintTracking::Global<CWE{cwe_details['id']}Configuration>;
+
+    // Query
+    from CWE{cwe_details['id']}Flow::PathNode source, CWE{cwe_details['id']}Flow::PathNode sink
+    where CWE{cwe_details['id']}Flow::flowPath(source, sink)
+    select sink.getNode(), source, sink, "{cwe_details['name']} vulnerability"
+    """
+
+    output_path = os.path.join(os.path.dirname(__file__), "..", "codeql", "project_specific", project_name, f"cwe_{cwe_id}_vulnerability.ql")
+    with open(output_path, 'w') as f:
+        f.write(query)

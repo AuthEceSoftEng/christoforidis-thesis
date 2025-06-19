@@ -866,7 +866,7 @@ string getSourceCategory(DataFlow::Node src) {
   else result = "Unknown source" // Default case
 }
 
-predicate isSource(DataFlow::Node src) {
+predicate isSources(DataFlow::Node src) {
   isRemoteSource(src) or
   isHeuristicHttpRequestSource(src) or
   isFetchResponseSource(src) or
