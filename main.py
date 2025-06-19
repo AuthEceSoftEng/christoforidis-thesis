@@ -4,10 +4,10 @@ from utils.query_runner import run_codeql_query_tables
 from utils.node_post_process import process_nodes, nodes_to_json
 from utils.create_db import create_codeql_database
 from utils.methods_post_process import deduplicate_methods, methods_to_json, compare_with_advisories, classify_vulnerable_methods
-from utils.query_generator import generate_codeql_package_classification, generate_conditional_sanitizer_library, cleanup_test_queries
+from utils.query_generator import generate_codeql_package_classification, generate_conditional_sanitizer_library, cleanup_test_queries, refine_vulnerability_query
 
 def main():
-    ## CODEQL DATABASE CREATION ##
+    """ ## CODEQL DATABASE CREATION ##
     project_name = "juice-shop" # temporary project name
 
     # create codeql database or use existing one
@@ -94,7 +94,8 @@ def main():
     generate_conditional_sanitizer_library(classified_methods, qll_path)
 
     # cleanup test queries
-    cleanup_test_queries(project_specific_dir)
+    cleanup_test_queries(project_specific_dir) """
+    refine_vulnerability_query(89, "juice-shop")
 
 if __name__ == "__main__":
     main()

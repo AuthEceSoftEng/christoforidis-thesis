@@ -5,9 +5,9 @@ import logging
 import chromadb
 from chromadb.utils import embedding_functions
 from .LLM import LLMHandler
-from .prompts import get_initial_sanitizer_prompt, get_refinement_sanitizer_prompt, get_sink_selection_prompt
-from .query_runner import run_codeql_query_tables
-from .general import get_cwe_details
+from .prompts import get_initial_sanitizer_prompt, get_refinement_sanitizer_prompt, get_sink_selection_prompt, flow_explaination_prompt, flow_implementation_prompt, flow_refinement_prompt
+from .query_runner import run_codeql_query_tables, run_codeql_path_problem
+from .general import get_cwe_details, extract_predicate_from_file
 
 # set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -557,7 +557,6 @@ def get_cwe_specific_sanitizers(cwe_id, project_name):
 def generate_vulnerability_query(cwe_id, project_name):
     sinks = get_cwe_specific_sinks(cwe_id, project_name)
     sanitizers = get_cwe_specific_sanitizers(cwe_id, project_name)
-    cwe_details = get_cwe_details(cwe_id)
 
     sink_predicate_parts = []
     for category in sinks["classic_categories"]:
@@ -604,41 +603,7 @@ def generate_vulnerability_query(cwe_id, project_name):
     )
   }}"""
         
-    query = f"""/**
-    * @name Vulnerability Query for CWE-{cwe_id}
-    * @description This query identifies potential vulnerabilities related to CWE-{cwe_id} using custom sources, sinks, sanitizers, and propagators.
-    * @kind path-problem
-    * @problem.severity error
-    * @precision high
-    * @id js/cwe-{cwe_id}-vulnerability
-    * @tags security
-    */
-
-    import javascript
-    import DataFlow
-    import isSource
-    import isSink
-    import VulnerableMethodsClassification
-    import ConditionalSanitizers
-    import CWE{cwe_details['id']}Flow::PathGraph
-
-    /**
-    * Configuration for {cwe_details['name']} vulnerabilities
-    */
-    module CWE{cwe_details['id']}Configuration implements DataFlow::ConfigSig {{
-    predicate isSource(DataFlow::Node source) {{
-        isSources(source)
-        or
-        exists(DataFlow::CallNode call |
-            VulnerableMethodsClassificationLib::isVulnerableSource(call) and
-            source = call
-        )
-    }}
-
-    {sink_predicate}
-
-    {sanitizer_predicate}
-
+    flow_predicate = f"""
     predicate isAdditionalFlowStep(DataFlow::Node pred, DataFlow::Node succ) {{
         TaintTracking::defaultTaintStep(pred, succ)
         or
@@ -690,6 +655,55 @@ def generate_vulnerability_query(cwe_id, project_name):
         or
         VulnerableMethodsClassificationLib::propagates(pred, succ)
     }}
+    """
+    
+    query = general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, flow_predicate)
+
+    output_path = os.path.join(os.path.dirname(__file__), "..", "codeql", "project_specific", project_name, f"cwe_{cwe_id}_vulnerability.ql")
+    with open(output_path, 'w') as f:
+        f.write(query)
+
+    return [flow_predicate, sink_predicate, sanitizer_predicate, query]
+
+def general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, flow_predicate):
+    cwe_details = get_cwe_details(cwe_id)
+    query = f"""/**
+    * @name Vulnerability Query for CWE-{cwe_id}
+    * @description This query identifies potential vulnerabilities related to CWE-{cwe_id} using custom sources, sinks, sanitizers, and propagators.
+    * @kind path-problem
+    * @problem.severity error
+    * @precision high
+    * @id js/cwe-{cwe_id}-vulnerability
+    * @tags security
+    */
+
+    import javascript
+    import DataFlow
+    import isSource
+    import isSink
+    import VulnerableMethodsClassification
+    import ConditionalSanitizers
+    import CWE{cwe_details['id']}Flow::PathGraph
+
+    /**
+    * Configuration for {cwe_details['name']} vulnerabilities
+    */
+    module CWE{cwe_details['id']}Configuration implements DataFlow::ConfigSig {{
+    predicate isSource(DataFlow::Node source) {{
+        isSources(source)
+        or
+        exists(DataFlow::CallNode call |
+            VulnerableMethodsClassificationLib::isVulnerableSource(call) and
+            source = call
+        )
+    }}
+
+    {sink_predicate}
+
+    {sanitizer_predicate}
+
+    {flow_predicate}
+
     }}
 
     // Create global taint tracking configuration
@@ -701,6 +715,76 @@ def generate_vulnerability_query(cwe_id, project_name):
     select sink.getNode(), source, sink, "{cwe_details['name']} vulnerability"
     """
 
-    output_path = os.path.join(os.path.dirname(__file__), "..", "codeql", "project_specific", project_name, f"cwe_{cwe_id}_vulnerability.ql")
-    with open(output_path, 'w') as f:
+    return query
+
+def refine_vulnerability_query(cwe_id, project_name):
+    sinks = get_cwe_specific_sinks(cwe_id, project_name)
+    sinks = sinks['classic_categories']
+    cwe_details = get_cwe_details(cwe_id)
+
+    flow_predicate, sink_predicate, sanitizer_predicate, initial_query = generate_vulnerability_query(cwe_id, project_name)
+
+    # Set up vector database connection
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    db_path = os.path.join(base_dir, "vector_db", "chroma_db")
+    database_path = os.path.join(base_dir, "databases", project_name) # dummy codeql database to "run" the query , MUST EXIST
+    embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
+        model_name="all-MiniLM-L6-v2", 
+        device="cpu"
+    )
+    client = chromadb.PersistentClient(path=db_path)
+    collection = client.get_collection(
+        name="codeql_docs",
+        embedding_function=embedding_function
+    )
+    vdb_queries_cwe = [f'{cwe_details["name"]}', f'{cwe_details["description"]}', f'CWE-{cwe_id}']
+    vdb_queries_taint_tracking =['isAdditionalFlowStep', 'TaintTracking']
+    docs = _get_relevant_documentation(vdb_queries_cwe, collection)
+    docs += _get_relevant_documentation(vdb_queries_taint_tracking, collection)
+
+    sinks_path = os.path.join(base_dir, "codeql", "isSink.qll")
+    sinks_extracted = [extract_predicate_from_file(sinks_path, sink) for sink in sinks]
+
+    llm = LLMHandler('claude', temperature=0.2)
+    messages = flow_explaination_prompt(cwe_details, flow_predicate, sink_predicate, sinks_extracted, docs)
+    explanation = llm.send_message(messages)
+    messages.append({"role": "assistant", "message": explanation})
+    messages.append(flow_implementation_prompt(flow_predicate, explanation)[0])
+    refined_flow_predicate = llm.send_message(messages)
+    refined_flow_predicate = clean_predicate_response(refined_flow_predicate)
+    query = general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, refined_flow_predicate)
+    ql_path = os.path.join(base_dir, "codeql", "project_specific", project_name, f"cwe_{cwe_id}_vulnerability_refined.ql")
+
+    with open(ql_path, 'w') as f:
         f.write(query)
+
+    success, error = run_codeql_path_problem(database_path, ql_path, os.path.dirname(ql_path))
+    tries = 0
+
+    while not success and tries < 5:
+        clean_errors = extract_codeql_errors(error)
+        logger.error(f"Error running refined query for CWE-{cwe_id}: {clean_errors}")
+
+        docs_text = _get_relevant_documentation([clean_errors], collection)
+        docs_text += _get_relevant_documentation([refined_flow_predicate], collection)
+
+        messages.append({"role": "assistant", "message": refined_flow_predicate})
+        messages.append(flow_refinement_prompt(refined_flow_predicate, clean_errors, docs_text)[0])
+
+        refined_flow_predicate = llm.send_message(messages)
+        refined_flow_predicate = clean_predicate_response(refined_flow_predicate)
+
+        logger.info(f"#Try: {tries+1}: Refined flow predicate for CWE-{cwe_id}")
+        query = general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, refined_flow_predicate)
+        with open(ql_path, 'w') as f:
+            f.write(query)
+        success, error = run_codeql_path_problem(database_path, ql_path, os.path.dirname(ql_path))
+
+        tries += 1
+
+    if success:
+        logger.info(f"Successfully validated refined flow predicate for CWE-{cwe_id}")
+    else:
+        logger.error(f"Failed to validate refined flow predicate for CWE-{cwe_id} after 5 tries")
+        with open(ql_path, 'w') as f:
+            f.write(initial_query)

@@ -73,3 +73,33 @@ def get_cwe_details(cwe_id):
             "name": f"CWE{cwe_id}Vulnerability",
             "description": "No description available."
         }
+    
+def extract_predicate_from_file(file_path: str, predicate_name: str) -> str:
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+        
+        predicate_lines = []
+        in_predicate = False
+        brace_count = 0
+
+        for line in lines:
+            if not in_predicate and line.strip().startswith(f"predicate {predicate_name}"):
+                in_predicate = True
+                predicate_lines.append(line)
+                brace_count += line.count('{')
+                continue
+            if in_predicate:
+                predicate_lines.append(line)
+                brace_count += line.count('{')
+                brace_count -= line.count('}')
+                if brace_count == 0:
+                    break
+        
+        if predicate_lines:
+            return ''.join(predicate_lines)
+        return None
+    
+    except Exception as e:
+        logger.error(f"Error extracting predicate from {file_path}: {e}")
+        return None
