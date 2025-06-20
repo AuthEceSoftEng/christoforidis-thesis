@@ -274,3 +274,108 @@ Based on this information, return only a list of applicable CWE IDs like this:
 20, 79, 89
 """
     return [{"role": "user", "message": prompt}]
+
+def sink_explaination_prompt(cwe_details, sink_predicate, sinks_extracted, docs):
+    prompt = f"""
+    You are a CodeQL expert specialized in security vulnerabilities for Javascript projects. You are tasked with improving an isSink predicate in a custom configuration.
+    The configuration tries to detect the following CWE (Common Weakness Enumeration) vulnerability.
+    CWE ID: {cwe_details['id']}
+    CWE Name: {cwe_details['name']}
+    CWE Description: {cwe_details['description']}
+
+    CURRENT IMPLEMENTATION:
+    ```ql
+    {sink_predicate}
+    ```
+
+    SINK PATTERNS DETECTED:
+    ```ql
+    {sinks_extracted}
+    ```
+
+    RELEVANT DOCUMENTATION:
+    {docs}
+
+    ANALYSIS TASK:
+    1. First, analyze the existing sink definitions and patterns detected
+    2. Based on the CWE, identify the TOP 3 MOST CRITICAL missing sink patterns
+    3. Prioritize patterns that would most improve detection of the specific vulnerability types
+    
+    For each pattern, provide:
+    - A clear name and description of what's missing
+    - Why it's critical for detection (high impact)
+    - A simple code example showing a vulnerable pattern that would be missed
+
+    FORMAT YOUR RESPONSE AS FOLLOWS:
+
+    ## Missing Pattern 1: [Name]
+    Description: [Clear description]
+    Critical because: [Justification]
+    Example:
+    ```javascript
+    // Code showing vulnerability
+    
+    At this stage you should only focus on explaining the missing sink patterns and NOT on writing the actual CodeQL code.
+"""
+    
+    return [{"role": "user", "message": prompt}]
+
+def sink_implementation_prompt(sink_predicate, explanation):
+    prompt = f"""
+    You are a CodeQL expert specialized in security vulnerabilities for Javascript projects. Based on your previous analysis of missing sink patterns:
+
+    {explanation}
+
+    I now need you to implement these improvements to the isSink predicate.
+
+    CURRENT IMPLEMENTATION:
+    ```ql
+    {sink_predicate}
+    ```
+
+    IMPLEMENTATION TASK:
+    1. Modify the predicate to include the missing sink patterns you identified
+    2. Implement each pattern using correct CodeQL syntax and classes
+    3. Add brief comments explaining each new pattern
+    4. Ensure all existing functionality is preserved
+
+    REQUIREMENTS:
+    - Use only classes and methods available in the standard CodeQL JavaScript library
+    - Follow CodeQL best practices for predicate implementation
+    - Maintain proper indentation and formatting
+    - Add ONLY the missing patterns - don't remove any existing functionality
+    - Use clear, descriptive variable names
+
+    Return the complete improved isSink predicate code without any explaination.
+    DO NOT ADD ANY OTHER PREDICATES ONLY THE ONE REQUESTED.
+    DO NOT ADD HELPER PRIVATE PREDICATES JUST ADD EVERYTHING INSIDE THE isSink PREDICATE.
+    """
+    
+    return [{"role": "user", "message": prompt}]
+
+def sink_refinement_prompt(sink_predicate, errors, docs):
+    prompt = f"""
+You are a CodeQL expert specialized in security vulnerabilities for Javascript projects. You previously wrote an improved predicate for missing sink patterns
+
+YOUR INITIAL IMPLEMENTATION:
+```ql
+{sink_predicate}
+```
+
+ERRORS IN YOUR IMPLEMENTATION:
+{errors}
+
+RELEVANT DOCUMENTATION TO THE ERRORS:
+{docs}
+
+Please refine your predicate implementation based on this documentation. Focus on:
+
+1. Correct usage of CodeQL syntax and patterns
+2. Incorrect type access - make sure you're using the right methods for each type
+3. Incorrect property access - verify property names exist on the types
+
+Write only the improved predicate code without explanation or commentary and extra reasoning.
+DO NOT ADD ANY OTHER PREDICATES ONLY THE ONE REQUESTED.
+"""
+    
+    return [{"role": "user", "message": prompt}]

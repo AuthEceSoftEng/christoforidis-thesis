@@ -118,7 +118,7 @@ def run_codeql_path_problem(database_path: str, query_path: str, output_path: st
     # For path-problem queries, we use database analyze to generate SARIF
     sarif_output = f"{output_path}.sarif"
     command_analyze = [
-        "codeql", "database", "analyze", 
+        "codeql", "database", "analyze",  "--rerun",
         database_path,
         query_path,
         "--format=sarif-latest",
