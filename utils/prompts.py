@@ -1,3 +1,5 @@
+import os
+
 def get_initial_sanitizer_prompt(sanitizer):
     package = sanitizer["package"]
     method = sanitizer["method"]
@@ -251,4 +253,24 @@ Please refine your predicate implementation based on this documentation. Focus o
 Write only the improved predicate code without explanation or commentary and extra reasoning.
 """
     
+    return [{"role": "user", "message": prompt}]
+
+def decide_cwes_prompt(project_name: str, readme_content: str, package_content: str):
+    prompt= f"""
+You are a security analyst tasked with identifying all Common Weakness Enumerations (CWEs) we should try to detect for a given JavaScript project.
+
+Only output the list of relevant CWE IDs. Do not analyze or explain the code. Do not provide fixes. Your output must only include the CWE IDs that the project should be checked for.
+
+### PROJECT NAME:
+{project_name}
+
+### README.md:
+{readme_content}
+
+### package.json:
+{package_content}
+
+Based on this information, return only a list of applicable CWE IDs like this:
+20, 79, 89
+"""
     return [{"role": "user", "message": prompt}]

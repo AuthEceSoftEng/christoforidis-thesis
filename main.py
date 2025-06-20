@@ -5,6 +5,7 @@ from utils.node_post_process import process_nodes, nodes_to_json
 from utils.create_db import create_codeql_database
 from utils.methods_post_process import deduplicate_methods, methods_to_json, compare_with_advisories, classify_vulnerable_methods
 from utils.query_generator import generate_codeql_package_classification, generate_conditional_sanitizer_library, cleanup_test_queries, refine_vulnerability_query
+from utils.cwe_decider import cwes_to_check
 
 def main():
     """ ## CODEQL DATABASE CREATION ##
@@ -95,7 +96,8 @@ def main():
 
     # cleanup test queries
     cleanup_test_queries(project_specific_dir) """
-    refine_vulnerability_query(89, "juice-shop")
+    #refine_vulnerability_query(89, "juice-shop")
+    print(cwes_to_check("juice-shop"))
 
 if __name__ == "__main__":
     main()
