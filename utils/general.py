@@ -1,6 +1,7 @@
 import os
 import logging
 import pandas as pd
+import requests
 
 # set up logging configuration
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -53,26 +54,24 @@ def extract_context_from_file(file_path: str, context_start: int, context_end: i
 def get_cwe_details(cwe_id):
     logger.info(f"Fetching details for CWE ID: {cwe_id}")
 
-    # read csv
-    csv_path = os.path.join(os.path.dirname(__file__), "..", "docs", "cwes.csv")
-    df = pd.read_csv(csv_path, index_col=False)
+    url = f"https://cwe-api.mitre.org/api/v1/cwe/weakness/{cwe_id}"
 
-    df['CWE-ID'] = df['CWE-ID'].astype(str).str.strip()
-    
-    # check if cwe_id is in the dataframe
-    if str(cwe_id) in df['CWE-ID'].astype(str).values:
-        return {
-            "id": cwe_id,
-            "name": df.loc[df['CWE-ID'].astype(str) == str(cwe_id), 'Name'].values[0],
-            "description": df.loc[df['CWE-ID'].astype(str) == str(cwe_id), 'Description'].values[0],
-        }
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        data = response.json()
+        name = data['Weaknesses'][0]['Name']
+        description = data['Weaknesses'][0]['Description']
     else:
-        logger.warning(f"CWE ID {cwe_id} not found in the dataframe.")
-        return {
-            "id": cwe_id,
-            "name": f"CWE{cwe_id}Vulnerability",
-            "description": "No description available."
-        }
+        logger.warning(f"Error: {response.status_code} fetching CWE details for ID {cwe_id}.")
+        name = f"CWE{cwe_id}Vulnerability"
+        description = "No description available."
+
+    return {
+        "id": cwe_id,
+        "name": name,
+        "description": description,
+    }
     
 def extract_predicate_from_file(file_path: str, predicate_name: str) -> str:
     try:
