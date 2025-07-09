@@ -82,6 +82,7 @@ if __name__ == "__main__":
         cwe_codes = extract_cwe_codes(url)
         logger.info(f"Extracted CWE codes: {cwe_codes} from {url}")
     
-        with open("cwe_codes_top10.txt", "a") as f:
+        file = os.path.join(os.path.dirname(__file__), "..", "evaluation_cves", "cwe_codes_top10.txt")
+        with open(file, "a") as f:
             for cwe in cwe_codes:
                 f.write(f"{cwe}\n")
