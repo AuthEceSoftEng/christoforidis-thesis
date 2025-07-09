@@ -6,8 +6,14 @@ from utils.create_db import create_codeql_database
 from utils.methods_post_process import deduplicate_methods, methods_to_json, compare_with_advisories, classify_vulnerable_methods
 from utils.query_generator import generate_codeql_package_classification, generate_conditional_sanitizer_library, cleanup_test_queries, refine_vulnerability_query
 from utils.cwe_decider import cwes_to_check
+from utils.scraper import clone_vulnerable_repos
 
 def main():
+    # clone vulnerable repositories
+    json_folder = os.path.join(os.path.dirname(__file__), "evaluation_cves")
+    cloned_foder = os.path.join(os.path.dirname(__file__), "codebases", "cloned_repos")
+    clone_vulnerable_repos(json_folder, cloned_foder)
+    
     """ ## CODEQL DATABASE CREATION ##
     project_name = "juice-shop" # temporary project name
 
@@ -96,7 +102,7 @@ def main():
 
     # cleanup test queries
     cleanup_test_queries(project_specific_dir) """
-    refine_vulnerability_query(89, "juice-shop")
+    #refine_vulnerability_query(89, "juice-shop")
     #print(cwes_to_check("juice-shop"))
 
 if __name__ == "__main__":

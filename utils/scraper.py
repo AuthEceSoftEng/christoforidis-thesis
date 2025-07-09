@@ -1,0 +1,87 @@
+import os
+import json
+import subprocess
+import logging
+import requests
+from bs4 import BeautifulSoup
+import re
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+def clone_vulnerable_repos(json_folder: str, output_folder: str):
+
+    # output folder exists
+    os.makedirs(output_folder, exist_ok=True)
+
+    # iterate all JSON files
+    for filename in os.listdir(json_folder):
+        if filename.endswith(".json"):
+            json_path = os.path.join(json_folder, filename)
+            with open(json_path, "r", encoding="utf-8") as file:
+                try:
+                    data = json.load(file)
+                    repo_url = data["repository"]
+                    commit_hash = data["prePatch"]["commit"]
+
+                    # use repo name for folder
+                    repo_name = repo_url.rstrip(".git").split("/")[-1]
+                    clone_path = os.path.join(output_folder, f"{repo_name}-{commit_hash[:7]}")
+
+                    # skip already cloned
+                    if os.path.exists(clone_path):
+                        logger.info(f"Repo already cloned: {clone_path}")
+                        continue
+
+                    logger.info(f"Cloning {repo_url} at commit {commit_hash}")
+
+                    # Clone and checkout the commit
+                    subprocess.run(["git", "clone", repo_url, clone_path], check=True)
+                    subprocess.run(["git", "checkout", commit_hash], cwd=clone_path, check=True)
+
+                    logger.info(f"Cloned into {clone_path}")
+
+                except (KeyError, json.JSONDecodeError) as e:
+                    logger.error(f"Error processing {filename}: {e}")
+                except subprocess.CalledProcessError as e:
+                    logger.error(f"Git error in {filename}: {e}")
+
+def extract_cwe_codes(url):
+    # extract CWE codes from a given URL (scraping the page)
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        logger.error(f"Request failed: {e}")
+        return []
+
+    soup = BeautifulSoup(response.text, 'html.parser')
+    text = soup.get_text()
+
+    # find all CWE codes in the format CWE-<number>
+    cwe_codes = re.findall(r'CWE-\d+', text)
+
+    return list(set(cwe_codes))  # remove duplicates
+
+if __name__ == "__main__":
+    # scrape CWE codes from OWASP Top 10 pages
+    urls = [
+    "https://owasp.org/Top10/A01_2021-Broken_Access_Control/#list-of-mapped-cwes",
+    "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/#list-of-mapped-cwes",
+    "https://owasp.org/Top10/A03_2021-Injection/#list-of-mapped-cwes",
+    "https://owasp.org/Top10/A04_2021-Insecure_Design/#list-of-mapped-cwes",
+    "https://owasp.org/Top10/A05_2021-Security_Misconfiguration/#list-of-mapped-cwes",
+    "https://owasp.org/Top10/A06_2021-Vulnerable_and_Outdated_Components/#list-of-mapped-cwes",
+    "https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/#list-of-mapped-cwes",
+    "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/#list-of-mapped-cwes",
+    "https://owasp.org/Top10/A09_2021-Security_Logging_and_Monitoring_Failures/#list-of-mapped-cwes",
+    "https://owasp.org/Top10/A10_2021-Server-Side_Request_Forgery_%28SSRF%29/#list-of-mapped-cwes"
+    ]
+    for url in urls:
+        cwe_codes = extract_cwe_codes(url)
+        logger.info(f"Extracted CWE codes: {cwe_codes} from {url}")
+    
+        with open("cwe_codes_top10.txt", "a") as f:
+            for cwe in cwe_codes:
+                f.write(f"{cwe}\n")
