@@ -865,12 +865,14 @@ def refine_flow_vulnerability_query(cwe_id, project_name):
             f.write(initial_query)
     return [flow_predicate, sanitizer_predicate]
 
-def refine_vulnerability_query(cwe_id, project_name):
+def refine_vulnerability_query(cwe_id, project_name, general: bool = False):
     sink_predicate = refine_sink_vulnerability_query(cwe_id, project_name)
     flow_predicate, sanitizer_predicate = refine_flow_vulnerability_query(cwe_id, project_name)
     
     query = general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, flow_predicate)
-
-    output_path = os.path.join(os.path.dirname(__file__), "..", "codeql", "project_specific", project_name, f"cwe_{cwe_id}_vulnerability_final.ql")
+    if not general:
+        output_path = os.path.join(os.path.dirname(__file__), "..", "codeql", "project_specific", project_name, f"cwe_{cwe_id}_vulnerability_final.ql")
+    else:
+        output_path = os.path.join(os.path.dirname(__file__), "..", "codeql", "general", f"cwe_{cwe_id}_vulnerability_final.ql")
     with open(output_path, 'w') as f:
         f.write(query)

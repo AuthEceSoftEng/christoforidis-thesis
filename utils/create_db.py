@@ -11,7 +11,8 @@ logger = logging.getLogger(__name__)
 def create_codeql_database(source_path: str,
                            output_path: str = None,
                            language: str = "javascript",
-                           threads: int = 0) -> Tuple[bool, Optional[str]]:
+                           threads: int = 0, 
+                           response: str = None) -> Tuple[bool, Optional[str]]:
     """
     Create a CodeQL database from source code.
     
@@ -50,7 +51,8 @@ def create_codeql_database(source_path: str,
         # Ask user what to do
         print(f"\nDatabase already exists at: {output_path}")
         while True:
-            response = input("Do you want to remove and recreate it? (y/n): ").strip().lower()
+            if response is None:
+                response = input("Do you want to remove and recreate it? (y/n): ").strip().lower()
             if response in ['y', 'yes']:
                 logger.info(f"Removing existing database at {output_path}")
                 try:
@@ -64,7 +66,7 @@ def create_codeql_database(source_path: str,
                 logger.info(f"Keeping existing database at {output_path}")
                 return True, "Using existing database" # return success without creating a new one, script ends here
             else:
-                print("Please enter 'y' or 'n'")
+                response = input("Please enter 'y' or 'n'")
 
     # command to create the CodeQL database
     command = [

@@ -3,16 +3,22 @@ import json
 from .LLM import LLMHandler
 from .prompts import decide_cwes_prompt
 
-def llm_decides_cwes(project_name: str):
+def llm_decides_cwes(project_name: str, extra_folder: str = None):
     try:
-        readme_path = os.path.join(os.path.dirname(__file__), '..', 'codebases', project_name, 'README.md')
+        if extra_folder is None:
+            readme_path = os.path.join(os.path.dirname(__file__), '..', 'codebases', project_name, 'README.md')
+        else:
+            readme_path = os.path.join(os.path.dirname(__file__), '..', 'codebases', extra_folder, project_name, 'README.md')
         with open(readme_path, 'r', encoding='utf-8') as file:
             readme_content = file.read()
     except FileNotFoundError:
         readme_content = "No README found for this project."
 
     try:
-        package_path = os.path.join(os.path.dirname(__file__), '..', 'codebases', project_name, 'package.json')
+        if extra_folder is None:
+            package_path = os.path.join(os.path.dirname(__file__), '..', 'codebases', project_name, 'package.json')
+        else:
+            package_path = os.path.join(os.path.dirname(__file__), '..', 'codebases', extra_folder, project_name, 'package.json')
         with open(package_path, 'r', encoding='utf-8') as file:
             package_content = file.read()
     except FileNotFoundError:
@@ -47,8 +53,8 @@ def cwes_from_vulnerable_methods(methods_vulnerable):
     # Convert set to sorted list for consistent output
     return sorted(list(unique_cwes))
 
-def cwes_to_check(project_name: str):
-    llm_cwes = llm_decides_cwes(project_name)
+def cwes_to_check(project_name: str, extra_folder: str = None):
+    llm_cwes = llm_decides_cwes(project_name, extra_folder)
 
     try:
         with open(os.path.join(os.path.dirname(__file__), '..', 'output', project_name, 'methods_vulnerable.json'), 'r') as f:

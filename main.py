@@ -10,9 +10,9 @@ from utils.scraper import clone_vulnerable_repos
 
 def main():
     # clone vulnerable repositories
-    json_folder = os.path.join(os.path.dirname(__file__), "evaluation_cves")
+    """ json_folder = os.path.join(os.path.dirname(__file__), "evaluation_cves")
     cloned_foder = os.path.join(os.path.dirname(__file__), "codebases", "cloned_repos")
-    clone_vulnerable_repos(json_folder, cloned_foder)
+    clone_vulnerable_repos(json_folder, cloned_foder) """
     
     """ ## CODEQL DATABASE CREATION ##
     project_name = "juice-shop" # temporary project name
