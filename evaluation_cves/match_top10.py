@@ -1,6 +1,8 @@
 import os
 import json
 import logging
+import random
+import shutil
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -23,7 +25,7 @@ def match_top10(cves_folder, top10_file):
                     # Check if any CWE in the CVE matches the Top 10 list
                     if cwe_codes.intersection(top10_cwes):
                         logger.info(f"{filename} matches Top 10 CWE: {cwe_codes.intersection(top10_cwes)}")
-                        matched.append(filename)
+                        matched.append([filename, cwe_codes.intersection(top10_cwes)])
                 except json.JSONDecodeError as e:
                     logger.error(f"Error decoding JSON from {filename}: {e}")
                 except KeyError as e:
@@ -37,6 +39,30 @@ if __name__ == "__main__":
     
     matched_cves, count = match_top10(cves_folder, top10_file)
     
-    print(f"Matched {count} CVEs with Top 10 CWE codes:")
-    print(matched_cves)
-   
+    seed = 44 # set a fixed seed for reproducibility
+    random.seed(seed)
+
+    random_numbers = [random.randint(1, count) for _ in range(50)]
+    random_cves = []
+    cwes = set()
+    
+    for i in random_numbers:
+        if len(random_cves) == 10:
+            break
+        cve = matched_cves[i]
+        if not cve[1].issubset(cwes):
+            random_cves.append(cve)
+            cwes.update(cve[1])
+
+    cves_names = [cve[0] for cve in random_cves]
+    src = os.path.join(os.path.dirname(__file__), "all")
+    dst = os.path.join(os.path.dirname(__file__), 'mini_evaluation')
+    os.makedirs(dst, exist_ok=True)
+
+    for cve_name in cves_names:
+        src_path = os.path.join(src, cve_name)
+        if os.path.exists(src_path):
+            shutil.copy(src_path, dst)
+            logger.info(f"Copied {cve_name} to {dst}")
+        else:
+            logger.warning(f"Source file {src_path} does not exist.")
