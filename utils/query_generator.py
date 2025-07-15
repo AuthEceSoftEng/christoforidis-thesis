@@ -78,12 +78,14 @@ def generate_codeql_package_classification(classified_methods, output_path):
     exists(string packageName, string methodName |
 """)
         all_sinks = [s for category in cwe_sinks.values() for s in category] + general_sinks
-        for i, sink in enumerate(all_sinks):
-            or_str = " or" if i < len(all_sinks) - 1 else ""
-            f.write(f'      (packageName = "{sink["package"]}" and methodName = "{sink["method"]}"){or_str}\n')
-        
-        f.write("""      |
-      // Get the module import reference
+        if all_sinks:
+            for i, sink in enumerate(all_sinks):
+                or_str = " or" if i < len(all_sinks) - 1 else ""
+                f.write(f'      (packageName = "{sink["package"]}" and methodName = "{sink["method"]}"){or_str}\n')
+            f.write(" |\n")
+        else:
+            f.write("      none() |\n")
+        f.write("""// Get the module import reference
       exists(DataFlow::SourceNode mod |
         mod = DataFlow::moduleImport(packageName) and
         call = mod.getAMemberCall(methodName)
@@ -227,6 +229,21 @@ def generate_conditional_sanitizer_library(classified_methods, output_path):
 
     if not conditional_sanitizers:
         logger.info("No CONDITIONAL_SANITIZER methods found. Skipping library generation.")
+        with open(output_path, 'w') as f:
+            f.write("""/**
+                        * @name Conditional Sanitizer Library
+                        * @description Predicates for detecting conditional sanitizers and their bypass conditions
+                        */
+
+                        import javascript
+                        import DataFlow
+
+                        module ConditionalSanitizerLib {
+                        /** Holds if the call is to a specified package method classified as a CONDITIONAL_SANITIZER */
+                        predicate isConditionalSanitizer(DataFlow::CallNode call, string packageName, string methodName) {
+                            none()
+                        }
+                        }""")
         return None
     
     # Track predicate names to avoid duplicates by adding suffixes
@@ -870,9 +887,13 @@ def refine_vulnerability_query(cwe_id, project_name, general: bool = False):
     flow_predicate, sanitizer_predicate = refine_flow_vulnerability_query(cwe_id, project_name)
     
     query = general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, flow_predicate)
-    if not general:
-        output_path = os.path.join(os.path.dirname(__file__), "..", "codeql", "project_specific", project_name, f"cwe_{cwe_id}_vulnerability_final.ql")
-    else:
-        output_path = os.path.join(os.path.dirname(__file__), "..", "codeql", "general", f"cwe_{cwe_id}_vulnerability_final.ql")
+
+    output_path = os.path.join(os.path.dirname(__file__), "..", "codeql", "project_specific", project_name, f"cwe_{cwe_id}_vulnerability_final.ql")
     with open(output_path, 'w') as f:
         f.write(query)
+    
+    if general:
+        general_path = os.path.join(os.path.dirname(__file__), "..", "codeql", "general", f"cwe_{cwe_id}_vulnerability_final.ql")
+        os.makedirs(os.path.dirname(general_path), exist_ok=True)
+        with open(general_path, 'w') as f:
+            f.write(query)
