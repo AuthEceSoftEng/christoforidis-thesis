@@ -734,7 +734,7 @@ def general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, flow_predica
 
     return query
 
-def refine_sink_vulnerability_query(cwe_id, project_name):
+def refine_sink_vulnerability_query(cwe_id, project_name, general: bool = False, extra_folder: str = None):
     sinks = get_cwe_specific_sinks(cwe_id, project_name)
     sinks = sinks['classic_categories']
     cwe_details = get_cwe_details(cwe_id)
@@ -763,7 +763,30 @@ def refine_sink_vulnerability_query(cwe_id, project_name):
     sinks_extracted = [extract_predicate_from_file(sinks_path, sink) for sink in sinks]
 
     llm = LLMHandler('claude', temperature=0.2)
-    messages = sink_explaination_prompt(cwe_details, sink_predicate, sinks_extracted, docs)
+
+    if not general:
+        try:
+            if extra_folder is None:
+                readme_path = os.path.join(os.path.dirname(__file__), '..', 'codebases', project_name, 'README.md')
+            else:
+                readme_path = os.path.join(os.path.dirname(__file__), '..', 'codebases', extra_folder, project_name, 'README.md')
+            with open(readme_path, 'r', encoding='utf-8') as file:
+                readme_content = file.read()
+        except FileNotFoundError:
+            readme_content = "No README found for this project."
+
+        try:
+            if extra_folder is None:
+                package_path = os.path.join(os.path.dirname(__file__), '..', 'codebases', project_name, 'package.json')
+            else:
+                package_path = os.path.join(os.path.dirname(__file__), '..', 'codebases', extra_folder, project_name, 'package.json')
+            with open(package_path, 'r', encoding='utf-8') as file:
+                package_content = file.read()
+        except FileNotFoundError:
+            package_content = "No package.json found for this project."
+        messages = sink_explaination_prompt(cwe_details, sink_predicate, sinks_extracted, docs, readme_content, package_content)
+    else:
+        messages = sink_explaination_prompt(cwe_details, sink_predicate, sinks_extracted, docs)
     explanation = llm.send_message(messages)
     messages.append({"role": "assistant", "message": explanation})
     messages.append(sink_implementation_prompt(sink_predicate, explanation)[0])
@@ -808,7 +831,7 @@ def refine_sink_vulnerability_query(cwe_id, project_name):
             f.write(initial_query)
     return sink_predicate
 
-def refine_flow_vulnerability_query(cwe_id, project_name):
+def refine_flow_vulnerability_query(cwe_id, project_name, general: bool = False, extra_folder: str = None):
     sinks = get_cwe_specific_sinks(cwe_id, project_name)
     sinks = sinks['classic_categories']
     cwe_details = get_cwe_details(cwe_id)
@@ -837,7 +860,30 @@ def refine_flow_vulnerability_query(cwe_id, project_name):
     sinks_extracted = [extract_predicate_from_file(sinks_path, sink) for sink in sinks]
 
     llm = LLMHandler('claude', temperature=0.2)
-    messages = flow_explaination_prompt(cwe_details, flow_predicate, sink_predicate, sinks_extracted, docs)
+
+    if not general:
+        try:
+            if extra_folder is None:
+                readme_path = os.path.join(os.path.dirname(__file__), '..', 'codebases', project_name, 'README.md')
+            else:
+                readme_path = os.path.join(os.path.dirname(__file__), '..', 'codebases', extra_folder, project_name, 'README.md')
+            with open(readme_path, 'r', encoding='utf-8') as file:
+                readme_content = file.read()
+        except FileNotFoundError:
+            readme_content = "No README found for this project."
+
+        try:
+            if extra_folder is None:
+                package_path = os.path.join(os.path.dirname(__file__), '..', 'codebases', project_name, 'package.json')
+            else:
+                package_path = os.path.join(os.path.dirname(__file__), '..', 'codebases', extra_folder, project_name, 'package.json')
+            with open(package_path, 'r', encoding='utf-8') as file:
+                package_content = file.read()
+        except FileNotFoundError:
+            package_content = "No package.json found for this project."
+        messages = flow_explaination_prompt(cwe_details, flow_predicate, sink_predicate, sinks_extracted, docs, readme_content, package_content)
+    else:
+        messages = flow_explaination_prompt(cwe_details, flow_predicate, sink_predicate, sinks_extracted, docs)
     explanation = llm.send_message(messages)
     messages.append({"role": "assistant", "message": explanation})
     messages.append(flow_implementation_prompt(flow_predicate, explanation)[0])
@@ -882,9 +928,9 @@ def refine_flow_vulnerability_query(cwe_id, project_name):
             f.write(initial_query)
     return [flow_predicate, sanitizer_predicate]
 
-def refine_vulnerability_query(cwe_id, project_name, general: bool = False):
-    sink_predicate = refine_sink_vulnerability_query(cwe_id, project_name)
-    flow_predicate, sanitizer_predicate = refine_flow_vulnerability_query(cwe_id, project_name)
+def refine_vulnerability_query(cwe_id, project_name, general: bool = False, extra_folder: str = None):
+    sink_predicate = refine_sink_vulnerability_query(cwe_id, project_name, general, extra_folder)
+    flow_predicate, sanitizer_predicate = refine_flow_vulnerability_query(cwe_id, project_name, general, extra_folder)
     
     query = general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, flow_predicate)
 

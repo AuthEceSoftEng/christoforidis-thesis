@@ -1,7 +1,6 @@
 import logging
 import os
 import sys
-import shutil
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -83,13 +82,7 @@ def main():
 
         # refine vulnerability query for each CWE
         for cwe_id in cwes:
-            output_path = os.path.join(project_root, 'codeql', 'general', f'cwe_{cwe_id}_vulnerability_final.ql')
-            if not os.path.exists(output_path):
-                refine_vulnerability_query(cwe_id, project_name, general=True)
-            else:
-                src = output_path
-                dst = os.path.join(project_specific_dir, f'cwe_{cwe_id}_vulnerability_final.ql')
-                shutil.copy2(src, dst)
+            refine_vulnerability_query(cwe_id, project_name, general=False, extra_folder='mini_cloned_repos')
 
     for project_name in project_names:
         project_specific_dir = os.path.join(project_root, "codeql", "project_specific", project_name)
@@ -99,7 +92,7 @@ def main():
 
         for query in queries:
             query_path = os.path.join(project_root, "codeql", "project_specific", project_name, query)
-            output_path = os.path.join(project_root, "output", "mini_evaluation", project_name, query)
+            output_path = os.path.join(project_root, "output", "mini_evaluation2", project_name, query)
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             run_codeql_path_problem(database_path, query_path, output_path)
     

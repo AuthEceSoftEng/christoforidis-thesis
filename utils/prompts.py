@@ -1,5 +1,3 @@
-import os
-
 def get_initial_sanitizer_prompt(sanitizer):
     package = sanitizer["package"]
     method = sanitizer["method"]
@@ -154,15 +152,26 @@ Return only the selected sink categories in a comma-separated format without any
 """
     return [{"role": "user", "message": sink_selection_prompt}]
 
-def flow_explaination_prompt(cwe_details, flow_predicate, sink_predicate, sinks_extracted, docs):
+def flow_explaination_prompt(cwe_details, flow_predicate, sink_predicate, sinks_extracted, docs, readme_content=None, package_content=None):
     prompt = f"""
     You are a CodeQL expert specialized in security vulnerabilities for Javascript projects. You are tasked with improving an isAdditionalFlowStep predicate in a custom configuration.
     The configuration tries to detect the following CWE (Common Weakness Enumeration) vulnerability.
     CWE ID: {cwe_details['id']}
     CWE Name: {cwe_details['name']}
-    CWE Description: {cwe_details['description']}
+    CWE Description: {cwe_details['description']}"""
 
-    CURRENT IMPLEMENTATION:
+    if readme_content is not None and package_content is not None:
+        prompt += f"""
+        Project's README.md (summary):
+        {readme_content}
+
+        Project's package.json:
+        ```json
+        {package_content}
+        ```
+        """
+
+    prompt += f"""CURRENT IMPLEMENTATION:
     ```ql
     {flow_predicate}
     ```
@@ -275,15 +284,26 @@ Based on this information, return only a list of applicable CWE IDs like this:
 """
     return [{"role": "user", "message": prompt}]
 
-def sink_explaination_prompt(cwe_details, sink_predicate, sinks_extracted, docs):
+def sink_explaination_prompt(cwe_details, sink_predicate, sinks_extracted, docs, readme_content=None, package_content=None):
     prompt = f"""
     You are a CodeQL expert specialized in security vulnerabilities for Javascript projects. You are tasked with improving an isSink predicate in a custom configuration.
     The configuration tries to detect the following CWE (Common Weakness Enumeration) vulnerability.
     CWE ID: {cwe_details['id']}
     CWE Name: {cwe_details['name']}
-    CWE Description: {cwe_details['description']}
+    CWE Description: {cwe_details['description']}"""
 
-    CURRENT IMPLEMENTATION:
+    if readme_content is not None and package_content is not None:
+        prompt += f"""
+        Project's README.md (summary):
+        {readme_content}
+
+        Project's package.json:
+        ```json
+        {package_content}
+        ```
+        """
+
+    prompt += f"""CURRENT IMPLEMENTATION:
     ```ql
     {sink_predicate}
     ```
