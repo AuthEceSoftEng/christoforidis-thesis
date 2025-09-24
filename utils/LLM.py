@@ -3,6 +3,7 @@ import json
 import boto3 # type: ignore
 from openai import OpenAI # type: ignore
 from dotenv import load_dotenv # type: ignore
+from botocore.config import Config
 
 load_dotenv()
 
@@ -25,13 +26,19 @@ class LLMHandler:
         if not ACCOUNT_ID:
             raise ValueError("ACCOUNT_ID environment variable is not set.")
         
+        timeout_config = Config(
+            connect_timeout=10,   # Optional: timeout for connection
+            read_timeout=120      # Increase read timeout here
+        )
+
         self.llama_session = boto3.Session()
         self.llama_client = self.llama_session.client(service_name="bedrock-runtime", region_name="eu-central-1")
         self.llama_model_id = f"arn:aws:bedrock:eu-central-1:{ACCOUNT_ID}:inference-profile/eu.meta.llama3-2-3b-instruct-v1:0"
         
         self.claude_session = boto3.Session()
-        self.claude_client = self.claude_session.client(service_name="bedrock-runtime", region_name="eu-central-1")
+        self.claude_client = self.claude_session.client(service_name="bedrock-runtime", region_name="eu-central-1", config=timeout_config)
         self.claude_model_id = f"arn:aws:bedrock:eu-central-1:{ACCOUNT_ID}:inference-profile/eu.anthropic.claude-3-7-sonnet-20250219-v1:0"
+        #self.claude_model_id = "anthropic.claude-3-sonnet-20240229-v1:0"
     
     def send_message(self, messages):
         formatted_messages = self._format_messages(messages)

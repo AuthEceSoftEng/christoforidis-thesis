@@ -86,13 +86,13 @@ def main():
 
     for project_name in project_names:
         project_specific_dir = os.path.join(project_root, "codeql", "project_specific", project_name)
-        queries = [f for f in os.listdir(project_specific_dir) if f.endswith('final.ql')]
+        queries = [f for f in os.listdir(project_specific_dir) if f.endswith('final_claude3.ql')]
 
         database_path = os.path.join(project_root, "databases", project_name)
 
         for query in queries:
             query_path = os.path.join(project_root, "codeql", "project_specific", project_name, query)
-            output_path = os.path.join(project_root, "output", "mini_evaluation2", project_name, query)
+            output_path = os.path.join(project_root, "output", "mini_evaluation3", project_name, query)
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             run_codeql_path_problem(database_path, query_path, output_path)
     

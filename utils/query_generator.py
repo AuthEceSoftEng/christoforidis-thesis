@@ -755,9 +755,9 @@ def refine_sink_vulnerability_query(cwe_id, project_name, general: bool = False,
         embedding_function=embedding_function
     )
     vdb_queries_cwe = [f'{cwe_details["name"]}', f'{cwe_details["description"]}', f'CWE-{cwe_id}']
-    vdb_queries_sinks =['isSink', 'Sinks']
+    #vdb_queries_sinks =['isSink', 'Sinks']
     docs = _get_relevant_documentation(vdb_queries_cwe, collection)
-    docs += _get_relevant_documentation(vdb_queries_sinks, collection)
+    #docs += _get_relevant_documentation(vdb_queries_sinks, collection)
 
     sinks_path = os.path.join(base_dir, "codeql", "isSink.qll")
     sinks_extracted = [extract_predicate_from_file(sinks_path, sink) for sink in sinks]
@@ -789,7 +789,7 @@ def refine_sink_vulnerability_query(cwe_id, project_name, general: bool = False,
         messages = sink_explaination_prompt(cwe_details, sink_predicate, sinks_extracted, docs)
     explanation = llm.send_message(messages)
     messages.append({"role": "assistant", "message": explanation})
-    messages.append(sink_implementation_prompt(sink_predicate, explanation)[0])
+    messages.append(sink_implementation_prompt(sink_predicate, explanation, docs)[0])
     refined_sink_predicate = llm.send_message(messages)
     refined_sink_predicate = clean_predicate_response(refined_sink_predicate)
     query = general_vuln_query(cwe_id, refined_sink_predicate, sanitizer_predicate, flow_predicate)
@@ -886,7 +886,7 @@ def refine_flow_vulnerability_query(cwe_id, project_name, general: bool = False,
         messages = flow_explaination_prompt(cwe_details, flow_predicate, sink_predicate, sinks_extracted, docs)
     explanation = llm.send_message(messages)
     messages.append({"role": "assistant", "message": explanation})
-    messages.append(flow_implementation_prompt(flow_predicate, explanation)[0])
+    messages.append(flow_implementation_prompt(flow_predicate, explanation, docs)[0])
     refined_flow_predicate = llm.send_message(messages)
     refined_flow_predicate = clean_predicate_response(refined_flow_predicate)
     query = general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, refined_flow_predicate)
@@ -934,7 +934,7 @@ def refine_vulnerability_query(cwe_id, project_name, general: bool = False, extr
     
     query = general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, flow_predicate)
 
-    output_path = os.path.join(os.path.dirname(__file__), "..", "codeql", "project_specific", project_name, f"cwe_{cwe_id}_vulnerability_final.ql")
+    output_path = os.path.join(os.path.dirname(__file__), "..", "codeql", "project_specific", project_name, f"cwe_{cwe_id}_vulnerability_final_claude3.ql")
     with open(output_path, 'w') as f:
         f.write(query)
     

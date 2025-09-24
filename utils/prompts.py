@@ -163,7 +163,9 @@ def flow_explaination_prompt(cwe_details, flow_predicate, sink_predicate, sinks_
     if readme_content is not None and package_content is not None:
         prompt += f"""
         Project's README.md (summary):
+        ```markdown
         {readme_content}
+        ```
 
         Project's package.json:
         ```json
@@ -207,7 +209,7 @@ def flow_explaination_prompt(cwe_details, flow_predicate, sink_predicate, sinks_
     
     return [{"role": "user", "message": prompt}]
 
-def flow_implementation_prompt(flow_predicate, explanation):
+def flow_implementation_prompt(flow_predicate, explanation, docs):
     prompt = f"""
     You are a CodeQL expert specialized in security vulnerabilities for Javascript projects. Based on your previous analysis of missing flow patterns:
 
@@ -219,6 +221,9 @@ def flow_implementation_prompt(flow_predicate, explanation):
     ```ql
     {flow_predicate}
     ```
+
+    RELEVANT DOCUMENTATION:
+    {docs}
 
     IMPLEMENTATION TASK:
     1. Modify the predicate to include the missing flow patterns you identified
@@ -268,19 +273,25 @@ def decide_cwes_prompt(project_name: str, readme_content: str, package_content: 
     prompt= f"""
 You are a security analyst tasked with identifying all Common Weakness Enumerations (CWEs) we should try to detect for a given JavaScript project.
 
-Only output the list of relevant CWE IDs. Do not analyze or explain the code. Do not provide fixes. Your output must only include the CWE IDs that the project should be checked for.
+Output a comprehensive list of all CWE IDs that could plausibly apply to this project, including those related to insecure cryptographic practices, input validation, injection, or known library issues.
+You may infer CWEs based on the project's functionality, libraries, or purpose.
 
 ### PROJECT NAME:
 {project_name}
 
 ### README.md:
+```markdown
 {readme_content}
+```
 
 ### package.json:
+```json
 {package_content}
+```
 
-Based on this information, return only a list of applicable CWE IDs like this:
+Based on this information, return ONLY a list of applicable CWE IDs like this:
 20, 79, 89
+Do not include any other text or explanation.
 """
     return [{"role": "user", "message": prompt}]
 
@@ -295,7 +306,9 @@ def sink_explaination_prompt(cwe_details, sink_predicate, sinks_extracted, docs,
     if readme_content is not None and package_content is not None:
         prompt += f"""
         Project's README.md (summary):
+        ```markdown
         {readme_content}
+        ```
 
         Project's package.json:
         ```json
@@ -340,7 +353,7 @@ def sink_explaination_prompt(cwe_details, sink_predicate, sinks_extracted, docs,
     
     return [{"role": "user", "message": prompt}]
 
-def sink_implementation_prompt(sink_predicate, explanation):
+def sink_implementation_prompt(sink_predicate, explanation, docs):
     prompt = f"""
     You are a CodeQL expert specialized in security vulnerabilities for Javascript projects. Based on your previous analysis of missing sink patterns:
 
@@ -352,6 +365,9 @@ def sink_implementation_prompt(sink_predicate, explanation):
     ```ql
     {sink_predicate}
     ```
+
+    RELEVANT DOCUMENTATION:
+    {docs}
 
     IMPLEMENTATION TASK:
     1. Modify the predicate to include the missing sink patterns you identified
