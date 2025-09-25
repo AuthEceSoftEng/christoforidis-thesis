@@ -162,38 +162,151 @@ def generate_codeql_package_classification(classified_methods, output_path):
 
     logger.info(f"Successfully generated CodeQL library at {output_path}")
 
-def _get_relevant_documentation(queries, collection):
-    all_docs = {}
-
-    for query in queries:
-        results = collection.query(
-            query_texts=[query],
-            n_results=3
+def _get_relevant_documentation(queries, collection_type="both"):
+    """Get relevant documentation from vector database."""
+    try:
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        db_path = os.path.join(base_dir, "vector_db", "chroma_db")
+        
+        client = chromadb.PersistentClient(path=db_path)
+        embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
+            model_name="all-MiniLM-L6-v2", device="cpu"
         )
-
-        for i, (doc, metadata, distance) in enumerate(zip(
-                results['documents'][0], 
-                results['metadatas'][0], 
-                results['distances'][0])):
+        
+        # Separate collections for queries and documentation
+        query_docs = {}
+        doc_docs = {}
+        
+        # Handle both single query string and list of queries
+        if isinstance(queries, str):
+            query_list = [queries]
+        else:
+            query_list = queries
+        
+        for query in query_list:
+            # Get from query collection if requested
+            if collection_type in ["both", "queries"]:
+                try:
+                    query_collection = client.get_collection(
+                        name="codeql_queries",
+                        embedding_function=embedding_function
+                    )
+                    query_results = query_collection.query(
+                        query_texts=[query],
+                        n_results=3
+                    )
+                    for i, (doc, metadata, distance) in enumerate(zip(
+                            query_results['documents'][0], 
+                            query_results['metadatas'][0], 
+                            query_results['distances'][0])):
+                        
+                        # deduplication
+                        key = doc[:100]
+                        if key not in query_docs:
+                            query_docs[key] = {
+                                'content': doc,
+                                'source': metadata.get('source', 'queries'),
+                                'distance': distance,
+                                'type': 'query'
+                            }
+                except Exception as e:
+                    logger.warning(f"Could not access codeql_queries collection: {e}")
             
-            # deduplication
-            key = doc[:100]
-            if key not in all_docs:
-                all_docs[key] = {
-                    'content': doc,
-                    'source': metadata.get('source', 'unknown'),
-                    'distance': distance
-                }
+            # Get from documentation collection if requested
+            if collection_type in ["both", "documentation"]:
+                try:
+                    docs_collection = client.get_collection(
+                        name="codeql_documentation", 
+                        embedding_function=embedding_function
+                    )
+                    doc_results = docs_collection.query(
+                        query_texts=[query],
+                        n_results=2
+                    )
+                    for i, (doc, metadata, distance) in enumerate(zip(
+                            doc_results['documents'][0], 
+                            doc_results['metadatas'][0], 
+                            doc_results['distances'][0])):
+                        
+                        # deduplication
+                        key = doc[:100]
+                        if key not in doc_docs:
+                            doc_docs[key] = {
+                                'content': doc,
+                                'source': metadata.get('source', 'documentation'),
+                                'distance': distance,
+                                'type': 'documentation'
+                            }
+                except Exception as e:
+                    logger.warning(f"Could not access codeql_documentation collection: {e}")
+            
+            # Fallback to old single collection if new collections don't exist
+            if not query_docs and not doc_docs:
+                try:
+                    collection = client.get_collection(
+                        name="codeql_docs",
+                        embedding_function=embedding_function
+                    )
+                    fallback_results = collection.query(
+                        query_texts=[query],
+                        n_results=3
+                    )
+                    all_docs = {}
+                    for i, (doc, metadata, distance) in enumerate(zip(
+                            fallback_results['documents'][0], 
+                            fallback_results['metadatas'][0], 
+                            fallback_results['distances'][0])):
+                        
+                        # deduplication
+                        key = doc[:100]
+                        if key not in all_docs:
+                            all_docs[key] = {
+                                'content': doc,
+                                'source': metadata.get('source', 'unknown'),
+                                'distance': distance,
+                                'type': 'fallback'
+                            }
+                    
+                    # Return fallback results
+                    docs_text = ""
+                    sorted_docs = sorted(all_docs.values(), key=lambda x: x['distance'])
+                    top_docs = sorted_docs[:3]
+                    
+                    for i, doc in enumerate(top_docs, 1):
+                        docs_text += f"\n--- DOCUMENT {i} (from {doc['source']}) ---\n{doc['content']}\n"
+                    
+                    return docs_text
+                    
+                except Exception as e:
+                    logger.warning(f"Could not access fallback codeql_docs collection: {e}")
 
-    # sort by relevance (distance)
-    docs_text = ""
-    sorted_docs = sorted(all_docs.values(), key=lambda x: x['distance'])
-    top_docs = sorted_docs[:3]  # take top 3 most relevant documents
+        # Sort each collection separately and take top 3 from each
+        docs_text = ""
+        doc_counter = 1
+        
+        # Add top 3 query documents
+        if query_docs and collection_type in ["both", "queries"]:
+            sorted_query_docs = sorted(query_docs.values(), key=lambda x: x['distance'])
+            top_query_docs = sorted_query_docs[:3]
+            
+            for doc in top_query_docs:
+                docs_text += f"\n--- QUERY DOCUMENT {doc_counter} (from {doc['source']}) ---\n{doc['content']}\n"
+                doc_counter += 1
+        
+        # Add top 2 documentation documents  
+        if doc_docs and collection_type in ["both", "documentation"]:
+            sorted_doc_docs = sorted(doc_docs.values(), key=lambda x: x['distance'])
+            top_doc_docs = sorted_doc_docs[:2]
+            
+            for doc in top_doc_docs:
+                docs_text += f"\n--- DOCUMENTATION DOCUMENT {doc_counter} (from {doc['source']}) ---\n{doc['content']}\n"
+                doc_counter += 1
 
-    for i, doc in enumerate(top_docs, 1):
-        docs_text += f"\n--- DOCUMENT {i} (from {doc['source']}) ---\n{doc['content']}\n"
-
-    return docs_text
+        return docs_text
+        
+    except Exception as e:
+        logger.error(f"Error querying vector database: {e}")
+        return ""
 
 def generate_conditional_sanitizer_library(classified_methods, output_path):
     """
@@ -208,20 +321,8 @@ def generate_conditional_sanitizer_library(classified_methods, output_path):
     """
     # Set up vector database connection
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    db_path = os.path.join(base_dir, "vector_db", "chroma_db")
 
     database_path = os.path.join(base_dir, "databases", "juice-shop") # dummy codeql database to "run" the query , MUST EXIST
-    
-    embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
-        model_name="all-MiniLM-L6-v2", 
-        device="cpu"
-    )
-    
-    client = chromadb.PersistentClient(path=db_path)
-    collection = client.get_collection(
-        name="codeql_docs",
-        embedding_function=embedding_function
-    )
 
     # Extract conditional sanitizers
     conditional_sanitizers = [m for m in classified_methods if m["classification"] == "CONDITIONAL_SANITIZER"]
@@ -324,8 +425,8 @@ def generate_conditional_sanitizer_library(classified_methods, output_path):
                     clean_errors = extract_codeql_errors(error)
                     logger.error(f"Error running test query for sanitizer {sanitizer['predicate_name']}: {clean_errors}")
 
-                    docs_text = _get_relevant_documentation([clean_errors], collection)
-                    docs_text += _get_relevant_documentation([clean_response], collection)
+                    docs_text = _get_relevant_documentation([clean_errors], "both")
+                    docs_text += _get_relevant_documentation([clean_response], "both")
                     messages.append({"role": "assistant", "message": clean_response})
                     messages.append(get_refinement_sanitizer_prompt(sanitizer, clean_response, docs_text, clean_errors)[0])
 
@@ -743,21 +844,12 @@ def refine_sink_vulnerability_query(cwe_id, project_name, general: bool = False,
 
     # Set up vector database connection
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    db_path = os.path.join(base_dir, "vector_db", "chroma_db")
     database_path = os.path.join(base_dir, "databases", project_name) # dummy codeql database to "run" the query , MUST EXIST
-    embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
-        model_name="all-MiniLM-L6-v2", 
-        device="cpu"
-    )
-    client = chromadb.PersistentClient(path=db_path)
-    collection = client.get_collection(
-        name="codeql_docs",
-        embedding_function=embedding_function
-    )
+    
     vdb_queries_cwe = [f'{cwe_details["name"]}', f'{cwe_details["description"]}', f'CWE-{cwe_id}']
     #vdb_queries_sinks =['isSink', 'Sinks']
-    docs = _get_relevant_documentation(vdb_queries_cwe, collection)
-    #docs += _get_relevant_documentation(vdb_queries_sinks, collection)
+    docs = _get_relevant_documentation(vdb_queries_cwe, "both")
+    #docs += _get_relevant_documentation(vdb_queries_sinks, "both")
 
     sinks_path = os.path.join(base_dir, "codeql", "isSink.qll")
     sinks_extracted = [extract_predicate_from_file(sinks_path, sink) for sink in sinks]
@@ -805,8 +897,8 @@ def refine_sink_vulnerability_query(cwe_id, project_name, general: bool = False,
         clean_errors = extract_codeql_errors(error)
         logger.error(f"Error running refined sink_predicate query for CWE-{cwe_id}: {clean_errors}")
 
-        docs_text = _get_relevant_documentation([clean_errors], collection)
-        docs_text += _get_relevant_documentation([refined_sink_predicate], collection)
+        docs_text = _get_relevant_documentation([clean_errors], "both")
+        docs_text += _get_relevant_documentation([refined_sink_predicate], "both")
 
         messages.append({"role": "assistant", "message": refined_sink_predicate})
         messages.append(sink_refinement_prompt(refined_sink_predicate, clean_errors, docs_text)[0])
@@ -838,23 +930,12 @@ def refine_flow_vulnerability_query(cwe_id, project_name, general: bool = False,
 
     flow_predicate, sink_predicate, sanitizer_predicate, initial_query = generate_vulnerability_query(cwe_id, project_name)
 
-    # Set up vector database connection
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    db_path = os.path.join(base_dir, "vector_db", "chroma_db")
     database_path = os.path.join(base_dir, "databases", project_name) # dummy codeql database to "run" the query , MUST EXIST
-    embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
-        model_name="all-MiniLM-L6-v2", 
-        device="cpu"
-    )
-    client = chromadb.PersistentClient(path=db_path)
-    collection = client.get_collection(
-        name="codeql_docs",
-        embedding_function=embedding_function
-    )
     vdb_queries_cwe = [f'{cwe_details["name"]}', f'{cwe_details["description"]}', f'CWE-{cwe_id}']
-    vdb_queries_taint_tracking =['isAdditionalFlowStep', 'TaintTracking']
-    docs = _get_relevant_documentation(vdb_queries_cwe, collection)
-    docs += _get_relevant_documentation(vdb_queries_taint_tracking, collection)
+    vdb_queries_taint_tracking = ['isAdditionalFlowStep', 'TaintTracking']
+    docs = _get_relevant_documentation(vdb_queries_cwe, "both")
+    docs += _get_relevant_documentation(vdb_queries_taint_tracking, "both")
 
     sinks_path = os.path.join(base_dir, "codeql", "isSink.qll")
     sinks_extracted = [extract_predicate_from_file(sinks_path, sink) for sink in sinks]
@@ -902,8 +983,8 @@ def refine_flow_vulnerability_query(cwe_id, project_name, general: bool = False,
         clean_errors = extract_codeql_errors(error)
         logger.error(f"Error running refined flow_predicate query for CWE-{cwe_id}: {clean_errors}")
 
-        docs_text = _get_relevant_documentation([clean_errors], collection)
-        docs_text += _get_relevant_documentation([refined_flow_predicate], collection)
+        docs_text = _get_relevant_documentation([clean_errors], "both")
+        docs_text += _get_relevant_documentation([refined_flow_predicate], "both")
 
         messages.append({"role": "assistant", "message": refined_flow_predicate})
         messages.append(flow_refinement_prompt(refined_flow_predicate, clean_errors, docs_text)[0])

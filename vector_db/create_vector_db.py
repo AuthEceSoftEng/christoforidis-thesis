@@ -71,6 +71,59 @@ def create_vector_db(db_path, model_name="all-MiniLM-L6-v2"):
     
     return collection
 
+def create_categorized_vector_db(db_path, model_name="all-MiniLM-L6-v2"):
+    """Initialize and return ChromaDB collections for queries and documentation."""
+    # Create directories if they don't exist
+    os.makedirs(db_path, exist_ok=True)
+    
+    # Initialize ChromaDB client
+    client = chromadb.PersistentClient(path=db_path)
+    
+    # Create sentence transformer embedding function
+    embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
+        model_name=model_name, 
+        device=device
+    )
+    
+    # Create separate collections
+    query_collection = client.get_or_create_collection(
+        name="codeql_queries",
+        embedding_function=embedding_function,
+        metadata={"description": "CodeQL query examples (.ql and .qll files)"}
+    )
+    
+    docs_collection = client.get_or_create_collection(
+        name="codeql_documentation", 
+        embedding_function=embedding_function,
+        metadata={"description": "CodeQL documentation (.rst and .md files)"}
+    )
+    
+    return query_collection, docs_collection
+
+def categorize_documents(documents):
+    """Separate documents into queries and documentation based on original file extension."""
+    query_docs = []
+    doc_docs = []
+    
+    for doc in documents:
+        # Extract original extension from filename (before .txt was added)
+        filename = doc['metadata']['file_name']
+        
+        # Check if it's a query file (.ql.txt or .qll.txt)
+        if filename.endswith(('.ql.txt', '.qll.txt')):
+            doc['metadata']['type'] = 'query'
+            query_docs.append(doc)
+        # Check if it's documentation (.rst.txt or .md.txt)
+        elif filename.endswith(('.rst.txt', '.md.txt')):
+            doc['metadata']['type'] = 'documentation'
+            doc_docs.append(doc)
+        else:
+            # Default to documentation for any other files
+            doc['metadata']['type'] = 'documentation'
+            doc_docs.append(doc)
+    
+    return query_docs, doc_docs
+
 def main():
     # Define paths
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -83,7 +136,52 @@ def main():
         logger.error("No documents loaded. Exiting.")
         return
     
-    all_documents = documents  # Use complete documents
+    # Categorize documents
+    query_docs, doc_docs = categorize_documents(documents)
+    logger.info(f"Found {len(query_docs)} query files and {len(doc_docs)} documentation files")
+    
+    # Create vector databases
+    query_collection, docs_collection = create_categorized_vector_db(db_path)
+    
+    # Add query documents to query collection
+    if query_docs:
+        logger.info("Adding query documents to vector database...")
+        batch_size = 100
+        for i in tqdm(range(0, len(query_docs), batch_size)):
+            batch = query_docs[i:i+batch_size]
+            
+            ids = [f"query_{doc['metadata']['file_name']}" for doc in batch]
+            documents = [doc["content"] for doc in batch]
+            metadatas = [doc["metadata"] for doc in batch]
+            
+            query_collection.add(
+                ids=ids,
+                documents=documents,
+                metadatas=metadatas
+            )
+    
+    # Add documentation documents to docs collection
+    if doc_docs:
+        logger.info("Adding documentation to vector database...")
+        batch_size = 100
+        for i in tqdm(range(0, len(doc_docs), batch_size)):
+            batch = doc_docs[i:i+batch_size]
+            
+            ids = [f"doc_{doc['metadata']['file_name']}" for doc in batch]
+            documents = [doc["content"] for doc in batch]
+            metadatas = [doc["metadata"] for doc in batch]
+            
+            docs_collection.add(
+                ids=ids,
+                documents=documents,
+                metadatas=metadatas
+            )
+    
+    logger.info(f"Successfully created vector database with {len(query_docs)} queries and {len(doc_docs)} docs")
+    logger.info(f"Vector database created at {db_path}")
+
+    ## ONE COLLECTION FOR ALL DOCUMENTS
+    """ all_documents = documents  # Use complete documents
     
     logger.info(f"Using {len(all_documents)} complete documents")
     
@@ -109,7 +207,7 @@ def main():
         )
     
     logger.info(f"Successfully added {len(all_documents)} documents to vector database")
-    logger.info(f"Vector database created at {db_path}")
+    logger.info(f"Vector database created at {db_path}") """
 
 if __name__ == "__main__":
     main()
