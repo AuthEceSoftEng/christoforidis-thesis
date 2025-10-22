@@ -1,8 +1,10 @@
 import os
 import json
+import boto3 # type: ignore
 import time
-import requests
-from dotenv import load_dotenv
+from openai import OpenAI # type: ignore
+from dotenv import load_dotenv # type: ignore
+from botocore.config import Config
 from collections import defaultdict
 
 load_dotenv()
@@ -28,15 +30,11 @@ def _estimate_tokens(text):
     """Rough token estimation (4 chars ≈ 1 token)"""
     return len(str(text)) // 4
 
+
 def _extract_input_text(messages):
     """Extract text from messages for token counting"""
     if isinstance(messages, list):
-        texts = []
-        for m in messages:
-            if isinstance(m, dict):
-                text = m.get("content", "") or m.get("message", "")
-                texts.append(text)
-        return " ".join(texts)
+        return " ".join([m.get("message", "") for m in messages if isinstance(m, dict)])
     return str(messages)
 
 def _track_request(model, input_text, output_text, request_time):
@@ -73,114 +71,135 @@ def _track_request(model, input_text, output_text, request_time):
         project_stats['request_history'].append(request_info)
 
 class LLMHandler:
-    def __init__(self, model, temperature=1.0, access_token=None):
-        self.api_url = "https://services.issel.ee.auth.gr/llms/claude"
-        self.access_token = access_token or os.environ.get("CLAUDE_ACCESS_TOKEN")
+    def __init__(self, model, temperature=1.0):
+        self.model = model.lower()
         self.temperature = temperature
-        self.model = model # unused kept for compatibility with the previous handler
-
-        if not self.access_token:
-            raise ValueError("Access token is required. Set CLAUDE_ACCESS_TOKEN environment variable or pass it to constructor.")
         
-        self.headers = {
-            "access_token": self.access_token,
-            "Content-Type": "application/json"
+        self.model_apis = {
+            'gpt': self._gpt_api,
+            'llama': self._llama_api,
+            'claude': self._claude_api
         }
+        
+        if self.model not in self.model_apis:
+            raise ValueError("Unsupported model. Choose from 'gpt', 'llama', or 'claude'.")
+
+        # self.gpt_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+        ACCOUNT_ID = os.environ.get("ACCOUNT_ID")
+        if not ACCOUNT_ID:
+            raise ValueError("ACCOUNT_ID environment variable is not set.")
+        
+        timeout_config = Config(
+            connect_timeout=10,
+            read_timeout=120
+        )
+
+        self.llama_session = boto3.Session()
+        self.llama_client = self.llama_session.client(service_name="bedrock-runtime", region_name="eu-central-1")
+        self.llama_model_id = f"arn:aws:bedrock:eu-central-1:{ACCOUNT_ID}:inference-profile/eu.meta.llama3-2-3b-instruct-v1:0"
+        
+        self.claude_session = boto3.Session()
+        self.claude_client = self.claude_session.client(service_name="bedrock-runtime", region_name="eu-central-1", config=timeout_config)
+        self.claude_model_id = f"arn:aws:bedrock:eu-central-1:{ACCOUNT_ID}:inference-profile/eu.anthropic.claude-3-7-sonnet-20250219-v1:0"
+        #self.claude_model_id = "anthropic.claude-3-sonnet-20240229-v1:0"
     
     def send_message(self, messages):
-        """Send messages to Claude API and return response"""
+        # Add tracking wrapper around existing method
         start_time = time.time()
         
-        # Format messages for the API
-        formatted_messages = self._format_messages(messages)
-        
         # Get input text for tracking
-        input_text = _extract_input_text(formatted_messages)
+        input_text = _extract_input_text(messages)
         
-        try:
-            # Make API request
-            payload = {
-                "messages": formatted_messages,
-                "temperature": self.temperature
-            }
-            response = requests.post(
-                self.api_url,
-                headers=self.headers,
-                json=payload,
-                timeout=120
-            )
-            
-            response.raise_for_status()
-            
-            # Parse response
-            response_data = response.json()
-            output_text = self._extract_response_content(response_data)
-            
-            # Track the request
-            end_time = time.time()
-            request_time = end_time - start_time
-            _track_request("claude", input_text, output_text, request_time)
-            
-            return output_text
-            
-        except requests.exceptions.RequestException as e:
-            raise Exception(f"API request failed: {str(e)}")
-        except json.JSONDecodeError as e:
-            raise Exception(f"Failed to parse API response: {str(e)}")
+        # Call original method
+        formatted_messages = self._format_messages(messages)
+        response = self.model_apis[self.model](formatted_messages)
+        
+        # Track the request
+        end_time = time.time()
+        request_time = end_time - start_time
+        _track_request(self.model, input_text, response, request_time)
+        
+        return response
     
     def _format_messages(self, messages):
-        """Format messages for the Claude API"""
+        if self.model == 'gpt':
+            return self._format_for_gpt(messages)
+        elif self.model == 'llama':
+            return self._format_for_llama(messages)
+        elif self.model == 'claude':
+            return self._format_for_claude(messages)
+    
+    def _format_for_gpt(self, messages):
         formatted_messages = []
-        
-        for message in messages:
-            if isinstance(message, dict):
-                # If message has 'message' key (old format), convert it
-                if "message" in message:
-                    formatted_messages.append({
-                        "role": message.get("role", "user"),
-                        "content": message["message"]
-                    })
-                # If message already has 'content' key (new format), use as is
-                elif "content" in message:
-                    formatted_messages.append({
-                        "role": message.get("role", "user"),
-                        "content": message["content"]
-                    })
-                else:
-                    # Fallback: treat the whole dict as content
-                    formatted_messages.append({
-                        "role": "user",
-                        "content": str(message)
-                    })
-            else:
-                # If message is a string, wrap it in user role
-                formatted_messages.append({
-                    "role": "user",
-                    "content": str(message)
-                })
-        
+        for m in messages:
+            formatted_messages.append({
+                "role": m["role"],
+                "content": m["message"]
+            })
         return formatted_messages
     
-    def _extract_response_content(self, response_data):
-        """Extract content from API response"""
-        # Handle different possible response formats
-        if isinstance(response_data, dict):
-            # Check for common response formats
-            if "content" in response_data:
-                return response_data["content"]
-            elif "message" in response_data:
-                return response_data["message"]
-            elif "text" in response_data:
-                return response_data["text"]
-            elif "response" in response_data:
-                return response_data["response"]
-            else:
-                # Return the whole response as string if no known format
-                return str(response_data)
-        else:
-            return str(response_data)
+    def _format_for_llama(self, messages):
+        prompt = f"""
+        <|begin_of_text|>
+        """
+        for m in messages:
+            prompt += f"""
+            <|start_header_id|>{m["role"]}<|end_header_id|>
+            {m["message"]}
+            <|eot_id|>
+            """
+        prompt += """
+        <|start_header_id|>assistant<|end_header_id|>
+        """
+        return prompt
+    
+    def _format_for_claude(self, messages):
+        formatted_messages = []
+        for m in messages:
+            formatted_messages.append({
+                "role": m["role"],
+                "content": [{"type": "text", "text": m["message"]}]
+            })
+        return formatted_messages
+    
+    def _gpt_api(self, formatted_messages):
+        response = self.gpt_client.chat.completions.create(
+            model="gpt-4o",
+            messages=formatted_messages,
+            temperature=self.temperature,
+        )
+        return response.choices[0].message.content
+    
+    def _llama_api(self, formatted_messages):
+        response = self.llama_client.invoke_model(
+            body=json.dumps({"prompt": formatted_messages}),
+            modelId=self.llama_model_id
+        )
 
-# Tracking utility functions (same as original LLM.py)
+        model_response = json.loads(response["body"].read())
+        response_text = model_response["generation"]
+        return response_text
+    
+    def _claude_api(self, formatted_messages):
+        response = self.claude_client.invoke_model(
+                modelId=self.claude_model_id,
+                body=json.dumps(
+                    {
+                        "anthropic_version": "bedrock-2023-05-31",
+                        "max_tokens": 4096,
+                        "messages": formatted_messages,
+                        "temperature": self.temperature,
+                    }
+                ),
+            )
+        result = json.loads(response.get("body").read())
+        output_list = result.get("content", [])
+        response = ""
+        for output in output_list:
+            response += output["text"]
+        return response
+
+# Tracking utility functions
 def set_current_project(project_name):
     """Set the current project for tracking purposes"""
     global _current_project
