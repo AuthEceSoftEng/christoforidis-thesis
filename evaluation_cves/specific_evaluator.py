@@ -130,8 +130,7 @@ def main():
     project_durations = {}  # Track individual project durations
 
     for project_name in project_names:
-        if project_name != "cryptiles-96e63fd":
-            continue  # TEMPORARY: process only one project for testing
+        
         project_start_time = time.time()
         
         # set current project for llm tracking
@@ -199,7 +198,7 @@ def main():
             # Run final queries for this project (moved here from the separate loop)
             logger.info(f"Running final queries for {project_name}")
             if os.path.exists(project_specific_dir):
-                queries = [f for f in os.listdir(project_specific_dir) if f.endswith('final_claude3.ql')]
+                queries = [f for f in os.listdir(project_specific_dir) if f.endswith('final_claude4new.ql')]
 
                 for query in queries:
                     query_path = os.path.join(project_specific_dir, query)
@@ -264,7 +263,7 @@ def main():
     logger.info(f"LLM % of total: {(final_stats['total_request_time']/total_execution_time)*100:.1f}%")
     logger.info(f"Projects completed: {len(completed_projects)}/{len(project_names)}")
     logger.info(f"Total LLM requests: {final_stats['request_count']}")
-    logger.info(f"Avg time per project: {total_execution_time/len(project_names)/60:.1f} min" if project_names else "N/A")
+    logger.info(f"Avg time per project: {total_execution_time/len(completed_projects)/60:.1f} min" if project_names else "N/A")
     logger.info(f"Full report saved to: {report_file_path}")
     logger.info("="*60)
 

@@ -1011,7 +1011,7 @@ def refine_vulnerability_query(cwe_id, project_name, general: bool = False, extr
     
     query = general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, flow_predicate)
 
-    output_path = os.path.join(os.path.dirname(__file__), "..", "codeql", "project_specific", project_name, f"cwe_{cwe_id}_vulnerability_final_claude3.ql")
+    output_path = os.path.join(os.path.dirname(__file__), "..", "codeql", "project_specific", project_name, f"cwe_{cwe_id}_vulnerability_final_claude4new.ql")
     with open(output_path, 'w') as f:
         f.write(query)
     
