@@ -160,13 +160,16 @@ def flow_explaination_prompt(cwe_details, flow_predicate, sink_predicate, sinks_
     CWE Name: {cwe_details['name']}
     CWE Description: {cwe_details['description']}"""
 
-    if readme_content is not None and package_content is not None:
+    if readme_content is not None:
         prompt += f"""
         Project's README.md (summary):
         ```markdown
         {readme_content}
         ```
+        """
 
+    if package_content is not None:
+        prompt += f"""
         Project's package.json:
         ```json
         {package_content}
@@ -196,6 +199,7 @@ def flow_explaination_prompt(cwe_details, flow_predicate, sink_predicate, sinks_
     2. Based ONLY on these sink definitions, identify the TOP 3 MOST CRITICAL missing flow patterns
     3. Prioritize patterns that would most improve detection of the specific vulnerability types in the sinks
     4. You should provide AT LEAST ONE missing flow pattern for each sink type
+    5. If readme/package.json info is provided, use it to better understand the project context and refine your analysis
     
     For each pattern, provide:
     - A clear name and description of what's missing
@@ -303,13 +307,16 @@ def sink_explaination_prompt(cwe_details, sink_predicate, sinks_extracted, docs,
     CWE Name: {cwe_details['name']}
     CWE Description: {cwe_details['description']}"""
 
-    if readme_content is not None and package_content is not None:
+    if readme_content is not None:
         prompt += f"""
         Project's README.md (summary):
         ```markdown
         {readme_content}
         ```
+        """
 
+    if package_content is not None:
+        prompt += f"""
         Project's package.json:
         ```json
         {package_content}
@@ -333,6 +340,7 @@ def sink_explaination_prompt(cwe_details, sink_predicate, sinks_extracted, docs,
     1. First, analyze the existing sink definitions and patterns detected
     2. Based on the CWE, identify the TOP 3 MOST CRITICAL missing sink patterns
     3. Prioritize patterns that would most improve detection of the specific vulnerability types
+    4. If readme/package.json info is provided, use it to better understand the project context and refine your analysis
     
     For each pattern, provide:
     - A clear name and description of what's missing

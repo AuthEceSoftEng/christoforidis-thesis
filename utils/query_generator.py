@@ -880,8 +880,7 @@ def refine_sink_vulnerability_query(cwe_id, project_name, general: bool = False,
     else:
         messages = sink_explaination_prompt(cwe_details, sink_predicate, sinks_extracted, docs)
     explanation = llm.send_message(messages)
-    messages.append({"role": "assistant", "message": explanation})
-    messages.append(sink_implementation_prompt(sink_predicate, explanation, docs)[0])
+    messages = sink_implementation_prompt(sink_predicate, explanation, docs)
     refined_sink_predicate = llm.send_message(messages)
     refined_sink_predicate = clean_predicate_response(refined_sink_predicate)
     query = general_vuln_query(cwe_id, refined_sink_predicate, sanitizer_predicate, flow_predicate)
@@ -900,7 +899,6 @@ def refine_sink_vulnerability_query(cwe_id, project_name, general: bool = False,
         docs_text = _get_relevant_documentation([clean_errors], "both")
         docs_text += _get_relevant_documentation([refined_sink_predicate], "both")
 
-        messages.append({"role": "assistant", "message": refined_sink_predicate})
         messages.append(sink_refinement_prompt(refined_sink_predicate, clean_errors, docs_text)[0])
 
         refined_sink_predicate = llm.send_message(messages)
@@ -966,8 +964,7 @@ def refine_flow_vulnerability_query(cwe_id, project_name, general: bool = False,
     else:
         messages = flow_explaination_prompt(cwe_details, flow_predicate, sink_predicate, sinks_extracted, docs)
     explanation = llm.send_message(messages)
-    messages.append({"role": "assistant", "message": explanation})
-    messages.append(flow_implementation_prompt(flow_predicate, explanation, docs)[0])
+    messages = flow_implementation_prompt(flow_predicate, explanation, docs)
     refined_flow_predicate = llm.send_message(messages)
     refined_flow_predicate = clean_predicate_response(refined_flow_predicate)
     query = general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, refined_flow_predicate)
@@ -986,7 +983,6 @@ def refine_flow_vulnerability_query(cwe_id, project_name, general: bool = False,
         docs_text = _get_relevant_documentation([clean_errors], "both")
         docs_text += _get_relevant_documentation([refined_flow_predicate], "both")
 
-        messages.append({"role": "assistant", "message": refined_flow_predicate})
         messages.append(flow_refinement_prompt(refined_flow_predicate, clean_errors, docs_text)[0])
 
         refined_flow_predicate = llm.send_message(messages)
