@@ -87,46 +87,59 @@ class LLMHandler:
             "Content-Type": "application/json"
         }
     
-    def send_message(self, messages):
-        """Send messages to Claude API and return response"""
+    def send_message(self, messages, max_retries=3, timeout=120):
+        """Send messages to Claude API with retries and exponential backoff."""
         start_time = time.time()
-        
-        # Format messages for the API
+
+        # Format messages and prepare payload
         formatted_messages = self._format_messages(messages)
-        
-        # Get input text for tracking
         input_text = _extract_input_text(formatted_messages)
-        
-        try:
-            # Make API request
-            payload = {
-                "messages": formatted_messages,
-                "temperature": self.temperature
-            }
-            response = requests.post(
-                self.api_url,
-                headers=self.headers,
-                json=payload,
-                timeout=120
-            )
-            
-            response.raise_for_status()
-            
-            # Parse response
-            response_data = response.json()
-            output_text = self._extract_response_content(response_data)
-            
-            # Track the request
+        payload = {"messages": formatted_messages, "temperature": self.temperature}
+
+        backoff = 1.0
+        for attempt in range(1, max_retries + 1):
+            try:
+                resp = requests.post(self.api_url, headers=self.headers, json=payload, timeout=timeout)
+            except requests.exceptions.RequestException as e:
+                # network-level failure: retry if attempts remain
+                if attempt < max_retries:
+                    time.sleep(backoff)
+                    backoff *= 2
+                    continue
+                raise Exception(f"API request failed: {e}")
+
+            # Retry on server-side 5xx errors
+            if 500 <= resp.status_code < 600:
+                snippet = resp.text[:2000]
+                if attempt < max_retries:
+                    time.sleep(backoff)
+                    backoff *= 2
+                    continue
+                raise Exception(f"Server error {resp.status_code}: {snippet}")
+
+            # Raise for other HTTP errors and include response body for debugging
+            try:
+                resp.raise_for_status()
+            except requests.exceptions.HTTPError:
+                snippet = resp.text[:2000]
+                raise Exception(f"HTTP error {resp.status_code}: {snippet}")
+
+            # Parse response (JSON preferred, fallback to raw text)
+            try:
+                response_data = resp.json()
+                output_text = self._extract_response_content(response_data)
+            except (ValueError, json.JSONDecodeError):
+                output_text = resp.text
+
+            # Track timing and tokens
             end_time = time.time()
             request_time = end_time - start_time
-            _track_request("claude", input_text, output_text, request_time)
-            
+            _track_request(self.model or "claude", input_text, output_text, request_time)
+
             return output_text
-            
-        except requests.exceptions.RequestException as e:
-            raise Exception(f"API request failed: {str(e)}")
-        except json.JSONDecodeError as e:
-            raise Exception(f"Failed to parse API response: {str(e)}")
+
+        # If loop finishes without returning, raise generic error
+        raise Exception("Failed to receive a successful response after retries")
     
     def _format_messages(self, messages):
         """Format messages for the Claude API"""

@@ -2,7 +2,6 @@ import logging
 import time
 import os
 import sys
-import json
 from datetime import datetime
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -263,7 +262,7 @@ def main():
     logger.info(f"LLM % of total: {(final_stats['total_request_time']/total_execution_time)*100:.1f}%")
     logger.info(f"Projects completed: {len(completed_projects)}/{len(project_names)}")
     logger.info(f"Total LLM requests: {final_stats['request_count']}")
-    logger.info(f"Avg time per project: {total_execution_time/len(completed_projects)/60:.1f} min" if project_names else "N/A")
+    logger.info(f"Avg time per project: {total_execution_time/len(completed_projects)/60:.1f} min" if completed_projects else "N/A")
     logger.info(f"Full report saved to: {report_file_path}")
     logger.info("="*60)
 
