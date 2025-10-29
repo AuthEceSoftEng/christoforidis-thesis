@@ -123,13 +123,15 @@ def main():
     clone_vulnerable_repos(cves_folder, codebases_folder)
 
     project_names = [name for name in os.listdir(codebases_folder) if os.path.isdir(os.path.join(codebases_folder, name))]
+    already_done = ["cryptiles-96e63fd", "jspwik-447b5a6", "markdown-pdf-118c5c5", "mixin-deep-7705bdf", "save-server-ab7f29a"] #TEMPORARY
+    project_names = [p for p in project_names if p not in already_done] # skip already done projects #TEMPORARY
     logger.info(f"Cloned repositories for evaluation: {project_names}")
 
     completed_projects = []
     project_durations = {}  # Track individual project durations
 
     for project_name in project_names:
-        
+
         project_start_time = time.time()
         
         # set current project for llm tracking
@@ -190,9 +192,29 @@ def main():
             cwes = cwes_to_check(project_name, extra_folder="mini_cloned_repos")
             logger.info(f"CWEs to check for {project_name}: {cwes}")
 
-            # refine vulnerability query for each CWE
+            # refine vulnerability query for each CWE; on failure skip only the current CWE
+            failed_cwes = []
             for cwe_id in cwes:
-                refine_vulnerability_query(cwe_id, project_name, general=False, extra_folder='mini_cloned_repos')
+                try:
+                    refine_vulnerability_query(cwe_id, project_name, general=False, extra_folder='mini_cloned_repos')
+                except Exception as e:
+                    logger.warning("Failed to refine query for CWE %s in %s: %s. Skipping this CWE.", cwe_id, project_name, str(e))
+                    failed_cwes.append((cwe_id, str(e)))
+                    continue
+
+            # If any CWE refinements failed, append details to the project report so it's recorded
+            if failed_cwes:
+                with open(report_file_path, 'a') as f:
+                    f.write("\n" + ("-"*60) + "\n")
+                    f.write(f"PROJECT: {project_name} - CWE REFINEMENT ISSUES\n")
+                    f.write(("-"*60) + "\n")
+                    f.write(f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                    f.write("The following CWEs failed during the refine_vulnerability_query step and were skipped:\n")
+                    for cwe, err in failed_cwes:
+                        # Keep the error message short to avoid huge report entries
+                        snippet = (err[:1000] + '...') if len(err) > 1000 else err
+                        f.write(f"- {cwe}: {snippet}\n")
+                    f.flush()
 
             # Run final queries for this project (moved here from the separate loop)
             logger.info(f"Running final queries for {project_name}")
