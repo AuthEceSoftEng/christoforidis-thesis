@@ -25,6 +25,10 @@
       "codeql/default/CWE-078/UselessUseOfCat.ql"
     ]
   },
+  "79":{
+    "hasCompat": true,
+    "problemQueries": []
+  },
   "89":{
     "hasCompat": true,
     "problemQueries": []
