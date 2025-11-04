@@ -1,0 +1,14 @@
+{
+  "20":{
+    "hasCompat": true,
+    "problemQueries": [
+      "codeql/default/CWE-020/UselessRegExpCharacterEscape.ql",
+      "codeql/default/CWE-020/OverlyLargeRange.ql",
+      "codeql/default/CWE-020/MissingRegExpAnchor.ql",
+      "codeql/default/CWE-020/MissingOriginCheck.ql",
+      "codeql/default/CWE-020/IncorrectSuffixCheck.ql",
+      "codeql/default/CWE-020/IncompleteUrlSchemeCheck.ql",
+      "codeql/default/CWE-020/IncompleteHostnameRegExp.ql"
+    ]
+  }
+}
