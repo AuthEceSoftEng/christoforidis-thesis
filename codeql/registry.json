@@ -18,5 +18,11 @@
   "73":{
     "hasCompat": true,
     "problemQueries": []
+  },
+  "78":{
+    "hasCompat": true,
+    "problemQueries": [
+      "codeql/default/CWE-078/UselessUseOfCat.ql"
+    ]
   }
 }
