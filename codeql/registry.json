@@ -24,5 +24,9 @@
     "problemQueries": [
       "codeql/default/CWE-078/UselessUseOfCat.ql"
     ]
+  },
+  "89":{
+    "hasCompat": true,
+    "problemQueries": []
   }
 }
