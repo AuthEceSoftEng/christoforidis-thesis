@@ -32,5 +32,11 @@
   "89":{
     "hasCompat": true,
     "problemQueries": []
+  },
+  "94":{
+    "hasCompat": true,
+    "problemQueries": [
+      "codeql/default/CWE-094/ExpressionInjection.ql"
+    ]
   }
 }
