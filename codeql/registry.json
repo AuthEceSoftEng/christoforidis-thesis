@@ -10,5 +10,9 @@
       "codeql/default/CWE-020/IncompleteUrlSchemeCheck.ql",
       "codeql/default/CWE-020/IncompleteHostnameRegExp.ql"
     ]
+  },
+  "22":{
+    "hasCompat": true,
+    "problemQueries": []
   }
 }
