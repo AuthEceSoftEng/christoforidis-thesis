@@ -199,5 +199,46 @@
     "problemQueries": [
       "codeql/default/CWE-693/InsecureHelmet.ql"
     ]
+  },
+  "730":{
+    "hasCompat": true,
+    "problemQueries": [
+      "codeql/default/CWE-730/ServerCrash.ql"
+    ]
+  },
+  "754":{
+    "hasCompat": true,
+    "problemQueries": []
+  },
+  "770":{
+    "hasCompat": true,
+    "problemQueries": [
+      "codeql/default/CWE-770/MissingRateLimiting.ql"
+    ]
+  },
+  "776":{
+    "hasCompat": true,
+    "problemQueries": []
+  },
+  "798":{
+    "hasCompat": true,
+    "problemQueries": []
+  },
+  "807":{
+    "hasCompat": true,
+    "problemQueries": [
+      "codeql/default/CWE-807/DifferentKindsComparisonBypass.ql"
+    ]
+  },
+  "829":{
+    "hasCompat": true,
+    "problemQueries": []
+  },
+  "830":{
+    "hasCompat": false,
+    "problemQueries": [
+      "codeql/default/CWE-830/FunctionalityFromUntrustedDomain.ql",
+      "codeql/default/CWE-830/FunctionalityFromUntrustedSource.ql"
+    ]
   }
 }
