@@ -105,5 +105,25 @@
     "problemQueries": [
       "codeql/default/CWE-326/InsufficientKeySize.ql"
     ]
+  },
+  "327":{
+    "hasCompat": true,
+    "problemQueries": [
+      "codeql/default/CWE-327/BadRandomness.ql"
+    ]
+  },
+  "338":{
+    "hasCompat": true,
+    "problemQueries": []
+  },
+  "346":{
+    "hasCompat": true,
+    "problemQueries": []
+  },
+  "347":{
+    "hasCompat": false,
+    "problemQueries": [
+      "codeql/default/CWE-347/MissingJWTKeyVerification.ql"
+    ]
   }
 }
