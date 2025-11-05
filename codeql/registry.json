@@ -55,5 +55,11 @@
   "134":{
     "hasCompat": true,
     "problemQueries": []
+  },
+  "178":{
+    "hasCompat": false,
+    "problemQueries": [
+      "codeql/default/CWE-178/CaseSensitiveMiddlewarePath.ql"
+    ]
   }
 }
