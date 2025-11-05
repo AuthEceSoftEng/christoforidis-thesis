@@ -254,5 +254,27 @@
     "problemQueries": [
       "codeql/default/CWE-862/EmptyPasswordInConfigurationFile.ql"
     ]
+  },
+  "912":{
+    "hasCompat": true,
+    "problemQueries": []
+  },
+  "915":{
+    "hasCompat": true,
+    "problemQueries": []
+  },
+  "916":{
+    "hasCompat": true,
+    "problemQueries": []
+  },
+  "918":{
+    "hasCompat": true,
+    "problemQueries": []
+  },
+  "1004":{
+    "hasCompat": false,
+    "problemQueries": [
+      "codeql/default/CWE-1004/ClientExposedCookie.ql"
+    ]
   }
 }
