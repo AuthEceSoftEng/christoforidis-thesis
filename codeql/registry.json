@@ -276,5 +276,11 @@
     "problemQueries": [
       "codeql/default/CWE-1004/ClientExposedCookie.ql"
     ]
+  },
+  "1275":{
+    "hasCompat": false,
+    "problemQueries": [
+      "codeql/default/CWE-1275/SameSiteNoneCookie.ql"
+    ]
   }
 }
