@@ -71,5 +71,15 @@
   "201":{
     "hasCompat": true,
     "problemQueries": []
+  },
+  "209":{
+    "hasCompat": true,
+    "problemQueries": []
+  },
+  "295":{
+    "hasCompat": false,
+    "problemQueries": [
+      "codeql/default/CWE-295/DisablingCertificateValidation.ql"
+    ]
   }
 }
