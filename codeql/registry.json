@@ -38,5 +38,14 @@
     "problemQueries": [
       "codeql/default/CWE-094/ExpressionInjection.ql"
     ]
+  },
+  "116":{
+    "hasCompat": true,
+    "problemQueries": [
+      "codeql/default/CWE-116/BadTagFilter.ql",
+      "codeql/default/CWE-116/DoubleEscaping.ql",
+      "codeql/default/CWE-116/UnsafeHtmlExpansion.ql",
+      "codeql/default/CWE-116/IncompleteSanitization.ql"
+    ]
   }
 }
