@@ -171,5 +171,19 @@
     "problemQueries": [
       "codeql/default/CWE-598/SensitiveGetQuery.ql"
     ]
+  },
+  "601":{
+    "hasCompat": true,
+    "problemQueries": []
+  },
+  "611":{
+    "hasCompat": true,
+    "problemQueries": []
+  },
+  "614":{
+    "hasCompat": false,
+    "problemQueries": [
+      "codeql/default/CWE-614/ClearTextCookie.ql"
+    ]
   }
 }
