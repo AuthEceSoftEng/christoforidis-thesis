@@ -240,5 +240,19 @@
       "codeql/default/CWE-830/FunctionalityFromUntrustedDomain.ql",
       "codeql/default/CWE-830/FunctionalityFromUntrustedSource.ql"
     ]
+  },
+  "834":{
+    "hasCompat": true,
+    "problemQueries": []
+  },
+  "843":{
+    "hasCompat": true,
+    "problemQueries": []
+  },
+  "862":{
+    "hasCompat": false,
+    "problemQueries": [
+      "codeql/default/CWE-862/EmptyPasswordInConfigurationFile.ql"
+    ]
   }
 }
