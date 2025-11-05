@@ -147,5 +147,15 @@
     "problemQueries": [
       "codeql/default/CWE-384/SessionFixation.ql"
     ]
+  },
+  "400":{
+    "hasCompat": true,
+    "problemQueries": []
+  },
+  "451":{
+    "hasCompat": false,
+    "problemQueries": [
+      "codeql/default/CWE-451/MissingXFrameOptions.ql"
+    ]
   }
 }
