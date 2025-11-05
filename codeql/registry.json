@@ -61,5 +61,11 @@
     "problemQueries": [
       "codeql/default/CWE-178/CaseSensitiveMiddlewarePath.ql"
     ]
+  },
+  "200":{
+    "hasCompat": true,
+    "problemQueries": [
+      "codeql/default/CWE-200/PrivateFileExposure.ql"
+    ]
   }
 }
