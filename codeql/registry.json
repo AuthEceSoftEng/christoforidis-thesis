@@ -87,5 +87,17 @@
     "problemQueries": [
       "codeql/default/CWE-300/InsecureDependencyResolution.ql"
     ]
+  },
+  "312":{
+    "hasCompat": true,
+    "problemQueries": [
+      "codeql/default/CWE-312/ActionsArtifactLeak.ql"
+    ]
+  },
+  "313":{
+    "hasCompat": false,
+    "problemQueries": [
+      "codeql/default/CWE-313/PasswordInConfigurationFile.ql"
+    ]
   }
 }
