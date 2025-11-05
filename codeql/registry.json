@@ -131,5 +131,11 @@
     "problemQueries": [
       "codeql/default/CWE-352/MissingCsrfMiddleware.ql"
     ]
+  },
+  "367":{
+    "hasCompat": false,
+    "problemQueries": [
+      "codeql/default/CWE-367/FileSystemRace.ql"
+    ]
   }
 }
