@@ -157,5 +157,19 @@
     "problemQueries": [
       "codeql/default/CWE-451/MissingXFrameOptions.ql"
     ]
+  },
+  "502":{
+    "hasCompat": true,
+    "problemQueries": []
+  },
+  "506":{
+    "hasCompat": true,
+    "problemQueries": []
+  },
+  "598":{
+    "hasCompat": false,
+    "problemQueries": [
+      "codeql/default/CWE-598/SensitiveGetQuery.ql"
+    ]
   }
 }
