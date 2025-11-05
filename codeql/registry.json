@@ -185,5 +185,19 @@
     "problemQueries": [
       "codeql/default/CWE-614/ClearTextCookie.ql"
     ]
+  },
+  "640":{
+    "hasCompat": true,
+    "problemQueries": []
+  },
+  "643":{
+    "hasCompat": true,
+    "problemQueries": []
+  },
+  "693":{
+    "hasCompat": false,
+    "problemQueries": [
+      "codeql/default/CWE-693/InsecureHelmet.ql"
+    ]
   }
 }
