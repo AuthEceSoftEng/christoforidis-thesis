@@ -67,5 +67,9 @@
     "problemQueries": [
       "codeql/default/CWE-200/PrivateFileExposure.ql"
     ]
+  },
+  "201":{
+    "hasCompat": true,
+    "problemQueries": []
   }
 }
