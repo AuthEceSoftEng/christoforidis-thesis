@@ -47,5 +47,9 @@
       "codeql/default/CWE-116/UnsafeHtmlExpansion.ql",
       "codeql/default/CWE-116/IncompleteSanitization.ql"
     ]
+  },
+  "117":{
+    "hasCompat": true,
+    "problemQueries": []
   }
 }
