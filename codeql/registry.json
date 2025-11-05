@@ -137,5 +137,15 @@
     "problemQueries": [
       "codeql/default/CWE-367/FileSystemRace.ql"
     ]
+  },
+  "377":{
+    "hasCompat": true,
+    "problemQueries": []
+  },
+  "384":{
+    "hasCompat": false,
+    "problemQueries": [
+      "codeql/default/CWE-384/SessionFixation.ql"
+    ]
   }
 }
