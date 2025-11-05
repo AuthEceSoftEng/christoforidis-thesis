@@ -81,5 +81,11 @@
     "problemQueries": [
       "codeql/default/CWE-295/DisablingCertificateValidation.ql"
     ]
+  },
+  "300":{
+    "hasCompat": false,
+    "problemQueries": [
+      "codeql/default/CWE-300/InsecureDependencyResolution.ql"
+    ]
   }
 }
