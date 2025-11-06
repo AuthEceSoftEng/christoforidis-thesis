@@ -3,6 +3,7 @@ import re
 import os
 import logging
 import chromadb
+import json
 from chromadb.utils import embedding_functions
 from .LLM import LLMHandler
 from .prompts import get_initial_sanitizer_prompt, get_refinement_sanitizer_prompt, get_sink_selection_prompt, flow_explaination_prompt, flow_implementation_prompt, flow_refinement_prompt, sink_explaination_prompt, sink_implementation_prompt, sink_refinement_prompt
@@ -12,6 +13,15 @@ from .general import get_cwe_details, extract_predicate_from_file
 # set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+def _has_compat(cwe_id):
+    registry_path = os.path.join(os.path.dirname(__file__), '..', 'codeql', 'registry.json')
+    with open(registry_path, 'r') as f:
+        registry = json.load(f)
+
+    if str(cwe_id) in registry:
+        return registry[str(cwe_id)]['hasCompat']
+    return False
 
 def generate_codeql_package_classification(classified_methods, output_path):
     """
@@ -683,29 +693,38 @@ def generate_vulnerability_query(cwe_id, project_name):
         sink_predicate_parts.append(f'exists(DataFlow::CallNode call | {pred}(call) and sink = call)')
 
     sink_predicate = f"""  predicate isSink(DataFlow::Node sink) {{
-    {' or\n    '.join(sink_predicate_parts)}
-  }}"""
+    {' or\n    '.join(sink_predicate_parts)}"""
+    if _has_compat(cwe_id):
+        if sink_predicate_parts:
+            sink_predicate += f"""\n    or DefaultCWE{str(cwe_id)}Compat::defaultIsSink(sink)"""
+        else:
+            sink_predicate += f"""\n    DefaultCWE{str(cwe_id)}Compat::defaultIsSink(sink)"""
+    sink_predicate += f"""\n}}"""
     
     sanitizer_predicate_parts = []
     for pred in sanitizers:
         sanitizer_predicate_parts.append(f'ConditionalSanitizerLib::{pred}(call)')
 
-    sanitizer_predicate = f"""predicate isBarrier(DataFlow::Node node) {{
-    (TaintTracking::defaultSanitizer(node)
-    or
-    node instanceof TaintTracking::AdHocWhitelistCheckSanitizer
-    or
-    node instanceof TaintTracking::AdditionalBarrierGuard
-    or
-    node instanceof TaintTracking::InSanitizer
-    or
-    node instanceof TaintTracking::MembershipTestSanitizer
-    or
-    node instanceof TaintTracking::PositiveIndexOfSanitizer
-    or
-    node instanceof TaintTracking::WhitelistContainmentCallSanitizer
-    or
-    node instanceof TaintTracking::SanitizingRegExpTest)}}"""
+    if _has_compat(cwe_id):
+        sanitizer_predicate = f"""predicate isBarrier(DataFlow::Node node) {{
+    DefaultCWE{str(cwe_id)}Compat::defaultBarrier(node)}}"""
+    else:
+        sanitizer_predicate = f"""predicate isBarrier(DataFlow::Node node) {{
+        (TaintTracking::defaultSanitizer(node)
+        or
+        node instanceof TaintTracking::AdHocWhitelistCheckSanitizer
+        or
+        node instanceof TaintTracking::AdditionalBarrierGuard
+        or
+        node instanceof TaintTracking::InSanitizer
+        or
+        node instanceof TaintTracking::MembershipTestSanitizer
+        or
+        node instanceof TaintTracking::PositiveIndexOfSanitizer
+        or
+        node instanceof TaintTracking::WhitelistContainmentCallSanitizer
+        or
+        node instanceof TaintTracking::SanitizingRegExpTest)}}"""
     
     if sanitizer_predicate_parts:
         sanitizer_conditions = " or\n    ".join(sanitizer_predicate_parts)
@@ -721,55 +740,61 @@ def generate_vulnerability_query(cwe_id, project_name):
     )
   }}"""
         
-    flow_predicate = f"""
+    if _has_compat(cwe_id):
+        flow_predicate = f"""
     predicate isAdditionalFlowStep(DataFlow::Node pred, DataFlow::Node succ) {{
-        TaintTracking::defaultTaintStep(pred, succ)
-        or
-        TaintTracking::deserializeStep(pred, succ)
-        or
-        TaintTracking::heapStep(pred, succ)
-        or
-        TaintTracking::arrayStep(pred, succ)
-        or
-        TaintTracking::persistentStorageStep(pred, succ)
-        or
-        TaintTracking::promiseStep(pred, succ)
-        or
-        TaintTracking::serializeStep(pred, succ)
-        or
-        TaintTracking::sharedTaintStep(pred, succ)
-        or
-        TaintTracking::stringConcatenationStep(pred, succ)
-        or
-        TaintTracking::stringManipulationStep(pred, succ)
-        or
-        TaintTracking::uriStep(pred, succ)
-        or
-        TaintTracking::viewComponentStep(pred, succ)
-        or
-        exists(TaintTracking::AdditionalTaintStep additionalStep |
-            additionalStep.step(pred, succ)
-        )
-        or
-        exists(TaintTracking::SharedTaintStep additionalStep |
-            additionalStep.step(pred, succ)
-        )
-        or
-        exists(TaintTracking::StringConcatenationTaintStep additionalStep |
-            additionalStep.step(pred, succ)
-        )
-        or
-        exists(TaintTracking::UtilInspectTaintStep additionalStep |
-            additionalStep.step(pred, succ)
-        )
-        or
-        exists(TaintTracking::LegacyTaintStep additionalStep |
-            additionalStep.step(pred, succ)
-        )
-        or
-        exists(TaintTracking::ErrorConstructorTaintStep additionalStep |
-            additionalStep.step(pred, succ)
-        )
+        DefaultCWE{str(cwe_id)}Compat::defaultAdditionalFlowStep(pred, succ)"""
+    else:
+        flow_predicate = f"""
+        predicate isAdditionalFlowStep(DataFlow::Node pred, DataFlow::Node succ) {{
+            TaintTracking::defaultTaintStep(pred, succ)
+            or
+            TaintTracking::deserializeStep(pred, succ)
+            or
+            TaintTracking::heapStep(pred, succ)
+            or
+            TaintTracking::arrayStep(pred, succ)
+            or
+            TaintTracking::persistentStorageStep(pred, succ)
+            or
+            TaintTracking::promiseStep(pred, succ)
+            or
+            TaintTracking::serializeStep(pred, succ)
+            or
+            TaintTracking::sharedTaintStep(pred, succ)
+            or
+            TaintTracking::stringConcatenationStep(pred, succ)
+            or
+            TaintTracking::stringManipulationStep(pred, succ)
+            or
+            TaintTracking::uriStep(pred, succ)
+            or
+            TaintTracking::viewComponentStep(pred, succ)
+            or
+            exists(TaintTracking::AdditionalTaintStep additionalStep |
+                additionalStep.step(pred, succ)
+            )
+            or
+            exists(TaintTracking::SharedTaintStep additionalStep |
+                additionalStep.step(pred, succ)
+            )
+            or
+            exists(TaintTracking::StringConcatenationTaintStep additionalStep |
+                additionalStep.step(pred, succ)
+            )
+            or
+            exists(TaintTracking::UtilInspectTaintStep additionalStep |
+                additionalStep.step(pred, succ)
+            )
+            or
+            exists(TaintTracking::LegacyTaintStep additionalStep |
+                additionalStep.step(pred, succ)
+            )
+            or
+            exists(TaintTracking::ErrorConstructorTaintStep additionalStep |
+                additionalStep.step(pred, succ)
+            )"""
+    flow_predicate += f"""\n
         or
         VulnerableMethodsClassificationLib::propagates(pred, succ)
     }}
@@ -801,8 +826,12 @@ def general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, flow_predica
     import isSink
     import VulnerableMethodsClassification
     import ConditionalSanitizers
-    import CWE{cwe_details['id']}Flow::PathGraph
+    import CWE{cwe_details['id']}Flow::PathGraph"""
 
+    if _has_compat(cwe_id):
+        query += f"""\nimport compat.DefaultCWE{str(cwe_id)}Compat\n"""
+
+    query += f"""
     /**
     * Configuration for {cwe_details['name']} vulnerabilities
     */
@@ -813,7 +842,12 @@ def general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, flow_predica
         exists(DataFlow::CallNode call |
             VulnerableMethodsClassificationLib::isVulnerableSource(call) and
             source = call
-        )
+        )"""
+    if _has_compat(cwe_id):
+        query += f"""
+        or
+        DefaultCWE{str(cwe_id)}Compat::defaultIsSource(source)"""
+    query += f"""\n
     }}
 
     {sink_predicate}
@@ -1011,7 +1045,7 @@ def refine_vulnerability_query(cwe_id, project_name, general: bool = False, extr
     
     query = general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, flow_predicate)
 
-    output_path = os.path.join(os.path.dirname(__file__), "..", "codeql", "project_specific", project_name, f"cwe_{cwe_id}_vulnerability_final_claude4new.ql")
+    output_path = os.path.join(os.path.dirname(__file__), "..", "codeql", "project_specific", project_name, f"cwe_{cwe_id}_vulnerability_final_claude4compats.ql")
     with open(output_path, 'w') as f:
         f.write(query)
     

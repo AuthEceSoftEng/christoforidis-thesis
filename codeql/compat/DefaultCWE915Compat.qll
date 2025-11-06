@@ -159,8 +159,8 @@ module DefaultCWE915Compat {
     node instanceof TaintTracking::AdditionalBarrierGuard
     or node instanceof TaintTracking::MembershipTestSanitizer
     or node instanceof TaintTracking::PositiveIndexOfSanitizer
-    or PPAQ::PrototypePollutingAssignmentConfig::isBarrier(node) or
+    /* or PPAQ::PrototypePollutingAssignmentConfig::isBarrier(node) or
     exists(PPAQ::PrototypePollutingAssignmentConfig::FlowState st | PPAQ::PrototypePollutingAssignmentConfig::isBarrier(node, st))
-    or exists(PPC::FlowState st | PPC::isBarrier(node, st))
+    or exists(PPC::FlowState st | PPC::isBarrier(node, st)) */
   }
 }

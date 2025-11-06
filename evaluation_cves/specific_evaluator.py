@@ -2,6 +2,7 @@ import logging
 import time
 import os
 import sys
+import json
 from datetime import datetime
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -18,6 +19,19 @@ from utils.LLM import set_current_project, get_llm_stats, get_all_project_stats,
 # set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+def problem_queries(cwes):
+    registry_path = os.path.join(os.path.dirname(__file__), '..', 'codeql', 'registry.json')
+    with open(registry_path, 'r') as f:
+        registry = json.load(f)
+    probs = []
+    for cwe_id in cwes:
+        if str(cwe_id) in registry: 
+            prob = registry[str(cwe_id)]['problemQueries']
+            for pr in prob:
+                probs.append(pr)
+    return probs
+
 
 def append_project_stats(report_file_path, project_name, stats, project_start_time, project_end_time):
     """Append project statistics to the ongoing report file"""
@@ -123,8 +137,7 @@ def main():
     clone_vulnerable_repos(cves_folder, codebases_folder)
 
     project_names = [name for name in os.listdir(codebases_folder) if os.path.isdir(os.path.join(codebases_folder, name))]
-    already_done = ["cryptiles-96e63fd", "jspwik-447b5a6", "markdown-pdf-118c5c5", "mixin-deep-7705bdf", "save-server-ab7f29a"] #TEMPORARY
-    project_names = [p for p in project_names if p not in already_done] # skip already done projects #TEMPORARY
+    project_names = ["mixin-deep-7705bdf", "static-eval-ab81134"] #TEMPORARY
     logger.info(f"Cloned repositories for evaluation: {project_names}")
 
     completed_projects = []
@@ -219,13 +232,21 @@ def main():
             # Run final queries for this project (moved here from the separate loop)
             logger.info(f"Running final queries for {project_name}")
             if os.path.exists(project_specific_dir):
-                queries = [f for f in os.listdir(project_specific_dir) if f.endswith('final_claude4new.ql')]
+                queries = [f for f in os.listdir(project_specific_dir) if f.endswith('final_claude4compats.ql')]
 
                 for query in queries:
                     query_path = os.path.join(project_specific_dir, query)
-                    output_path = os.path.join(project_root, "output", "mini_evaluation3", project_name, query)
+                    output_path = os.path.join(project_root, "output", "mini_evaluation4", project_name, query)
                     os.makedirs(os.path.dirname(output_path), exist_ok=True)
                     run_codeql_path_problem(database_path, query_path, output_path)
+                
+                prob_queries = problem_queries(cwes)
+                if len(prob_queries) > 0:
+                    for query in prob_queries:
+                        query_path = os.path.join(os.path.dirname(__file__), '..', query)
+                        output_path = os.path.join(project_root, "output", "mini_evaluation4", project_name, "problems", query.replace('/', '_').replace('.ql', ''))
+                        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                        run_codeql_path_problem(database_path, query_path, output_path)
 
             # NOW the project is truly completed (after all queries including final ones)
             project_end_time = time.time()

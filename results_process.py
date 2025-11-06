@@ -2,10 +2,16 @@ import os
 import pandas as pd
 
 # Path to the parent directory containing all the folders
-parent_dir = r"C:\Projects\thesis\output\mini_evaluation3"
+parent_dir = r"C:\Projects\thesis\output\mini_evaluation4"
 
 # Walk through all subdirectories
 for root, dirs, files in os.walk(parent_dir):
+    # Ignore any 'problems' subfolders
+    dirs[:] = [d for d in dirs if d.lower() != 'problems']
+    # Safety: skip if current root itself is a 'problems' folder
+    if os.path.basename(root).lower() == 'problems':
+        continue
+    
     # Filter only CSV files, skipping any that start with 'combined' or 'deduplicated'
     csv_files = [
         f for f in files
