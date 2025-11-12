@@ -279,6 +279,8 @@ You are a security analyst tasked with identifying all Common Weakness Enumerati
 
 Output a comprehensive list of all CWE IDs that could plausibly apply to this project, including those related to insecure cryptographic practices, input validation, injection, or known library issues.
 You may infer CWEs based on the project's functionality, libraries, or purpose.
+Include all CWEs that are even moderately plausible, not just the most obvious ones.
+
 
 ### PROJECT NAME:
 {project_name}

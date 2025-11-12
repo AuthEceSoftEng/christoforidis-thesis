@@ -137,7 +137,7 @@ def main():
     clone_vulnerable_repos(cves_folder, codebases_folder)
 
     project_names = [name for name in os.listdir(codebases_folder) if os.path.isdir(os.path.join(codebases_folder, name))]
-    project_names = ["mixin-deep-7705bdf", "static-eval-ab81134"] #TEMPORARY
+    project_names = ["static-eval-ab81134"] #TEMPORARY
     logger.info(f"Cloned repositories for evaluation: {project_names}")
 
     completed_projects = []
