@@ -51,20 +51,20 @@ predicate getContextLineRange(DataFlow::Node node, int startLine, int endLine) {
      path.matches("%/cypress/%") or
      
      // JavaScript test files
-     path.matches("%.spec.js") or
-     path.matches("%.test.js") or
-     path.matches("%.cy.js") or
+     path.matches("%spec.js") or
+     path.matches("%test.js") or
+     path.matches("%cy.js") or
      
      // TypeScript test files
-     path.matches("%.spec.ts") or
-     path.matches("%.test.ts") or
-     path.matches("%.cy.ts") or
-     path.matches("%.spec.tsx") or
-     path.matches("%.test.tsx") or
+     path.matches("%spec.ts") or
+     path.matches("%test.ts") or
+     path.matches("%cy.ts") or
+     path.matches("%spec.tsx") or
+     path.matches("%test.tsx") or
      
      // Additional TypeScript-specific test patterns
-     path.matches("%.e2e.ts") or
-     path.matches("%.fixture.ts") or
-     path.matches("%.mock.ts")
+     path.matches("%e2e.ts") or
+     path.matches("%fixture.ts") or
+     path.matches("%mock.ts")
    )
  }

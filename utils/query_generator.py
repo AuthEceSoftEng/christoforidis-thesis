@@ -712,7 +712,7 @@ def generate_vulnerability_query(cwe_id, project_name):
 
     if _has_compat(cwe_id):
         sanitizer_predicate = f"""predicate isBarrier(DataFlow::Node node) {{
-    DefaultCWE{str(cwe_id)}Compat::defaultBarrier(node)}}"""
+    DefaultCWE{str(cwe_id)}Compat::defaultBarrier(node)"""
     else:
         sanitizer_predicate = f"""predicate isBarrier(DataFlow::Node node) {{
         (TaintTracking::defaultSanitizer(node)
@@ -729,7 +729,9 @@ def generate_vulnerability_query(cwe_id, project_name):
         or
         node instanceof TaintTracking::WhitelistContainmentCallSanitizer
         or
-        node instanceof TaintTracking::SanitizingRegExpTest)}}"""
+        node instanceof TaintTracking::SanitizingRegExpTest)"""
+
+    sanitizer_predicate += """\n    or\n    isTestFile(node.getFile())}}"""
     
     if sanitizer_predicate_parts:
         sanitizer_conditions = " or\n    ".join(sanitizer_predicate_parts)
@@ -829,12 +831,13 @@ def general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, flow_predica
     import DataFlow
     import isSource
     import isSink
+    import helpers
     import VulnerableMethodsClassification
     import ConditionalSanitizers
     import CWE{cwe_details['id']}Flow::PathGraph"""
 
     if _has_compat(cwe_id):
-        query += f"""\nimport compat.DefaultCWE{str(cwe_id)}Compat\n"""
+        query += f"""\n    import compat.DefaultCWE{str(cwe_id)}Compat\n"""
 
     query += f"""
     /**
