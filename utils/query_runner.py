@@ -1,13 +1,14 @@
 import os
 import subprocess
 import logging
+import time
 from typing import Optional, Tuple
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-def run_codeql_query_tables(database_path: str, query_path: str, output_path: str) -> Tuple[bool, Optional[str]]:
+def run_codeql_query_tables(database_path: str, query_path: str, output_path: str) -> Tuple[bool, Optional[str], float]:
     """
     Run a CodeQL query on a given database and save results to CSV.
     for @kind table
@@ -20,16 +21,17 @@ def run_codeql_query_tables(database_path: str, query_path: str, output_path: st
         output_path (str): Path to save the output results.
 
     Returns:
-        Tuple of (success_status, error_message or None).
+        Tuple of (success_status, error_message or None, execution_time).
     """
+    start_time = time.time()
 
     # Check if the database path exists
     if not os.path.exists(database_path):
-        return False, f"Database path does not exist: {database_path}"
+        return False, f"Database path does not exist: {database_path}", 0.0
 
     # Check if the query path exists
     if not os.path.exists(query_path):
-        return False, f"Query path does not exist: {query_path}"
+        return False, f"Query path does not exist: {query_path}", 0.0
 
     # Construct the command to run the CodeQL query
     command_run = [
@@ -48,7 +50,6 @@ def run_codeql_query_tables(database_path: str, query_path: str, output_path: st
         f"{output_path}.bqrs"
     ]
     logger.info(f"Running CodeQL query: {' '.join(command_decode)}")
-
 
     try:
         # execute the command_run
@@ -71,29 +72,32 @@ def run_codeql_query_tables(database_path: str, query_path: str, output_path: st
             )
 
             logger.info(f"Query completed successfully. Results saved to {output_path}.csv")
-            return True, None
+            
+            end_time = time.time()
+            execution_time = end_time - start_time
+            return True, None, execution_time
         
         except subprocess.CalledProcessError as e:
             error_msg = f"CodeQL query failed with exit code {e.returncode}: {e.stderr}"
             logger.error(error_msg)
-            return False, error_msg
+            return False, error_msg, time.time() - start_time
         
         except Exception as e:
             error_msg = f"An unexpected error occurred running the CodeQL query: {str(e)}"
             logger.error(error_msg)
-            return False, error_msg
+            return False, error_msg, time.time() - start_time
     
     except subprocess.CalledProcessError as e:
         error_msg = f"CodeQL query failed with exit code {e.returncode}: {e.stderr}"
         logger.error(error_msg)
-        return False, error_msg
+        return False, error_msg, time.time() - start_time
     
     except Exception as e:
         error_msg = f"An unexpected error occurred running the CodeQL query: {str(e)}"
         logger.error(error_msg)
-        return False, error_msg
+        return False, error_msg, time.time() - start_time
     
-def run_codeql_path_problem(database_path: str, query_path: str, output_path: str) -> Tuple[bool, Optional[str]]:
+def run_codeql_path_problem(database_path: str, query_path: str, output_path: str) -> Tuple[bool, Optional[str], float]:
     """
     Run a CodeQL path-problem query on a given database and save results to SARIF.
     For @kind path-problem queries, which show data flow paths.
@@ -104,16 +108,17 @@ def run_codeql_path_problem(database_path: str, query_path: str, output_path: st
         output_path (str): Path to save the output results (without extension).
     
     Returns:
-        Tuple of (success_status, error_message or None).
+        Tuple of (success_status, error_message or None, execution_time).
     """
+    start_time = time.time()
     
     # Check if the database path exists
     if not os.path.exists(database_path):
-        return False, f"Database path does not exist: {database_path}"
+        return False, f"Database path does not exist: {database_path}", 0.0
     
     # Check if the query path exists
     if not os.path.exists(query_path):
-        return False, f"Query path does not exist: {query_path}"
+        return False, f"Query path does not exist: {query_path}", 0.0
     
     # For path-problem queries, we use database analyze to generate SARIF
     sarif_output = f"{output_path}.sarif"
@@ -157,15 +162,17 @@ def run_codeql_path_problem(database_path: str, query_path: str, output_path: st
         except Exception as e:
             # Don't fail if CSV generation fails, just log it
             logger.warning(f"Could not generate CSV output: {str(e)}")
-            
-        return True, None
+        
+        end_time = time.time()
+        execution_time = end_time - start_time
+        return True, None, execution_time
         
     except subprocess.CalledProcessError as e:
         error_msg = f"CodeQL query failed with exit code {e.returncode}: {e.stderr}"
         logger.error(error_msg)
-        return False, error_msg
+        return False, error_msg, time.time() - start_time
     
     except Exception as e:
         error_msg = f"An unexpected error occurred running the CodeQL query: {str(e)}"
         logger.error(error_msg)
-        return False, error_msg
+        return False, error_msg, time.time() - start_time

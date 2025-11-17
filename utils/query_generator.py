@@ -318,7 +318,7 @@ def _get_relevant_documentation(queries, collection_type="both"):
         logger.error(f"Error querying vector database: {e}")
         return ""
 
-def generate_conditional_sanitizer_library(classified_methods, output_path):
+def generate_conditional_sanitizer_library(classified_methods, output_path, track_query_fn=None):
     """
     Generate a CodeQL library for conditional sanitizers with bypass detection predicates.
     
@@ -428,7 +428,10 @@ def generate_conditional_sanitizer_library(classified_methods, output_path):
                 clean_response = generate_test_query_sanitizer(test_query_path, package, method, bypass_condition, initial_response, predicate_name)
 
                 # run the test query to validate the predicate
-                success, error = run_codeql_query_tables(database_path, test_query_path, os.path.dirname(output_path))
+                success, error, query_time = run_codeql_query_tables(database_path, test_query_path, os.path.dirname(output_path))
+                if track_query_fn:
+                    project_name = output_path.split(os.sep)[-2]
+                    track_query_fn(project_name, query_time)
                 tries = 0
 
                 while not success and tries < 5:
@@ -443,7 +446,9 @@ def generate_conditional_sanitizer_library(classified_methods, output_path):
                     refined_response = llm_handler.send_message(messages)
                     logger.info(f"#Try: {tries+1}: Refined predicate for sanitizer {sanitizer['predicate_name']}")
                     clean_response = generate_test_query_sanitizer(test_query_path, package, method, bypass_condition, refined_response, predicate_name)
-                    success, error = run_codeql_query_tables(database_path, test_query_path, os.path.dirname(output_path))
+                    success, error, query_time = run_codeql_query_tables(database_path, test_query_path, os.path.dirname(output_path))
+                    if track_query_fn:
+                        track_query_fn(project_name, query_time)
                     tries += 1
 
                 if success:
@@ -869,7 +874,7 @@ def general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, flow_predica
 
     return query
 
-def refine_sink_vulnerability_query(cwe_id, project_name, general: bool = False, extra_folder: str = None):
+def refine_sink_vulnerability_query(cwe_id, project_name, general: bool = False, extra_folder: str = None, track_query_fn=None):
     sinks = get_cwe_specific_sinks(cwe_id, project_name)
     sinks = sinks['classic_categories']
     cwe_details = get_cwe_details(cwe_id)
@@ -923,7 +928,9 @@ def refine_sink_vulnerability_query(cwe_id, project_name, general: bool = False,
     with open(ql_path, 'w') as f:
         f.write(query)
 
-    success, error = run_codeql_path_problem(database_path, ql_path, os.path.dirname(ql_path))
+    success, error, query_time = run_codeql_path_problem(database_path, ql_path, os.path.dirname(ql_path))
+    if track_query_fn:
+        track_query_fn(project_name, query_time)
     tries = 0
 
     while not success and tries < 5:
@@ -942,7 +949,9 @@ def refine_sink_vulnerability_query(cwe_id, project_name, general: bool = False,
         query = general_vuln_query(cwe_id, refined_sink_predicate, sanitizer_predicate, flow_predicate)
         with open(ql_path, 'w') as f:
             f.write(query)
-        success, error = run_codeql_path_problem(database_path, ql_path, os.path.dirname(ql_path))
+        success, error, query_time = run_codeql_path_problem(database_path, ql_path, os.path.dirname(ql_path))
+        if track_query_fn:
+            track_query_fn(project_name, query_time)
 
         tries += 1
 
@@ -955,7 +964,7 @@ def refine_sink_vulnerability_query(cwe_id, project_name, general: bool = False,
             f.write(initial_query)
     return sink_predicate
 
-def refine_flow_vulnerability_query(cwe_id, project_name, general: bool = False, extra_folder: str = None):
+def refine_flow_vulnerability_query(cwe_id, project_name, general: bool = False, extra_folder: str = None, track_query_fn=None):
     sinks = get_cwe_specific_sinks(cwe_id, project_name)
     sinks = sinks['classic_categories']
     cwe_details = get_cwe_details(cwe_id)
@@ -1007,7 +1016,9 @@ def refine_flow_vulnerability_query(cwe_id, project_name, general: bool = False,
     with open(ql_path, 'w') as f:
         f.write(query)
 
-    success, error = run_codeql_path_problem(database_path, ql_path, os.path.dirname(ql_path))
+    success, error, query_time = run_codeql_path_problem(database_path, ql_path, os.path.dirname(ql_path))
+    if track_query_fn:
+        track_query_fn(project_name, query_time)
     tries = 0
 
     while not success and tries < 5:
@@ -1026,7 +1037,9 @@ def refine_flow_vulnerability_query(cwe_id, project_name, general: bool = False,
         query = general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, refined_flow_predicate)
         with open(ql_path, 'w') as f:
             f.write(query)
-        success, error = run_codeql_path_problem(database_path, ql_path, os.path.dirname(ql_path))
+        success, error, query_time = run_codeql_path_problem(database_path, ql_path, os.path.dirname(ql_path))
+        if track_query_fn:
+            track_query_fn(project_name, query_time)
 
         tries += 1
 
@@ -1039,9 +1052,9 @@ def refine_flow_vulnerability_query(cwe_id, project_name, general: bool = False,
             f.write(initial_query)
     return [flow_predicate, sanitizer_predicate]
 
-def refine_vulnerability_query(cwe_id, project_name, general: bool = False, extra_folder: str = None):
-    sink_predicate = refine_sink_vulnerability_query(cwe_id, project_name, general, extra_folder)
-    flow_predicate, sanitizer_predicate = refine_flow_vulnerability_query(cwe_id, project_name, general, extra_folder)
+def refine_vulnerability_query(cwe_id, project_name, general: bool = False, extra_folder: str = None, track_query_fn=None):
+    sink_predicate = refine_sink_vulnerability_query(cwe_id, project_name, general, extra_folder, track_query_fn)
+    flow_predicate, sanitizer_predicate = refine_flow_vulnerability_query(cwe_id, project_name, general, extra_folder, track_query_fn)
     
     query = general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, flow_predicate)
 

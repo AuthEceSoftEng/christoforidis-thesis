@@ -1,6 +1,7 @@
 import os
 import subprocess
 import logging
+import time
 from typing import Tuple, Optional
 import shutil
 
@@ -12,7 +13,7 @@ def create_codeql_database(source_path: str,
                            output_path: str = None,
                            language: str = "javascript",
                            threads: int = 0, 
-                           response: str = None) -> Tuple[bool, Optional[str]]:
+                           response: str = None) -> Tuple[bool, Optional[str], float]:
     """
     Create a CodeQL database from source code.
     
@@ -23,8 +24,9 @@ def create_codeql_database(source_path: str,
         threads (int, optional): Number of threads to use. Defaults to 0 (auto-detect).
 
     Returns:
-        Tuple[bool, Optional[str]]: Success status and error message if any.
+        Tuple[bool, Optional[str], float]: Success status, error message if any, and execution time.
     """
+    start_time = time.time()
 
     # project root directory (parent of utils)
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -34,7 +36,7 @@ def create_codeql_database(source_path: str,
     if not os.path.isabs(source_path):
         full_source_path = os.path.join(project_root, "codebases", source_path)
     if not os.path.exists(full_source_path):
-        return False, f"Source path does not exist: {full_source_path}"
+        return False, f"Source path does not exist: {full_source_path}", 0.0
     
     # determine output path
     if not output_path:
@@ -61,10 +63,10 @@ def create_codeql_database(source_path: str,
                     os.makedirs(output_path, exist_ok=True)
                     break
                 except Exception as e:
-                    return False, f"Failed to remove existing database: {str(e)}"
+                    return False, f"Failed to remove existing database: {str(e)}", time.time() - start_time
             elif response in ['n', 'no']:
                 logger.info(f"Keeping existing database at {output_path}")
-                return True, "Using existing database" # return success without creating a new one, script ends here
+                return True, "Using existing database", 0.0 # return success without creating a new one, script ends here
             else:
                 response = input("Please enter 'y' or 'n'")
 
@@ -88,10 +90,11 @@ def create_codeql_database(source_path: str,
             stderr=subprocess.PIPE,
             text=True,
         )
-        logger.info(f"CodeQL database created successfully at {output_path}")
-        return True, None
+        execution_time = time.time() - start_time
+        logger.info(f"CodeQL database created successfully at {output_path} in {execution_time:.1f}s")
+        return True, None, execution_time
     
     except subprocess.CalledProcessError as e:
         error_msg = f"Error creating CodeQL database: {e.stderr}"
         logger.error(error_msg)
-        return False, error_msg
+        return False, error_msg, time.time() - start_time
