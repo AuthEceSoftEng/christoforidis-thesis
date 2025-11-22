@@ -731,7 +731,7 @@ def generate_vulnerability_query(cwe_id, project_name):
         or
         node instanceof TaintTracking::SanitizingRegExpTest)"""
 
-    sanitizer_predicate += """\n    or\n    isTestFile(node.getFile())}}"""
+    sanitizer_predicate += """\n    or\n    isTestFile(node.getFile())}"""
     
     if sanitizer_predicate_parts:
         sanitizer_conditions = " or\n    ".join(sanitizer_predicate_parts)
