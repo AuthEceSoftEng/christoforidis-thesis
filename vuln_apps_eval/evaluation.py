@@ -16,7 +16,7 @@ from utils.cwe_decider import cwes_to_check
 from utils.LLM import set_current_project, get_llm_stats, get_all_project_stats, reset_llm_stats
 
 """
-COPY OF EVALUATION_CVES.SPECIFIC_EVALUATOR.PYY WITH MODIFICATIONS FOR JUICE-SHOP EVALUATION
+COPY OF EVALUATION_CVES.SPECIFIC_EVALUATOR.PYY WITH MODIFICATIONS FOR VULN APPS (JUICE-SHOP DVNA ETC) EVALUATION
 TEMPORARY FILE UNTIL FINAL INTEGRATION IS DONE
 COULD NOT REUSE THE ORIGINAL EVALUATION FILE DUE TO DIFFERENT PROJECT STRUCTURE
 SHOULD MAKE INTEGRATION EASIER LATER ON
@@ -253,7 +253,7 @@ def main():
     logger.info(f"Progress report initialized: {report_file_path}")
 
 
-    project_names = ["juice-shop"] # juice-shop evaluation
+    project_names = ["dvna"] # dvna evaluation #temp
     codebases_folder = os.path.join(project_root, "codebases")
 
     completed_projects = []
@@ -316,7 +316,7 @@ def main():
             
             # conditional sanitizers
             """
-            IGNORE CONDITIONAL SANITIZERS FOR JUICE-SHOP EVALUATION
+            IGNORE CONDITIONAL SANITIZERS FOR JUICE-SHOP/DVNA EVALUATION
             THEY ARE NOT RELEVANT FOR THIS PROJECT
             TIME-SAVING PURPOSES
             """
@@ -337,11 +337,13 @@ def main():
 
             # decide CWEs to check
             cwes = cwes_to_check(project_name)
+            #cwes_filtered = [cwe for cwe in cwes if cwe >= 330] # temp: only check CWEs >= x if something goes wrong during evaluation
             logger.info(f"CWEs to check for {project_name}: {cwes}")
 
             # refine vulnerability query for each CWE; on failure skip only the current CWE
             failed_cwes = []
             for cwe_id in cwes:
+            #for cwe_id in cwes_filtered: # temp: only when filtering CWEs
                 try:
                     refine_vulnerability_query(cwe_id, project_name, general=False, extra_folder=None, track_query_fn=track_codeql_refinement_query)
                 except Exception as e:
@@ -370,7 +372,7 @@ def main():
 
                 for query in queries:
                     query_path = os.path.join(project_specific_dir, query)
-                    output_path = os.path.join(project_root, "output", "juice-shop_evaluation1", project_name, query)
+                    output_path = os.path.join(project_root, "output", "dvna_evaluation1", project_name, query)
                     os.makedirs(os.path.dirname(output_path), exist_ok=True)
                     success, error, query_time = run_codeql_path_problem(database_path, query_path, output_path)
                     track_codeql_query(project_name, query_time)
@@ -379,7 +381,7 @@ def main():
                 if len(prob_queries) > 0:
                     for query in prob_queries:
                         query_path = os.path.join(os.path.dirname(__file__), '..', query)
-                        output_path = os.path.join(project_root, "output", "juice-shop_evaluation1", project_name, "problems", query.replace('/', '_').replace('.ql', ''))
+                        output_path = os.path.join(project_root, "output", "dvna_evaluation1", project_name, "problems", query.replace('/', '_').replace('.ql', ''))
                         os.makedirs(os.path.dirname(output_path), exist_ok=True)
                         success, error, query_time = run_codeql_path_problem(database_path, query_path, output_path)
                         track_codeql_query(project_name, query_time)
