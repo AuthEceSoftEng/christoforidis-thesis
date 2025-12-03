@@ -1,0 +1,86 @@
+{
+    "SQLInjection":{
+        "file": "./core/appHandler.js",
+        "startLine": 9,
+        "endLine": 34,
+        "vulnLines": [10]
+    },
+    "CommandInjection":{
+        "file": "./core/appHandler.js",
+        "startLine": 38,
+        "endLine": 43,
+        "vulnLines": [39]
+    },
+    "InsecureSessionSecret": {
+        "file": "./server.js",
+        "startLine": 23,
+        "endLine": 28,
+        "vulnLines": [24]
+    },
+    "HashedPasswordsDisclosed": {
+        "file": "./core/appHandler.js",
+        "startLine": 206,
+        "endLine": 212,
+        "vulnLines": [207, 208, 209, 210]
+    },
+    "XMLExternalEntities": {
+        "file": "./core/appHandler.js",
+        "startLine": 233,
+        "endLine": 248,
+        "vulnLines": [235]
+    },
+    "UnauthorizedAccesstoUsersAPI1": {
+        "file": "./routes/app.js",
+        "startLine": 42,
+        "endLine": 42,
+        "vulnLines": [42]
+    },
+    "UnauthorizedAccesstoUsersAPI2": {
+        "file": "./views/app/admin.ejs",
+        "startLine": 27,
+        "endLine": 35,
+        "vulnLines": [30]
+    },
+    "MissingAuthorizationcheckinEditUser": {
+        "file": "./core/appHandler.js",
+        "startLine": 144,
+        "endLine": 183,
+        "vulnLines": [145, 146, 147, 148]
+    },
+    "ApplicationsendsStackTrace": {
+        "file": "./core/appHandler.js",
+        "startLine": 194,
+        "endLine": 203,
+        "vulnLines": [197]
+    },
+    "ReflectedXSSinSearchQuery":{
+        "file": "./views/app/products.ejs",
+        "startLine": 18,
+        "endLine": 26,
+        "vulnLines": [20]
+    },
+    "StoredXSSinProductListing": {
+        "file": "./views/app/products.ejs",
+        "startLine": 48,
+        "endLine": 58,
+        "vulnLines": [49, 50, 51, 52, 53]
+    },
+    "DOMXSSinuserlisting": {
+        "file": "./views/app/adminusers.ejs",
+        "startLine": 32,
+        "endLine": 47,
+        "vulnLines": [40, 41, 42]
+    },
+    "InsecureDeserialization": {
+        "file": "./core/appHandler.js",
+        "startLine": 215,
+        "endLine": 231,
+        "vulnLines": [218]
+    },
+    "UnvalidatedRedirectsandForwards": {
+        "file": "./core/appHandler.js",
+        "startLine": 186,
+        "endLine": 192,
+        "vulnLines": [188]
+    }
+}
