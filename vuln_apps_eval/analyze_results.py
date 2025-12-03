@@ -99,7 +99,7 @@ def analyze_vulnerabilities(csv_data, json_data):
         if not file_path:
             continue
         
-        # Check both source and sink lines against ground truth
+        # Check both conditions for matching
         matching_challenges = []
         matched_line = None
         matched_gt_file = None
@@ -107,6 +107,7 @@ def analyze_vulnerabilities(csv_data, json_data):
         # Try to match against any ground truth file
         for gt_file, lines_dict in ground_truth.items():
             if paths_match(file_path, gt_file):
+                # CONDITION 1: Check if source or sink line matches a vulnLine exactly
                 if source_line in lines_dict:
                     matching_challenges = lines_dict[source_line]
                     matched_line = source_line
@@ -116,6 +117,25 @@ def analyze_vulnerabilities(csv_data, json_data):
                     matching_challenges = lines_dict[sink_line]
                     matched_line = sink_line
                     matched_gt_file = gt_file
+                    break
+                
+                # CONDITION 2: Check if both source and sink are within startLine-endLine range
+                if not matching_challenges:
+                    for vuln_line, challenges in lines_dict.items():
+                        for challenge_info in challenges:
+                            start = challenge_info['startLine']
+                            end = challenge_info['endLine']
+                            
+                            # Check if both source and sink are within the range
+                            if (start == source_line) and (sink_line == end):
+                                matching_challenges = challenges
+                                matched_line = vuln_line
+                                matched_gt_file = gt_file
+                                break
+                        if matching_challenges:
+                            break
+                
+                if matching_challenges:
                     break
         
         if matching_challenges:
