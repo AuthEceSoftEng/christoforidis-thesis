@@ -695,7 +695,7 @@ def generate_vulnerability_query(cwe_id, project_name):
     for category in sinks["classic_categories"]:
         sink_predicate_parts.append(f'{category.replace(" ", "")}(sink)')
     for pred in sinks['predicates']:
-        sink_predicate_parts.append(f'exists(DataFlow::CallNode call | {pred}(call) and sink = call)')
+        sink_predicate_parts.append(f'exists(DataFlow::CallNode call | VulnerableMethodsClassificationLib::{pred}(call) and sink = call)')
 
     sink_predicate = f"""  predicate isSink(DataFlow::Node sink) {{
     {' or\n    '.join(sink_predicate_parts)}"""
@@ -845,8 +845,6 @@ def general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, flow_predica
     */
     module CWE{cwe_details['id']}Configuration implements DataFlow::ConfigSig {{
     predicate isSource(DataFlow::Node source) {{
-        isSources(source)
-        or
         exists(DataFlow::CallNode call |
             VulnerableMethodsClassificationLib::isVulnerableSource(call) and
             source = call
@@ -855,6 +853,10 @@ def general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, flow_predica
         query += f"""
         or
         DefaultCWE{str(cwe_id)}Compat::defaultIsSource(source)"""
+    else:
+        query += f"""
+        or
+        source instanceof RemoteFlowSource"""
     query += f"""\n
     }}
 
