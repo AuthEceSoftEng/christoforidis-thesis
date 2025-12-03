@@ -2,7 +2,7 @@ import os
 import pandas as pd
 
 # Path to the parent directory containing all the folders
-parent_dir = r"C:\Projects\thesis\output\mini_evaluation4"
+parent_dir = r"C:\Projects\thesis\output\juice-shop_evaluation2\juice-shop"
 
 # Walk through all subdirectories
 for root, dirs, files in os.walk(parent_dir):
@@ -41,7 +41,7 @@ for root, dirs, files in os.walk(parent_dir):
         print(f"✅ Combined CSV saved to: {combined_path}")
 
         # Step 2: Deduplicate based on columns 4–8
-        deduped_df = combined_df.drop_duplicates(subset=[4, 5, 6, 7, 8])
+        deduped_df = combined_df.drop_duplicates(subset=[4, 5, 7])
         deduped_path = os.path.join(root, "deduplicated.csv")
         deduped_df.to_csv(deduped_path, index=False, header=False)
         print(f"✅ Deduplicated CSV saved to: {deduped_path}")
