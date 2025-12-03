@@ -1,0 +1,146 @@
+{
+  "changeProductChallenge": {
+    "file": "./server.ts",
+    "startLine": 345,
+    "endLine": 449,
+    "vulnLines": [364]
+  },
+  "redirectChallenge": {
+    "file": "./lib/insecurity.ts",
+    "startLine": 123,
+    "endLine": 142,
+    "vulnLines": [126, 127, 128, 138]
+  },
+  "forgedReviewChallenge": {
+    "file": "./routes/updateProductReviews.ts",
+    "startLine": 13,
+    "endLine": 31,
+    "vulnLines": [16, 18, 20]
+  },
+  "loginAdminChallenge": {
+    "file": "./routes/login.ts",
+    "startLine": 17,
+    "endLine": 57,
+    "vulnLines": [34]
+  },
+  "restfulXssChallenge": {
+    "file": "./frontend/src/app/search-result/search-result.component.ts",
+    "startLine": 79,
+    "endLine": 148,
+    "vulnLines": [145]
+  },
+  "localXssChallenge": {
+    "file": "./frontend/src/app/search-result/search-result.component.ts",
+    "startLine": 162,
+    "endLine": 185,
+    "vulnLines": [171]
+  },
+  "directoryListingChallenge": {
+    "file": "./server.ts",
+    "startLine": 267,
+    "endLine": 290,
+    "vulnLines": [269, 270, 281, 283]
+  },
+  "resetPasswordMortyChallenge": {
+    "file": "./server.ts",
+    "startLine": 335,
+    "endLine": 343,
+    "vulnLines": [341]
+  },
+  "weakPasswordChallenge": {
+    "file": "./models/user.ts",
+    "startLine": 37,
+    "endLine": 79,
+    "vulnLines": [77]
+  },
+  "web3SandboxChallenge": {
+    "file": "./frontend/src/app/app.routing.ts",
+    "startLine": 60,
+    "endLine": 253,
+    "vulnLines": [63, 174, 227, 241]
+  },
+  "unionSqlInjectionChallenge": {
+    "file": "./routes/search.ts",
+    "startLine": 18,
+    "endLine": 74,
+    "vulnLines": [23]
+  },
+  "tokenSaleChallenge": {
+    "file": "./frontend/src/app/app.routing.ts",
+    "startLine": 234,
+    "endLine": 253,
+    "vulnLines": [241]
+  },
+  "noSqlReviewsChallenge": {
+    "file": "./routes/updateProductReviews.ts",
+    "startLine": 13,
+    "endLine": 31,
+    "vulnLines": [16, 18, 20]
+  },
+  "redirectCryptoCurrencyChallenge": {
+    "file": "./lib/insecurity.ts",
+    "startLine": 123,
+    "endLine": 142,
+    "vulnLines": [126, 127, 128, 138]
+  },
+  "xssBonusChallenge": {
+    "file": "./frontend/src/app/search-result/search-result.component.ts",
+    "startLine": 162,
+    "endLine": 185,
+    "vulnLines": [171]
+  },
+  "scoreBoardChallenge": {
+    "file": "./frontend/src/app/app.routing.ts",
+    "startLine": 60,
+    "endLine": 253,
+    "vulnLines": [63, 174, 227, 241]
+  },
+  "dbSchemaChallenge": {
+    "file": "./routes/search.ts",
+    "startLine": 18,
+    "endLine": 74,
+    "vulnLines": [23]
+  },
+  "loginJimChallenge": {
+    "file": "./routes/login.ts",
+    "startLine": 17,
+    "endLine": 57,
+    "vulnLines": [34]
+  },
+  "registerAdminChallenge": {
+    "file": "./server.ts",
+    "startLine": 473,
+    "endLine": 511,
+    "vulnLines": [504]
+  },
+  "(?<challenges>.*)/g": {
+    "file": "./lib/codingChallenges.ts",
+    "startLine": 50,
+    "endLine": 65,
+    "vulnLines": []
+  },
+  "loginBenderChallenge": {
+    "file": "./routes/login.ts",
+    "startLine": 17,
+    "endLine": 57,
+    "vulnLines": [34]
+  },
+  "accessLogDisclosureChallenge": {
+    "file": "./server.ts",
+    "startLine": 267,
+    "endLine": 290,
+    "vulnLines": [269, 270, 281, 283]
+  },
+  "adminSectionChallenge": {
+    "file": "./frontend/src/app/app.routing.ts",
+    "startLine": 60,
+    "endLine": 253,
+    "vulnLines": [63, 174, 227, 241]
+  },
+  "exposedMetricsChallenge": {
+    "file": "./server.ts",
+    "startLine": 709,
+    "endLine": 751,
+    "vulnLines": [713]
+  }
+}

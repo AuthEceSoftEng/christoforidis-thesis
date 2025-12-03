@@ -1,0 +1,6126 @@
+{
+  "metrics": {
+    "true_positives": 4,
+    "false_positives": 983,
+    "false_negatives": 20,
+    "precision": 0.41,
+    "recall": 16.67,
+    "f1_score": 0.79
+  },
+  "true_positives": [
+    {
+      "file": "/routes/login.ts",
+      "ground_truth_file": "./routes/login.ts",
+      "source_line": 34,
+      "sink_line": 34,
+      "matched_line": 34,
+      "vulnerability": "Vulnerability Query for CWE-20",
+      "challenges": [
+        "loginAdminChallenge",
+        "loginJimChallenge",
+        "loginBenderChallenge"
+      ],
+      "detection_count": 2
+    },
+    {
+      "file": "/routes/search.ts",
+      "ground_truth_file": "./routes/search.ts",
+      "source_line": 23,
+      "sink_line": 23,
+      "matched_line": 23,
+      "vulnerability": "Vulnerability Query for CWE-20",
+      "challenges": [
+        "unionSqlInjectionChallenge",
+        "dbSchemaChallenge"
+      ],
+      "detection_count": 2
+    },
+    {
+      "file": "/routes/updateProductReviews.ts",
+      "ground_truth_file": "./routes/updateProductReviews.ts",
+      "source_line": 18,
+      "sink_line": 18,
+      "matched_line": 18,
+      "vulnerability": "Vulnerability Query for CWE-20",
+      "challenges": [
+        "forgedReviewChallenge",
+        "noSqlReviewsChallenge"
+      ],
+      "detection_count": 1
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "ground_truth_file": "./lib/insecurity.ts",
+      "source_line": 138,
+      "sink_line": 138,
+      "matched_line": 138,
+      "vulnerability": "Vulnerability Query for CWE-522",
+      "challenges": [
+        "redirectChallenge",
+        "redirectCryptoCurrencyChallenge"
+      ],
+      "detection_count": 1
+    }
+  ],
+  "false_positives": [
+    {
+      "file": "/frontend/src/app/search-result/search-result.component.ts",
+      "source_line": 159,
+      "sink_line": 159,
+      "vulnerability": "Vulnerability Query for CWE-1004"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 195,
+      "sink_line": 195,
+      "vulnerability": "Vulnerability Query for CWE-1004"
+    },
+    {
+      "file": "/routes/dataErasure.ts",
+      "source_line": 72,
+      "sink_line": 74,
+      "vulnerability": "Vulnerability Query for CWE-1004"
+    },
+    {
+      "file": "/routes/dataErasure.ts",
+      "source_line": 87,
+      "sink_line": 89,
+      "vulnerability": "Vulnerability Query for CWE-1004"
+    },
+    {
+      "file": "/routes/keyServer.ts",
+      "source_line": 14,
+      "sink_line": 14,
+      "vulnerability": "Vulnerability Query for CWE-1004"
+    },
+    {
+      "file": "/routes/logfileServer.ts",
+      "source_line": 14,
+      "sink_line": 14,
+      "vulnerability": "Vulnerability Query for CWE-1004"
+    },
+    {
+      "file": "/routes/quarantineServer.ts",
+      "source_line": 14,
+      "sink_line": 14,
+      "vulnerability": "Vulnerability Query for CWE-1004"
+    },
+    {
+      "file": "/lib/challengeUtils.ts",
+      "source_line": 83,
+      "sink_line": 83,
+      "vulnerability": "Vulnerability Query for CWE-117"
+    },
+    {
+      "file": "/frontend/src/app/Services/address.service.ts",
+      "source_line": 26,
+      "sink_line": 26,
+      "vulnerability": "Vulnerability Query for CWE-1259"
+    },
+    {
+      "file": "/frontend/src/app/Services/address.service.ts",
+      "source_line": 35,
+      "sink_line": 35,
+      "vulnerability": "Vulnerability Query for CWE-1259"
+    },
+    {
+      "file": "/frontend/src/app/Services/track-order.service.ts",
+      "source_line": 22,
+      "sink_line": 22,
+      "vulnerability": "Vulnerability Query for CWE-1259"
+    },
+    {
+      "file": "/frontend/src/app/Services/user.service.ts",
+      "source_line": 67,
+      "sink_line": 67,
+      "vulnerability": "Vulnerability Query for CWE-1259"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 191,
+      "sink_line": 198,
+      "vulnerability": "Vulnerability Query for CWE-1259"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 239,
+      "sink_line": 245,
+      "vulnerability": "Vulnerability Query for CWE-1259"
+    },
+    {
+      "file": "/routes/profileImageUrlUpload.ts",
+      "source_line": 24,
+      "sink_line": 24,
+      "vulnerability": "Vulnerability Query for CWE-1259"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 117,
+      "sink_line": 123,
+      "vulnerability": "Vulnerability Query for CWE-1259"
+    },
+    {
+      "file": "/frontend/src/app/oauth/oauth.component.ts",
+      "source_line": 64,
+      "sink_line": 64,
+      "vulnerability": "Vulnerability Query for CWE-1321"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 76,
+      "sink_line": 76,
+      "vulnerability": "Vulnerability Query for CWE-1321"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 77,
+      "sink_line": 77,
+      "vulnerability": "Vulnerability Query for CWE-1321"
+    },
+    {
+      "file": "/routes/dataErasure.ts",
+      "source_line": 73,
+      "sink_line": 73,
+      "vulnerability": "Vulnerability Query for CWE-1321"
+    },
+    {
+      "file": "/routes/dataErasure.ts",
+      "source_line": 88,
+      "sink_line": 88,
+      "vulnerability": "Vulnerability Query for CWE-1321"
+    },
+    {
+      "file": "/routes/showProductReviews.ts",
+      "source_line": 36,
+      "sink_line": 36,
+      "vulnerability": "Vulnerability Query for CWE-1321"
+    },
+    {
+      "file": "/routes/trackOrder.ts",
+      "source_line": 18,
+      "sink_line": 18,
+      "vulnerability": "Vulnerability Query for CWE-1321"
+    },
+    {
+      "file": "/routes/vulnCodeFixes.ts",
+      "source_line": 40,
+      "sink_line": 40,
+      "vulnerability": "Vulnerability Query for CWE-1321"
+    },
+    {
+      "file": "/routes/videoHandler.ts",
+      "source_line": 72,
+      "sink_line": 72,
+      "vulnerability": "Vulnerability Query for CWE-200"
+    },
+    {
+      "file": "/frontend/src/app/app.guard.ts",
+      "source_line": 38,
+      "sink_line": 38,
+      "vulnerability": "Vulnerability Query for CWE-209"
+    },
+    {
+      "file": "/frontend/src/app/faucet/faucet.component.ts",
+      "source_line": 127,
+      "sink_line": 127,
+      "vulnerability": "Vulnerability Query for CWE-209"
+    },
+    {
+      "file": "/frontend/src/app/faucet/faucet.component.ts",
+      "source_line": 145,
+      "sink_line": 145,
+      "vulnerability": "Vulnerability Query for CWE-209"
+    },
+    {
+      "file": "/frontend/src/app/faucet/faucet.component.ts",
+      "source_line": 203,
+      "sink_line": 203,
+      "vulnerability": "Vulnerability Query for CWE-209"
+    },
+    {
+      "file": "/frontend/src/app/faucet/faucet.component.ts",
+      "source_line": 302,
+      "sink_line": 302,
+      "vulnerability": "Vulnerability Query for CWE-209"
+    },
+    {
+      "file": "/frontend/src/app/last-login-ip/last-login-ip.component.ts",
+      "source_line": 27,
+      "sink_line": 27,
+      "vulnerability": "Vulnerability Query for CWE-209"
+    },
+    {
+      "file": "/frontend/src/app/wallet-web3/wallet-web3.component.ts",
+      "source_line": 168,
+      "sink_line": 168,
+      "vulnerability": "Vulnerability Query for CWE-209"
+    },
+    {
+      "file": "/frontend/src/app/web3-sandbox/web3-sandbox.component.ts",
+      "source_line": 117,
+      "sink_line": 117,
+      "vulnerability": "Vulnerability Query for CWE-209"
+    },
+    {
+      "file": "/frontend/src/app/web3-sandbox/web3-sandbox.component.ts",
+      "source_line": 174,
+      "sink_line": 174,
+      "vulnerability": "Vulnerability Query for CWE-209"
+    },
+    {
+      "file": "/frontend/src/app/web3-sandbox/web3-sandbox.component.ts",
+      "source_line": 247,
+      "sink_line": 247,
+      "vulnerability": "Vulnerability Query for CWE-209"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 26901,
+      "sink_line": 26901,
+      "vulnerability": "Vulnerability Query for CWE-209"
+    },
+    {
+      "file": "/routes/checkKeys.ts",
+      "source_line": 30,
+      "sink_line": 30,
+      "vulnerability": "Vulnerability Query for CWE-209"
+    },
+    {
+      "file": "/routes/checkKeys.ts",
+      "source_line": 39,
+      "sink_line": 39,
+      "vulnerability": "Vulnerability Query for CWE-209"
+    },
+    {
+      "file": "/routes/createProductReviews.ts",
+      "source_line": 32,
+      "sink_line": 32,
+      "vulnerability": "Vulnerability Query for CWE-209"
+    },
+    {
+      "file": "/routes/likeProductReviews.ts",
+      "source_line": 56,
+      "sink_line": 56,
+      "vulnerability": "Vulnerability Query for CWE-209"
+    },
+    {
+      "file": "/routes/nftMint.ts",
+      "source_line": 28,
+      "sink_line": 28,
+      "vulnerability": "Vulnerability Query for CWE-209"
+    },
+    {
+      "file": "/routes/nftMint.ts",
+      "source_line": 45,
+      "sink_line": 45,
+      "vulnerability": "Vulnerability Query for CWE-209"
+    },
+    {
+      "file": "/routes/vulnCodeSnippet.ts",
+      "source_line": 52,
+      "sink_line": 52,
+      "vulnerability": "Vulnerability Query for CWE-209"
+    },
+    {
+      "file": "/routes/vulnCodeSnippet.ts",
+      "source_line": 86,
+      "sink_line": 86,
+      "vulnerability": "Vulnerability Query for CWE-209"
+    },
+    {
+      "file": "/routes/web3Wallet.ts",
+      "source_line": 31,
+      "sink_line": 31,
+      "vulnerability": "Vulnerability Query for CWE-209"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 154,
+      "sink_line": 154,
+      "vulnerability": "Vulnerability Query for CWE-209"
+    },
+    {
+      "file": "/frontend/src/app/address-create/address-create.component.ts",
+      "source_line": 49,
+      "sink_line": 49,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/frontend/src/app/address-create/address-create.component.ts",
+      "source_line": 69,
+      "sink_line": 69,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/frontend/src/app/deluxe-user/deluxe-user.component.ts",
+      "source_line": 69,
+      "sink_line": 69,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/frontend/src/app/error-page/error-page.component.ts",
+      "source_line": 30,
+      "sink_line": 30,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/frontend/src/app/oauth/oauth.component.ts",
+      "source_line": 24,
+      "sink_line": 24,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/frontend/src/app/order-completion/order-completion.component.ts",
+      "source_line": 82,
+      "sink_line": 82,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/frontend/src/app/score-board/components/filter-settings/components/category-filter/category-filter.component.ts",
+      "source_line": 44,
+      "sink_line": 44,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/frontend/src/app/score-board/components/filter-settings/components/category-filter/category-filter.component.ts",
+      "source_line": 57,
+      "sink_line": 57,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/frontend/src/app/search-result/search-result.component.ts",
+      "source_line": 111,
+      "sink_line": 111,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/frontend/src/app/search-result/search-result.component.ts",
+      "source_line": 156,
+      "sink_line": 156,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/frontend/src/app/search-result/search-result.component.ts",
+      "source_line": 176,
+      "sink_line": 176,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 43,
+      "sink_line": 43,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 44,
+      "sink_line": 44,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 57,
+      "sink_line": 57,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 58,
+      "sink_line": 58,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 60,
+      "sink_line": 60,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 108,
+      "sink_line": 108,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 206,
+      "sink_line": 206,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/2fa.ts",
+      "source_line": 37,
+      "sink_line": 37,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/2fa.ts",
+      "source_line": 79,
+      "sink_line": 82,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/2fa.ts",
+      "source_line": 125,
+      "sink_line": 125,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/address.ts",
+      "source_line": 18,
+      "sink_line": 18,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/address.ts",
+      "source_line": 29,
+      "sink_line": 29,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/angular.ts",
+      "source_line": 16,
+      "sink_line": 16,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/b2bOrder.ts",
+      "source_line": 24,
+      "sink_line": 24,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/b2bOrder.ts",
+      "source_line": 36,
+      "sink_line": 36,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/basket.ts",
+      "source_line": 17,
+      "sink_line": 17,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/basketItems.ts",
+      "source_line": 67,
+      "sink_line": 67,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 64,
+      "sink_line": 64,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 66,
+      "sink_line": 66,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 69,
+      "sink_line": 69,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 77,
+      "sink_line": 77,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 78,
+      "sink_line": 78,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 80,
+      "sink_line": 80,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 90,
+      "sink_line": 90,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 96,
+      "sink_line": 96,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 113,
+      "sink_line": 113,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 145,
+      "sink_line": 145,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 149,
+      "sink_line": 149,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 194,
+      "sink_line": 194,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 197,
+      "sink_line": 197,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 240,
+      "sink_line": 240,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/coupon.ts",
+      "source_line": 13,
+      "sink_line": 13,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/coupon.ts",
+      "source_line": 14,
+      "sink_line": 14,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/coupon.ts",
+      "source_line": 20,
+      "sink_line": 20,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/createProductReviews.ts",
+      "source_line": 24,
+      "sink_line": 24,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/createProductReviews.ts",
+      "source_line": 25,
+      "sink_line": 25,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/createProductReviews.ts",
+      "source_line": 26,
+      "sink_line": 26,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/delivery.ts",
+      "source_line": 34,
+      "sink_line": 34,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/fileServer.ts",
+      "source_line": 16,
+      "sink_line": 16,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/fileServer.ts",
+      "source_line": 33,
+      "sink_line": 33,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 33,
+      "sink_line": 33,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 35,
+      "sink_line": 35,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 38,
+      "sink_line": 38,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 87,
+      "sink_line": 87,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 97,
+      "sink_line": 97,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 102,
+      "sink_line": 102,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 118,
+      "sink_line": 118,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 128,
+      "sink_line": 128,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 133,
+      "sink_line": 133,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/keyServer.ts",
+      "source_line": 11,
+      "sink_line": 11,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/likeProductReviews.ts",
+      "source_line": 25,
+      "sink_line": 25,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/likeProductReviews.ts",
+      "source_line": 36,
+      "sink_line": 36,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/likeProductReviews.ts",
+      "source_line": 43,
+      "sink_line": 43,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/likeProductReviews.ts",
+      "source_line": 51,
+      "sink_line": 51,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/logfileServer.ts",
+      "source_line": 11,
+      "sink_line": 11,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/metrics.ts",
+      "source_line": 59,
+      "sink_line": 59,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/order.ts",
+      "source_line": 35,
+      "sink_line": 35,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/order.ts",
+      "source_line": 156,
+      "sink_line": 156,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/order.ts",
+      "source_line": 157,
+      "sink_line": 157,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/order.ts",
+      "source_line": 170,
+      "sink_line": 170,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/orderHistory.ts",
+      "source_line": 36,
+      "sink_line": 36,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/payment.ts",
+      "source_line": 41,
+      "sink_line": 41,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/payment.ts",
+      "source_line": 70,
+      "sink_line": 70,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/profileImageFileUpload.ts",
+      "source_line": 24,
+      "sink_line": 24,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/profileImageFileUpload.ts",
+      "source_line": 43,
+      "sink_line": 43,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/profileImageUrlUpload.ts",
+      "source_line": 29,
+      "sink_line": 29,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/profileImageUrlUpload.ts",
+      "source_line": 31,
+      "sink_line": 31,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/quarantineServer.ts",
+      "source_line": 11,
+      "sink_line": 11,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/recycles.ts",
+      "source_line": 14,
+      "sink_line": 14,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/redirect.ts",
+      "source_line": 19,
+      "sink_line": 19,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/redirect.ts",
+      "source_line": 22,
+      "sink_line": 22,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 37,
+      "sink_line": 37,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/restoreProgress.ts",
+      "source_line": 19,
+      "sink_line": 19,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/restoreProgress.ts",
+      "source_line": 43,
+      "sink_line": 43,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/restoreProgress.ts",
+      "source_line": 64,
+      "sink_line": 64,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/saveLoginIp.ts",
+      "source_line": 31,
+      "sink_line": 31,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/showProductReviews.ts",
+      "source_line": 31,
+      "sink_line": 31,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/trackOrder.ts",
+      "source_line": 15,
+      "sink_line": 15,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/updateUserProfile.ts",
+      "source_line": 40,
+      "sink_line": 40,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 111,
+      "sink_line": 111,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 117,
+      "sink_line": 117,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 128,
+      "sink_line": 128,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/vulnCodeFixes.ts",
+      "source_line": 57,
+      "sink_line": 57,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/vulnCodeFixes.ts",
+      "source_line": 80,
+      "sink_line": 80,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/vulnCodeFixes.ts",
+      "source_line": 81,
+      "sink_line": 81,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/vulnCodeSnippet.ts",
+      "source_line": 44,
+      "sink_line": 44,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/vulnCodeSnippet.ts",
+      "source_line": 46,
+      "sink_line": 46,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/vulnCodeSnippet.ts",
+      "source_line": 81,
+      "sink_line": 81,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/vulnCodeSnippet.ts",
+      "source_line": 94,
+      "sink_line": 94,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/vulnCodeSnippet.ts",
+      "source_line": 95,
+      "sink_line": 95,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/wallet.ts",
+      "source_line": 27,
+      "sink_line": 27,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 259,
+      "sink_line": 259,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 315,
+      "sink_line": 315,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 32,
+      "sink_line": 32,
+      "vulnerability": "Vulnerability Query for CWE-22"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 45,
+      "sink_line": 45,
+      "vulnerability": "Vulnerability Query for CWE-22"
+    },
+    {
+      "file": "/routes/dataErasure.ts",
+      "source_line": 69,
+      "sink_line": 69,
+      "vulnerability": "Vulnerability Query for CWE-23"
+    },
+    {
+      "file": "/routes/changePassword.ts",
+      "source_line": 51,
+      "sink_line": 51,
+      "vulnerability": "Vulnerability Query for CWE-256"
+    },
+    {
+      "file": "/frontend/src/app/track-result/track-result.component.ts",
+      "source_line": 47,
+      "sink_line": 47,
+      "vulnerability": "Vulnerability Query for CWE-284"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 56,
+      "sink_line": 56,
+      "vulnerability": "Vulnerability Query for CWE-287"
+    },
+    {
+      "file": "/routes/2fa.ts",
+      "source_line": 26,
+      "sink_line": 26,
+      "vulnerability": "Vulnerability Query for CWE-287"
+    },
+    {
+      "file": "/routes/2fa.ts",
+      "source_line": 121,
+      "sink_line": 121,
+      "vulnerability": "Vulnerability Query for CWE-287"
+    },
+    {
+      "file": "/routes/currentUser.ts",
+      "source_line": 15,
+      "sink_line": 15,
+      "vulnerability": "Vulnerability Query for CWE-287"
+    },
+    {
+      "file": "/routes/deluxe.ts",
+      "source_line": 45,
+      "sink_line": 45,
+      "vulnerability": "Vulnerability Query for CWE-287"
+    },
+    {
+      "file": "/frontend/src/app/Services/user.service.ts",
+      "source_line": 54,
+      "sink_line": 55,
+      "vulnerability": "Vulnerability Query for CWE-312"
+    },
+    {
+      "file": "/frontend/src/hacking-instructor/index.ts",
+      "source_line": 192,
+      "sink_line": 192,
+      "vulnerability": "Vulnerability Query for CWE-312"
+    },
+    {
+      "file": "/lib/antiCheat.ts",
+      "source_line": 77,
+      "sink_line": 77,
+      "vulnerability": "Vulnerability Query for CWE-312"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 6342,
+      "sink_line": 6342,
+      "vulnerability": "Vulnerability Query for CWE-338"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 7529,
+      "sink_line": 7529,
+      "vulnerability": "Vulnerability Query for CWE-338"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 9158,
+      "sink_line": 9158,
+      "vulnerability": "Vulnerability Query for CWE-338"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 9968,
+      "sink_line": 9968,
+      "vulnerability": "Vulnerability Query for CWE-338"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 14282,
+      "sink_line": 14282,
+      "vulnerability": "Vulnerability Query for CWE-338"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 15343,
+      "sink_line": 15343,
+      "vulnerability": "Vulnerability Query for CWE-338"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 55,
+      "sink_line": 55,
+      "vulnerability": "Vulnerability Query for CWE-338"
+    },
+    {
+      "file": "/frontend/src/app/about/about.component.ts",
+      "source_line": 123,
+      "sink_line": 123,
+      "vulnerability": "Vulnerability Query for CWE-346"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 63,
+      "sink_line": 63,
+      "vulnerability": "Vulnerability Query for CWE-400"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 64,
+      "sink_line": 64,
+      "vulnerability": "Vulnerability Query for CWE-400"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 65,
+      "sink_line": 65,
+      "vulnerability": "Vulnerability Query for CWE-400"
+    },
+    {
+      "file": "/routes/address.ts",
+      "source_line": 11,
+      "sink_line": 11,
+      "vulnerability": "Vulnerability Query for CWE-401"
+    },
+    {
+      "file": "/routes/basketItems.ts",
+      "source_line": 85,
+      "sink_line": 85,
+      "vulnerability": "Vulnerability Query for CWE-401"
+    },
+    {
+      "file": "/routes/captcha.ts",
+      "source_line": 37,
+      "sink_line": 37,
+      "vulnerability": "Vulnerability Query for CWE-401"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 141,
+      "sink_line": 141,
+      "vulnerability": "Vulnerability Query for CWE-401"
+    },
+    {
+      "file": "/routes/dataExport.ts",
+      "source_line": 53,
+      "sink_line": 53,
+      "vulnerability": "Vulnerability Query for CWE-401"
+    },
+    {
+      "file": "/routes/deluxe.ts",
+      "source_line": 25,
+      "sink_line": 25,
+      "vulnerability": "Vulnerability Query for CWE-401"
+    },
+    {
+      "file": "/routes/deluxe.ts",
+      "source_line": 30,
+      "sink_line": 30,
+      "vulnerability": "Vulnerability Query for CWE-401"
+    },
+    {
+      "file": "/routes/deluxe.ts",
+      "source_line": 35,
+      "sink_line": 35,
+      "vulnerability": "Vulnerability Query for CWE-401"
+    },
+    {
+      "file": "/routes/memory.ts",
+      "source_line": 15,
+      "sink_line": 15,
+      "vulnerability": "Vulnerability Query for CWE-401"
+    },
+    {
+      "file": "/routes/order.ts",
+      "source_line": 49,
+      "sink_line": 49,
+      "vulnerability": "Vulnerability Query for CWE-401"
+    },
+    {
+      "file": "/routes/order.ts",
+      "source_line": 140,
+      "sink_line": 140,
+      "vulnerability": "Vulnerability Query for CWE-401"
+    },
+    {
+      "file": "/routes/order.ts",
+      "source_line": 142,
+      "sink_line": 142,
+      "vulnerability": "Vulnerability Query for CWE-401"
+    },
+    {
+      "file": "/routes/order.ts",
+      "source_line": 149,
+      "sink_line": 149,
+      "vulnerability": "Vulnerability Query for CWE-401"
+    },
+    {
+      "file": "/routes/payment.ts",
+      "source_line": 21,
+      "sink_line": 21,
+      "vulnerability": "Vulnerability Query for CWE-401"
+    },
+    {
+      "file": "/routes/trackOrder.ts",
+      "source_line": 22,
+      "sink_line": 22,
+      "vulnerability": "Vulnerability Query for CWE-401"
+    },
+    {
+      "file": "/routes/updateUserProfile.ts",
+      "source_line": 36,
+      "sink_line": 36,
+      "vulnerability": "Vulnerability Query for CWE-401"
+    },
+    {
+      "file": "/routes/wallet.ts",
+      "source_line": 12,
+      "sink_line": 12,
+      "vulnerability": "Vulnerability Query for CWE-401"
+    },
+    {
+      "file": "/routes/wallet.ts",
+      "source_line": 24,
+      "sink_line": 24,
+      "vulnerability": "Vulnerability Query for CWE-401"
+    },
+    {
+      "file": "/routes/wallet.ts",
+      "source_line": 26,
+      "sink_line": 26,
+      "vulnerability": "Vulnerability Query for CWE-401"
+    },
+    {
+      "file": "/data/static/codefixes/adminSectionChallenge_1_correct.ts",
+      "source_line": 179,
+      "sink_line": 179,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/data/static/codefixes/adminSectionChallenge_2.ts",
+      "source_line": 176,
+      "sink_line": 176,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/data/static/codefixes/adminSectionChallenge_3.ts",
+      "source_line": 176,
+      "sink_line": 176,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/data/static/codefixes/adminSectionChallenge_4.ts",
+      "source_line": 176,
+      "sink_line": 176,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/data/static/codefixes/scoreBoardChallenge_1_correct.ts",
+      "source_line": 176,
+      "sink_line": 176,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/data/static/codefixes/scoreBoardChallenge_2.ts",
+      "source_line": 176,
+      "sink_line": 176,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/data/static/codefixes/scoreBoardChallenge_3.ts",
+      "source_line": 172,
+      "sink_line": 172,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/data/static/codefixes/web3SandboxChallenge_1_correct.ts",
+      "source_line": 172,
+      "sink_line": 172,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/data/static/codefixes/web3SandboxChallenge_2.ts",
+      "source_line": 177,
+      "sink_line": 177,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/data/static/codefixes/web3SandboxChallenge_3.ts",
+      "source_line": 177,
+      "sink_line": 177,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/frontend/src/app/app.routing.ts",
+      "source_line": 236,
+      "sink_line": 236,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/frontend/src/app/navbar/navbar.component.ts",
+      "source_line": 245,
+      "sink_line": 245,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/frontend/src/app/navbar/navbar.component.ts",
+      "source_line": 249,
+      "sink_line": 249,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/frontend/src/app/oauth/oauth.component.ts",
+      "source_line": 58,
+      "sink_line": 58,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/frontend/src/app/oauth/oauth.component.ts",
+      "source_line": 59,
+      "sink_line": 59,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/frontend/src/app/oauth/oauth.component.ts",
+      "source_line": 62,
+      "sink_line": 62,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/frontend/src/app/score-board/components/filter-settings/components/category-filter/category-filter.component.ts",
+      "source_line": 40,
+      "sink_line": 40,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/frontend/src/app/score-board/filter-settings/query-params-converters.ts",
+      "source_line": 11,
+      "sink_line": 12,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/frontend/src/app/score-board/filter-settings/query-params-converters.ts",
+      "source_line": 17,
+      "sink_line": 17,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/frontend/src/app/score-board/filter-settings/query-params-converters.ts",
+      "source_line": 23,
+      "sink_line": 23,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/frontend/src/app/sidenav/sidenav.component.ts",
+      "source_line": 95,
+      "sink_line": 95,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/frontend/src/app/sidenav/sidenav.component.ts",
+      "source_line": 99,
+      "sink_line": 99,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 57,
+      "sink_line": 57,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 64,
+      "sink_line": 64,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 65,
+      "sink_line": 65,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 132,
+      "sink_line": 132,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/routes/changePassword.ts",
+      "source_line": 27,
+      "sink_line": 27,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/routes/dataExport.ts",
+      "source_line": 17,
+      "sink_line": 17,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 68,
+      "sink_line": 68,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/routes/order.ts",
+      "source_line": 184,
+      "sink_line": 184,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/routes/orderHistory.ts",
+      "source_line": 13,
+      "sink_line": 13,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/routes/profileImageUrlUpload.ts",
+      "source_line": 20,
+      "sink_line": 20,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/routes/profileImageUrlUpload.ts",
+      "source_line": 28,
+      "sink_line": 28,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/routes/search.ts",
+      "source_line": 22,
+      "sink_line": 22,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 72,
+      "sink_line": 72,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 133,
+      "sink_line": 133,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/routes/videoHandler.ts",
+      "source_line": 26,
+      "sink_line": 26,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/routes/vulnCodeSnippet.ts",
+      "source_line": 71,
+      "sink_line": 71,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 202,
+      "sink_line": 202,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 244,
+      "sink_line": 244,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 245,
+      "sink_line": 245,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 246,
+      "sink_line": 256,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 253,
+      "sink_line": 253,
+      "vulnerability": "Vulnerability Query for CWE-405"
+    },
+    {
+      "file": "/frontend/src/app/Services/address.service.ts",
+      "source_line": 24,
+      "sink_line": 24,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/Services/address.service.ts",
+      "source_line": 33,
+      "sink_line": 33,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/Services/local-backup.service.ts",
+      "source_line": 72,
+      "sink_line": 72,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/Services/socket-io.service.ts",
+      "source_line": 19,
+      "sink_line": 19,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/Services/socket-io.service.ts",
+      "source_line": 20,
+      "sink_line": 20,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/Services/track-order.service.ts",
+      "source_line": 20,
+      "sink_line": 20,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/Services/track-order.service.ts",
+      "source_line": 21,
+      "sink_line": 21,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/Services/user.service.ts",
+      "source_line": 66,
+      "sink_line": 66,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/address-create/address-create.component.ts",
+      "source_line": 48,
+      "sink_line": 48,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/app.routing.ts",
+      "source_line": 260,
+      "sink_line": 260,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/app.routing.ts",
+      "source_line": 261,
+      "sink_line": 261,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/deluxe-user/deluxe-user.component.html",
+      "source_line": 13,
+      "sink_line": 13,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/deluxe-user/deluxe-user.component.html",
+      "source_line": 14,
+      "sink_line": 14,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/deluxe-user/deluxe-user.component.html",
+      "source_line": 15,
+      "sink_line": 15,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/deluxe-user/deluxe-user.component.html",
+      "source_line": 16,
+      "sink_line": 16,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/deluxe-user/deluxe-user.component.html",
+      "source_line": 17,
+      "sink_line": 17,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/deluxe-user/deluxe-user.component.ts",
+      "source_line": 53,
+      "sink_line": 53,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/deluxe-user/deluxe-user.component.ts",
+      "source_line": 64,
+      "sink_line": 64,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/deluxe-user/deluxe-user.component.ts",
+      "source_line": 67,
+      "sink_line": 67,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/error-page/error-page.component.ts",
+      "source_line": 28,
+      "sink_line": 28,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/error-page/error-page.component.ts",
+      "source_line": 29,
+      "sink_line": 29,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/navbar/navbar.component.ts",
+      "source_line": 231,
+      "sink_line": 231,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/oauth/oauth.component.ts",
+      "source_line": 61,
+      "sink_line": 61,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/oauth/oauth.component.ts",
+      "source_line": 63,
+      "sink_line": 63,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/oauth/oauth.component.ts",
+      "source_line": 66,
+      "sink_line": 66,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/order-completion/order-completion.component.ts",
+      "source_line": 45,
+      "sink_line": 45,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/order-completion/order-completion.component.ts",
+      "source_line": 46,
+      "sink_line": 46,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/order-completion/order-completion.component.ts",
+      "source_line": 81,
+      "sink_line": 81,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/payment/payment.component.html",
+      "source_line": 10,
+      "sink_line": 10,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/payment/payment.component.html",
+      "source_line": 31,
+      "sink_line": 31,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/payment/payment.component.html",
+      "source_line": 65,
+      "sink_line": 65,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/payment/payment.component.html",
+      "source_line": 144,
+      "sink_line": 144,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/payment/payment.component.html",
+      "source_line": 145,
+      "sink_line": 145,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/payment/payment.component.ts",
+      "source_line": 115,
+      "sink_line": 115,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/payment/payment.component.ts",
+      "source_line": 116,
+      "sink_line": 116,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/payment/payment.component.ts",
+      "source_line": 118,
+      "sink_line": 118,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/payment/payment.component.ts",
+      "source_line": 189,
+      "sink_line": 189,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/payment/payment.component.ts",
+      "source_line": 198,
+      "sink_line": 198,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/privacy-policy/privacy-policy.component.ts",
+      "source_line": 27,
+      "sink_line": 27,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/privacy-policy/privacy-policy.component.ts",
+      "source_line": 35,
+      "sink_line": 35,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/components/filter-settings/components/category-filter/category-filter.component.ts",
+      "source_line": 42,
+      "sink_line": 42,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/components/filter-settings/components/category-filter/category-filter.component.ts",
+      "source_line": 48,
+      "sink_line": 48,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/components/filter-settings/components/category-filter/category-filter.component.ts",
+      "source_line": 52,
+      "sink_line": 52,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/components/filter-settings/filter-settings.component.html",
+      "source_line": 6,
+      "sink_line": 6,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/components/filter-settings/filter-settings.component.html",
+      "source_line": 43,
+      "sink_line": 43,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/components/filter-settings/filter-settings.component.html",
+      "source_line": 52,
+      "sink_line": 52,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/components/filter-settings/filter-settings.component.html",
+      "source_line": 75,
+      "sink_line": 75,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/components/filter-settings/filter-settings.component.ts",
+      "source_line": 77,
+      "sink_line": 77,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/components/filter-settings/filter-settings.component.ts",
+      "source_line": 78,
+      "sink_line": 78,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/components/filter-settings/filter-settings.component.ts",
+      "source_line": 79,
+      "sink_line": 79,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/components/filter-settings/filter-settings.component.ts",
+      "source_line": 80,
+      "sink_line": 80,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/filter-settings/query-params-converters.ts",
+      "source_line": 5,
+      "sink_line": 5,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/filter-settings/query-params-converters.ts",
+      "source_line": 7,
+      "sink_line": 7,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/filter-settings/query-params-converters.ts",
+      "source_line": 8,
+      "sink_line": 8,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/filter-settings/query-params-converters.ts",
+      "source_line": 10,
+      "sink_line": 10,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/filter-settings/query-params-converters.ts",
+      "source_line": 11,
+      "sink_line": 13,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/filter-settings/query-params-converters.ts",
+      "source_line": 11,
+      "sink_line": 11,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/filter-settings/query-params-converters.ts",
+      "source_line": 13,
+      "sink_line": 13,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/filter-settings/query-params-converters.ts",
+      "source_line": 16,
+      "sink_line": 16,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/filter-settings/query-params-converters.ts",
+      "source_line": 19,
+      "sink_line": 19,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/filter-settings/query-params-converters.ts",
+      "source_line": 20,
+      "sink_line": 20,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/filter-settings/query-params-converters.ts",
+      "source_line": 22,
+      "sink_line": 22,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/filter-settings/query-params-converters.ts",
+      "source_line": 25,
+      "sink_line": 25,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/filter-settings/query-params-converters.ts",
+      "source_line": 26,
+      "sink_line": 26,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/score-board.component.ts",
+      "source_line": 92,
+      "sink_line": 92,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/score-board.component.ts",
+      "source_line": 93,
+      "sink_line": 93,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/search-result/search-result.component.ts",
+      "source_line": 109,
+      "sink_line": 109,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/search-result/search-result.component.ts",
+      "source_line": 110,
+      "sink_line": 110,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/search-result/search-result.component.ts",
+      "source_line": 152,
+      "sink_line": 152,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/search-result/search-result.component.ts",
+      "source_line": 153,
+      "sink_line": 153,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/search-result/search-result.component.ts",
+      "source_line": 154,
+      "sink_line": 154,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/search-result/search-result.component.ts",
+      "source_line": 158,
+      "sink_line": 158,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/search-result/search-result.component.ts",
+      "source_line": 175,
+      "sink_line": 175,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/search-result/search-result.component.ts",
+      "source_line": 178,
+      "sink_line": 178,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/track-result/track-result.component.ts",
+      "source_line": 44,
+      "sink_line": 44,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/track-result/track-result.component.ts",
+      "source_line": 45,
+      "sink_line": 45,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/hacking-instructor/helpers/helpers.ts",
+      "source_line": 151,
+      "sink_line": 151,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/hacking-instructor/helpers/helpers.ts",
+      "source_line": 255,
+      "sink_line": 255,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/hacking-instructor/index.ts",
+      "source_line": 186,
+      "sink_line": 186,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/hacking-instructor/index.ts",
+      "source_line": 187,
+      "sink_line": 187,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/antiCheat.ts",
+      "source_line": 46,
+      "sink_line": 46,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/challengeUtils.ts",
+      "source_line": 22,
+      "sink_line": 22,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/challengeUtils.ts",
+      "source_line": 66,
+      "sink_line": 66,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/challengeUtils.ts",
+      "source_line": 77,
+      "sink_line": 77,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/challengeUtils.ts",
+      "source_line": 79,
+      "sink_line": 79,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/challengeUtils.ts",
+      "source_line": 95,
+      "sink_line": 95,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/challengeUtils.ts",
+      "source_line": 96,
+      "sink_line": 96,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/challengeUtils.ts",
+      "source_line": 97,
+      "sink_line": 97,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/challengeUtils.ts",
+      "source_line": 103,
+      "sink_line": 103,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/challengeUtils.ts",
+      "source_line": 107,
+      "sink_line": 107,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/challengeUtils.ts",
+      "source_line": 108,
+      "sink_line": 108,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/challengeUtils.ts",
+      "source_line": 109,
+      "sink_line": 109,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/challengeUtils.ts",
+      "source_line": 115,
+      "sink_line": 115,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 46,
+      "sink_line": 46,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 48,
+      "sink_line": 48,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 51,
+      "sink_line": 51,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 75,
+      "sink_line": 75,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 79,
+      "sink_line": 79,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 80,
+      "sink_line": 80,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 86,
+      "sink_line": 86,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 87,
+      "sink_line": 87,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 90,
+      "sink_line": 90,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 91,
+      "sink_line": 91,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 104,
+      "sink_line": 104,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 105,
+      "sink_line": 105,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 135,
+      "sink_line": 135,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 158,
+      "sink_line": 158,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 168,
+      "sink_line": 168,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 173,
+      "sink_line": 173,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 180,
+      "sink_line": 180,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 189,
+      "sink_line": 189,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 190,
+      "sink_line": 190,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 191,
+      "sink_line": 191,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 193,
+      "sink_line": 193,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 194,
+      "sink_line": 194,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 28,
+      "sink_line": 28,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 33,
+      "sink_line": 33,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 41,
+      "sink_line": 41,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 43,
+      "sink_line": 43,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 45,
+      "sink_line": 45,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 47,
+      "sink_line": 47,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 48,
+      "sink_line": 48,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 51,
+      "sink_line": 51,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 52,
+      "sink_line": 52,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 55,
+      "sink_line": 55,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 56,
+      "sink_line": 56,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 59,
+      "sink_line": 59,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 63,
+      "sink_line": 63,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 131,
+      "sink_line": 131,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 133,
+      "sink_line": 133,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 134,
+      "sink_line": 134,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 135,
+      "sink_line": 135,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 137,
+      "sink_line": 137,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 138,
+      "sink_line": 138,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 197,
+      "sink_line": 197,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/2fa.ts",
+      "source_line": 23,
+      "sink_line": 23,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/2fa.ts",
+      "source_line": 111,
+      "sink_line": 111,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/2fa.ts",
+      "source_line": 113,
+      "sink_line": 113,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/2fa.ts",
+      "source_line": 156,
+      "sink_line": 156,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/2fa.ts",
+      "source_line": 158,
+      "sink_line": 158,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/angular.ts",
+      "source_line": 13,
+      "sink_line": 13,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/b2bOrder.ts",
+      "source_line": 19,
+      "sink_line": 19,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/b2bOrder.ts",
+      "source_line": 21,
+      "sink_line": 21,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/basket.ts",
+      "source_line": 18,
+      "sink_line": 18,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/basket.ts",
+      "source_line": 23,
+      "sink_line": 23,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/basketItems.ts",
+      "source_line": 21,
+      "sink_line": 21,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/basketItems.ts",
+      "source_line": 59,
+      "sink_line": 59,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/basketItems.ts",
+      "source_line": 69,
+      "sink_line": 69,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/basketItems.ts",
+      "source_line": 70,
+      "sink_line": 70,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/basketItems.ts",
+      "source_line": 74,
+      "sink_line": 74,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/basketItems.ts",
+      "source_line": 84,
+      "sink_line": 84,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/basketItems.ts",
+      "source_line": 91,
+      "sink_line": 91,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/basketItems.ts",
+      "source_line": 92,
+      "sink_line": 92,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/captcha.ts",
+      "source_line": 38,
+      "sink_line": 38,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/changePassword.ts",
+      "source_line": 14,
+      "sink_line": 14,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/changePassword.ts",
+      "source_line": 15,
+      "sink_line": 15,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/changePassword.ts",
+      "source_line": 16,
+      "sink_line": 16,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/changePassword.ts",
+      "source_line": 17,
+      "sink_line": 17,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/changePassword.ts",
+      "source_line": 19,
+      "sink_line": 19,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/changePassword.ts",
+      "source_line": 22,
+      "sink_line": 22,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/changePassword.ts",
+      "source_line": 28,
+      "sink_line": 28,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/changePassword.ts",
+      "source_line": 33,
+      "sink_line": 33,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/changePassword.ts",
+      "source_line": 39,
+      "sink_line": 39,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/changePassword.ts",
+      "source_line": 54,
+      "sink_line": 54,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 50,
+      "sink_line": 50,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 55,
+      "sink_line": 55,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 56,
+      "sink_line": 56,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 87,
+      "sink_line": 87,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 101,
+      "sink_line": 101,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 128,
+      "sink_line": 128,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 133,
+      "sink_line": 133,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 166,
+      "sink_line": 166,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 167,
+      "sink_line": 167,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 175,
+      "sink_line": 175,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 176,
+      "sink_line": 176,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 183,
+      "sink_line": 183,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 185,
+      "sink_line": 185,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 213,
+      "sink_line": 213,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 214,
+      "sink_line": 214,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 221,
+      "sink_line": 221,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 222,
+      "sink_line": 222,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 229,
+      "sink_line": 229,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 230,
+      "sink_line": 230,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 231,
+      "sink_line": 231,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 232,
+      "sink_line": 232,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 237,
+      "sink_line": 237,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 238,
+      "sink_line": 246,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 239,
+      "sink_line": 239,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 243,
+      "sink_line": 243,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/checkKeys.ts",
+      "source_line": 16,
+      "sink_line": 16,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/checkKeys.ts",
+      "source_line": 18,
+      "sink_line": 18,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/checkKeys.ts",
+      "source_line": 21,
+      "sink_line": 21,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/checkKeys.ts",
+      "source_line": 23,
+      "sink_line": 23,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/coupon.ts",
+      "source_line": 15,
+      "sink_line": 15,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/coupon.ts",
+      "source_line": 16,
+      "sink_line": 16,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/coupon.ts",
+      "source_line": 18,
+      "sink_line": 18,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/coupon.ts",
+      "source_line": 24,
+      "sink_line": 24,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/createProductReviews.ts",
+      "source_line": 19,
+      "sink_line": 19,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/currentUser.ts",
+      "source_line": 16,
+      "sink_line": 16,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/currentUser.ts",
+      "source_line": 22,
+      "sink_line": 22,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/dataErasure.ts",
+      "source_line": 19,
+      "sink_line": 19,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/dataErasure.ts",
+      "source_line": 55,
+      "sink_line": 55,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/dataErasure.ts",
+      "source_line": 68,
+      "sink_line": 68,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/dataErasure.ts",
+      "source_line": 70,
+      "sink_line": 70,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/dataExport.ts",
+      "source_line": 56,
+      "sink_line": 56,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/deluxe.ts",
+      "source_line": 19,
+      "sink_line": 19,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/deluxe.ts",
+      "source_line": 24,
+      "sink_line": 24,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/deluxe.ts",
+      "source_line": 34,
+      "sink_line": 34,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/errorHandler.ts",
+      "source_line": 20,
+      "sink_line": 20,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileServer.ts",
+      "source_line": 18,
+      "sink_line": 18,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileServer.ts",
+      "source_line": 19,
+      "sink_line": 19,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileServer.ts",
+      "source_line": 26,
+      "sink_line": 26,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileServer.ts",
+      "source_line": 27,
+      "sink_line": 27,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileServer.ts",
+      "source_line": 28,
+      "sink_line": 28,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileServer.ts",
+      "source_line": 30,
+      "sink_line": 30,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileServer.ts",
+      "source_line": 31,
+      "sink_line": 31,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileServer.ts",
+      "source_line": 40,
+      "sink_line": 40,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileServer.ts",
+      "source_line": 41,
+      "sink_line": 41,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileServer.ts",
+      "source_line": 42,
+      "sink_line": 42,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileServer.ts",
+      "source_line": 43,
+      "sink_line": 43,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileServer.ts",
+      "source_line": 44,
+      "sink_line": 44,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileServer.ts",
+      "source_line": 48,
+      "sink_line": 48,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileServer.ts",
+      "source_line": 52,
+      "sink_line": 52,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileServer.ts",
+      "source_line": 53,
+      "sink_line": 53,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 20,
+      "sink_line": 20,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 28,
+      "sink_line": 28,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 29,
+      "sink_line": 29,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 30,
+      "sink_line": 30,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 31,
+      "sink_line": 31,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 61,
+      "sink_line": 61,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 62,
+      "sink_line": 62,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 70,
+      "sink_line": 70,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 76,
+      "sink_line": 76,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 78,
+      "sink_line": 78,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 79,
+      "sink_line": 79,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 81,
+      "sink_line": 81,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 109,
+      "sink_line": 109,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 111,
+      "sink_line": 111,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 112,
+      "sink_line": 112,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 114,
+      "sink_line": 114,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/imageCaptcha.ts",
+      "source_line": 50,
+      "sink_line": 50,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/keyServer.ts",
+      "source_line": 13,
+      "sink_line": 13,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/likeProductReviews.ts",
+      "source_line": 18,
+      "sink_line": 18,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/logfileServer.ts",
+      "source_line": 13,
+      "sink_line": 13,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/login.ts",
+      "source_line": 21,
+      "sink_line": 21,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/login.ts",
+      "source_line": 26,
+      "sink_line": 26,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/login.ts",
+      "source_line": 35,
+      "sink_line": 35,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/login.ts",
+      "source_line": 36,
+      "sink_line": 36,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/login.ts",
+      "source_line": 37,
+      "sink_line": 37,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/login.ts",
+      "source_line": 42,
+      "sink_line": 42,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/login.ts",
+      "source_line": 47,
+      "sink_line": 47,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/login.ts",
+      "source_line": 60,
+      "sink_line": 60,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/login.ts",
+      "source_line": 61,
+      "sink_line": 61,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/login.ts",
+      "source_line": 62,
+      "sink_line": 62,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/login.ts",
+      "source_line": 63,
+      "sink_line": 63,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/login.ts",
+      "source_line": 64,
+      "sink_line": 64,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/login.ts",
+      "source_line": 65,
+      "sink_line": 65,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/login.ts",
+      "source_line": 66,
+      "sink_line": 66,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/login.ts",
+      "source_line": 70,
+      "sink_line": 70,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/login.ts",
+      "source_line": 71,
+      "sink_line": 71,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/login.ts",
+      "source_line": 72,
+      "sink_line": 72,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/login.ts",
+      "source_line": 73,
+      "sink_line": 73,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/login.ts",
+      "source_line": 74,
+      "sink_line": 74,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/memory.ts",
+      "source_line": 13,
+      "sink_line": 13,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/memory.ts",
+      "source_line": 14,
+      "sink_line": 14,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/metrics.ts",
+      "source_line": 58,
+      "sink_line": 58,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/metrics.ts",
+      "source_line": 69,
+      "sink_line": 69,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/metrics.ts",
+      "source_line": 70,
+      "sink_line": 70,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/nftMint.ts",
+      "source_line": 36,
+      "sink_line": 36,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/nftMint.ts",
+      "source_line": 37,
+      "sink_line": 37,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/order.ts",
+      "source_line": 36,
+      "sink_line": 36,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/order.ts",
+      "source_line": 116,
+      "sink_line": 116,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/order.ts",
+      "source_line": 117,
+      "sink_line": 117,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/order.ts",
+      "source_line": 138,
+      "sink_line": 138,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/order.ts",
+      "source_line": 139,
+      "sink_line": 139,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/order.ts",
+      "source_line": 183,
+      "sink_line": 183,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/order.ts",
+      "source_line": 185,
+      "sink_line": 185,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/order.ts",
+      "source_line": 186,
+      "sink_line": 186,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/order.ts",
+      "source_line": 187,
+      "sink_line": 187,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/orderHistory.ts",
+      "source_line": 34,
+      "sink_line": 34,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/profileImageFileUpload.ts",
+      "source_line": 17,
+      "sink_line": 17,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/profileImageFileUpload.ts",
+      "source_line": 18,
+      "sink_line": 18,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/profileImageFileUpload.ts",
+      "source_line": 19,
+      "sink_line": 19,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/profileImageFileUpload.ts",
+      "source_line": 35,
+      "sink_line": 35,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/profileImageUrlUpload.ts",
+      "source_line": 18,
+      "sink_line": 18,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/profileImageUrlUpload.ts",
+      "source_line": 19,
+      "sink_line": 19,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/profileImageUrlUpload.ts",
+      "source_line": 21,
+      "sink_line": 21,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/profileImageUrlUpload.ts",
+      "source_line": 35,
+      "sink_line": 35,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/quarantineServer.ts",
+      "source_line": 13,
+      "sink_line": 13,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/redirect.ts",
+      "source_line": 15,
+      "sink_line": 15,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/redirect.ts",
+      "source_line": 16,
+      "sink_line": 16,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/redirect.ts",
+      "source_line": 17,
+      "sink_line": 17,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/redirect.ts",
+      "source_line": 18,
+      "sink_line": 18,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/redirect.ts",
+      "source_line": 27,
+      "sink_line": 27,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/redirect.ts",
+      "source_line": 30,
+      "sink_line": 30,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/repeatNotification.ts",
+      "source_line": 11,
+      "sink_line": 11,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/repeatNotification.ts",
+      "source_line": 12,
+      "sink_line": 12,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 18,
+      "sink_line": 18,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 19,
+      "sink_line": 19,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 20,
+      "sink_line": 20,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 21,
+      "sink_line": 21,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 22,
+      "sink_line": 22,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 24,
+      "sink_line": 24,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 26,
+      "sink_line": 26,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 32,
+      "sink_line": 32,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 35,
+      "sink_line": 35,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 38,
+      "sink_line": 38,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 56,
+      "sink_line": 56,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 57,
+      "sink_line": 57,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 58,
+      "sink_line": 58,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 59,
+      "sink_line": 59,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 60,
+      "sink_line": 60,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 61,
+      "sink_line": 61,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 62,
+      "sink_line": 62,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 72,
+      "sink_line": 72,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 83,
+      "sink_line": 83,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/restoreProgress.ts",
+      "source_line": 20,
+      "sink_line": 20,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/restoreProgress.ts",
+      "source_line": 44,
+      "sink_line": 44,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/restoreProgress.ts",
+      "source_line": 65,
+      "sink_line": 65,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/saveLoginIp.ts",
+      "source_line": 18,
+      "sink_line": 18,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/saveLoginIp.ts",
+      "source_line": 19,
+      "sink_line": 19,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/saveLoginIp.ts",
+      "source_line": 20,
+      "sink_line": 20,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/saveLoginIp.ts",
+      "source_line": 23,
+      "sink_line": 23,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/saveLoginIp.ts",
+      "source_line": 25,
+      "sink_line": 25,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/saveLoginIp.ts",
+      "source_line": 27,
+      "sink_line": 27,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/search.ts",
+      "source_line": 21,
+      "sink_line": 21,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/search.ts",
+      "source_line": 24,
+      "sink_line": 24,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/search.ts",
+      "source_line": 25,
+      "sink_line": 25,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/search.ts",
+      "source_line": 32,
+      "sink_line": 32,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/search.ts",
+      "source_line": 52,
+      "sink_line": 52,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/search.ts",
+      "source_line": 64,
+      "sink_line": 64,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/search.ts",
+      "source_line": 65,
+      "sink_line": 65,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/search.ts",
+      "source_line": 66,
+      "sink_line": 66,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/search.ts",
+      "source_line": 68,
+      "sink_line": 68,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/securityQuestion.ts",
+      "source_line": 13,
+      "sink_line": 13,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/securityQuestion.ts",
+      "source_line": 17,
+      "sink_line": 17,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/trackOrder.ts",
+      "source_line": 17,
+      "sink_line": 17,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/updateProductReviews.ts",
+      "source_line": 19,
+      "sink_line": 19,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/updateUserProfile.ts",
+      "source_line": 16,
+      "sink_line": 16,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/updateUserProfile.ts",
+      "source_line": 31,
+      "sink_line": 31,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/updateUserProfile.ts",
+      "source_line": 32,
+      "sink_line": 32,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/updateUserProfile.ts",
+      "source_line": 33,
+      "sink_line": 33,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/userProfile.ts",
+      "source_line": 35,
+      "sink_line": 35,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 23,
+      "sink_line": 23,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 32,
+      "sink_line": 32,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 52,
+      "sink_line": 52,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 58,
+      "sink_line": 58,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 63,
+      "sink_line": 63,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 64,
+      "sink_line": 64,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 65,
+      "sink_line": 65,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 66,
+      "sink_line": 66,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 67,
+      "sink_line": 67,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 68,
+      "sink_line": 68,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 69,
+      "sink_line": 69,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 70,
+      "sink_line": 70,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 71,
+      "sink_line": 71,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 92,
+      "sink_line": 92,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 109,
+      "sink_line": 109,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 110,
+      "sink_line": 110,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 113,
+      "sink_line": 113,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 120,
+      "sink_line": 120,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 127,
+      "sink_line": 127,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 129,
+      "sink_line": 129,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 132,
+      "sink_line": 132,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/videoHandler.ts",
+      "source_line": 24,
+      "sink_line": 24,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/videoHandler.ts",
+      "source_line": 25,
+      "sink_line": 25,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/videoHandler.ts",
+      "source_line": 27,
+      "sink_line": 27,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/videoHandler.ts",
+      "source_line": 28,
+      "sink_line": 28,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeFixes.ts",
+      "source_line": 20,
+      "sink_line": 20,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeFixes.ts",
+      "source_line": 21,
+      "sink_line": 21,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeFixes.ts",
+      "source_line": 22,
+      "sink_line": 22,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeFixes.ts",
+      "source_line": 28,
+      "sink_line": 28,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeFixes.ts",
+      "source_line": 44,
+      "sink_line": 44,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeFixes.ts",
+      "source_line": 58,
+      "sink_line": 58,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeFixes.ts",
+      "source_line": 71,
+      "sink_line": 71,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeFixes.ts",
+      "source_line": 72,
+      "sink_line": 72,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeFixes.ts",
+      "source_line": 73,
+      "sink_line": 73,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeFixes.ts",
+      "source_line": 82,
+      "sink_line": 82,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeFixes.ts",
+      "source_line": 85,
+      "sink_line": 85,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeFixes.ts",
+      "source_line": 86,
+      "sink_line": 86,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeFixes.ts",
+      "source_line": 92,
+      "sink_line": 92,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeSnippet.ts",
+      "source_line": 34,
+      "sink_line": 34,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeSnippet.ts",
+      "source_line": 36,
+      "sink_line": 36,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeSnippet.ts",
+      "source_line": 66,
+      "sink_line": 66,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeSnippet.ts",
+      "source_line": 67,
+      "sink_line": 67,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeSnippet.ts",
+      "source_line": 68,
+      "sink_line": 68,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeSnippet.ts",
+      "source_line": 69,
+      "sink_line": 69,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeSnippet.ts",
+      "source_line": 72,
+      "sink_line": 72,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeSnippet.ts",
+      "source_line": 76,
+      "sink_line": 76,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeSnippet.ts",
+      "source_line": 79,
+      "sink_line": 79,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeSnippet.ts",
+      "source_line": 91,
+      "sink_line": 91,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeSnippet.ts",
+      "source_line": 92,
+      "sink_line": 92,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeSnippet.ts",
+      "source_line": 97,
+      "sink_line": 97,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeSnippet.ts",
+      "source_line": 104,
+      "sink_line": 104,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeSnippet.ts",
+      "source_line": 110,
+      "sink_line": 110,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeSnippet.ts",
+      "source_line": 115,
+      "sink_line": 115,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/wallet.ts",
+      "source_line": 23,
+      "sink_line": 23,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/web3Wallet.ts",
+      "source_line": 15,
+      "sink_line": 15,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/web3Wallet.ts",
+      "source_line": 16,
+      "sink_line": 16,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 243,
+      "sink_line": 243,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 246,
+      "sink_line": 246,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 247,
+      "sink_line": 247,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 248,
+      "sink_line": 248,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 249,
+      "sink_line": 249,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 250,
+      "sink_line": 250,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 251,
+      "sink_line": 251,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 255,
+      "sink_line": 255,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 309,
+      "sink_line": 309,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 310,
+      "sink_line": 310,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 311,
+      "sink_line": 311,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 314,
+      "sink_line": 314,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 395,
+      "sink_line": 395,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 396,
+      "sink_line": 396,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 397,
+      "sink_line": 397,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 398,
+      "sink_line": 398,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 399,
+      "sink_line": 399,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/address-create/address-create.component.ts",
+      "source_line": 37,
+      "sink_line": 37,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/deluxe-user/deluxe-user.component.ts",
+      "source_line": 28,
+      "sink_line": 28,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/order-completion/order-completion.component.ts",
+      "source_line": 34,
+      "sink_line": 34,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/payment/payment.component.ts",
+      "source_line": 65,
+      "sink_line": 65,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/score-board/components/filter-settings/components/category-filter/category-filter.component.ts",
+      "source_line": 21,
+      "sink_line": 21,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/track-result/track-result.component.ts",
+      "source_line": 37,
+      "sink_line": 37,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/antiCheat.ts",
+      "source_line": 43,
+      "sink_line": 43,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/angular.ts",
+      "source_line": 12,
+      "sink_line": 12,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/b2bOrder.ts",
+      "source_line": 17,
+      "sink_line": 17,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileServer.ts",
+      "source_line": 15,
+      "sink_line": 15,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 19,
+      "sink_line": 19,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 27,
+      "sink_line": 27,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 60,
+      "sink_line": 60,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 67,
+      "sink_line": 67,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 75,
+      "sink_line": 75,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 108,
+      "sink_line": 108,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/metrics.ts",
+      "source_line": 56,
+      "sink_line": 56,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/quarantineServer.ts",
+      "source_line": 10,
+      "sink_line": 10,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 17,
+      "sink_line": 17,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 62,
+      "sink_line": 62,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/oauth/oauth.component.ts",
+      "source_line": 57,
+      "sink_line": 67,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 46,
+      "sink_line": 52,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 55,
+      "sink_line": 61,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 63,
+      "sink_line": 66,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 130,
+      "sink_line": 143,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/chatbot.ts",
+      "source_line": 237,
+      "sink_line": 247,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 119,
+      "sink_line": 121,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/verify.ts",
+      "source_line": 132,
+      "sink_line": 134,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 242,
+      "sink_line": 260,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/dataErasure.ts",
+      "source_line": 72,
+      "sink_line": 82,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 33,
+      "sink_line": 52,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 35,
+      "sink_line": 51,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 58,
+      "sink_line": 58,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/saveLoginIp.ts",
+      "source_line": 22,
+      "sink_line": 22,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/deluxe-user/deluxe-user.component.ts",
+      "source_line": 68,
+      "sink_line": 70,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/search-result/search-result.component.ts",
+      "source_line": 155,
+      "sink_line": 157,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/search-result/search-result.component.ts",
+      "source_line": 177,
+      "sink_line": 179,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/lib/antiCheat.ts",
+      "source_line": 44,
+      "sink_line": 50,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/basket.ts",
+      "source_line": 19,
+      "sink_line": 32,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/basket.ts",
+      "source_line": 21,
+      "sink_line": 24,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileServer.ts",
+      "source_line": 46,
+      "sink_line": 49,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 37,
+      "sink_line": 50,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileUpload.ts",
+      "source_line": 69,
+      "sink_line": 71,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/metrics.ts",
+      "source_line": 57,
+      "sink_line": 61,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/order.ts",
+      "source_line": 47,
+      "sink_line": 51,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/order.ts",
+      "source_line": 37,
+      "sink_line": 172,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 37,
+      "sink_line": 40,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 34,
+      "sink_line": 49,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 36,
+      "sink_line": 43,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 63,
+      "sink_line": 73,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/resetPassword.ts",
+      "source_line": 74,
+      "sink_line": 84,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/saveLoginIp.ts",
+      "source_line": 30,
+      "sink_line": 36,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/search.ts",
+      "source_line": 47,
+      "sink_line": 62,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/search.ts",
+      "source_line": 28,
+      "sink_line": 41,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/trackOrder.ts",
+      "source_line": 18,
+      "sink_line": 25,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/saveLoginIp.ts",
+      "source_line": 22,
+      "sink_line": 26,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/saveLoginIp.ts",
+      "source_line": 27,
+      "sink_line": 29,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/saveLoginIp.ts",
+      "source_line": 30,
+      "sink_line": 38,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/deluxe-user/deluxe-user.component.ts",
+      "source_line": 67,
+      "sink_line": 71,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/changePassword.ts",
+      "source_line": 44,
+      "sink_line": 59,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/fileServer.ts",
+      "source_line": 27,
+      "sink_line": 34,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/search.ts",
+      "source_line": 45,
+      "sink_line": 63,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/routes/vulnCodeFixes.ts",
+      "source_line": 85,
+      "sink_line": 97,
+      "vulnerability": "Vulnerability Query for CWE-522"
+    },
+    {
+      "file": "/frontend/src/app/Services/address.service.ts",
+      "source_line": 30,
+      "sink_line": 30,
+      "vulnerability": "Vulnerability Query for CWE-749"
+    },
+    {
+      "file": "/frontend/src/app/Services/basket.service.ts",
+      "source_line": 29,
+      "sink_line": 29,
+      "vulnerability": "Vulnerability Query for CWE-749"
+    },
+    {
+      "file": "/frontend/src/app/Services/basket.service.ts",
+      "source_line": 33,
+      "sink_line": 33,
+      "vulnerability": "Vulnerability Query for CWE-749"
+    },
+    {
+      "file": "/frontend/src/app/Services/basket.service.ts",
+      "source_line": 37,
+      "sink_line": 37,
+      "vulnerability": "Vulnerability Query for CWE-749"
+    },
+    {
+      "file": "/frontend/src/app/Services/challenge.service.ts",
+      "source_line": 22,
+      "sink_line": 22,
+      "vulnerability": "Vulnerability Query for CWE-749"
+    },
+    {
+      "file": "/frontend/src/app/Services/code-snippet.service.ts",
+      "source_line": 35,
+      "sink_line": 35,
+      "vulnerability": "Vulnerability Query for CWE-749"
+    },
+    {
+      "file": "/frontend/src/app/Services/configuration.service.ts",
+      "source_line": 111,
+      "sink_line": 111,
+      "vulnerability": "Vulnerability Query for CWE-749"
+    },
+    {
+      "file": "/frontend/src/app/Services/delivery.service.ts",
+      "source_line": 37,
+      "sink_line": 37,
+      "vulnerability": "Vulnerability Query for CWE-749"
+    },
+    {
+      "file": "/frontend/src/app/Services/user.service.ts",
+      "source_line": 75,
+      "sink_line": 75,
+      "vulnerability": "Vulnerability Query for CWE-749"
+    },
+    {
+      "file": "/frontend/src/app/score-board/components/difficulty-overview-score-card/difficulty-overview-score-card.component.ts",
+      "source_line": 77,
+      "sink_line": 77,
+      "vulnerability": "Vulnerability Query for CWE-749"
+    },
+    {
+      "file": "/frontend/src/app/score-board/components/difficulty-overview-score-card/difficulty-overview-score-card.component.ts",
+      "source_line": 79,
+      "sink_line": 79,
+      "vulnerability": "Vulnerability Query for CWE-749"
+    },
+    {
+      "file": "/frontend/src/app/score-board/components/difficulty-overview-score-card/difficulty-overview-score-card.component.ts",
+      "source_line": 80,
+      "sink_line": 80,
+      "vulnerability": "Vulnerability Query for CWE-749"
+    },
+    {
+      "file": "/lib/antiCheat.ts",
+      "source_line": 128,
+      "sink_line": 128,
+      "vulnerability": "Vulnerability Query for CWE-749"
+    },
+    {
+      "file": "/frontend/src/app/Services/administration.service.ts",
+      "source_line": 21,
+      "sink_line": 21,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/basket.service.ts",
+      "source_line": 49,
+      "sink_line": 49,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/basket.service.ts",
+      "source_line": 53,
+      "sink_line": 53,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/challenge.service.ts",
+      "source_line": 26,
+      "sink_line": 26,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/challenge.service.ts",
+      "source_line": 30,
+      "sink_line": 30,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/challenge.service.ts",
+      "source_line": 34,
+      "sink_line": 34,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/challenge.service.ts",
+      "source_line": 38,
+      "sink_line": 38,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/challenge.service.ts",
+      "source_line": 42,
+      "sink_line": 42,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/challenge.service.ts",
+      "source_line": 46,
+      "sink_line": 46,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/challenge.service.ts",
+      "source_line": 50,
+      "sink_line": 50,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/chatbot.service.ts",
+      "source_line": 21,
+      "sink_line": 21,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/chatbot.service.ts",
+      "source_line": 25,
+      "sink_line": 25,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/country-mapping.service.ts",
+      "source_line": 19,
+      "sink_line": 19,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/data-subject.service.ts",
+      "source_line": 22,
+      "sink_line": 22,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/data-subject.service.ts",
+      "source_line": 27,
+      "sink_line": 27,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/image-captcha.service.ts",
+      "source_line": 20,
+      "sink_line": 20,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/keys.service.ts",
+      "source_line": 16,
+      "sink_line": 16,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/keys.service.ts",
+      "source_line": 25,
+      "sink_line": 25,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/keys.service.ts",
+      "source_line": 34,
+      "sink_line": 34,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/keys.service.ts",
+      "source_line": 45,
+      "sink_line": 45,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/keys.service.ts",
+      "source_line": 56,
+      "sink_line": 56,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/keys.service.ts",
+      "source_line": 67,
+      "sink_line": 67,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/languages.service.ts",
+      "source_line": 19,
+      "sink_line": 19,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/order-history.service.ts",
+      "source_line": 25,
+      "sink_line": 25,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/order-history.service.ts",
+      "source_line": 29,
+      "sink_line": 29,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/payment.service.ts",
+      "source_line": 26,
+      "sink_line": 26,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/product-review.service.ts",
+      "source_line": 21,
+      "sink_line": 21,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/product-review.service.ts",
+      "source_line": 29,
+      "sink_line": 29,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/product-review.service.ts",
+      "source_line": 35,
+      "sink_line": 35,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/product-review.service.ts",
+      "source_line": 39,
+      "sink_line": 39,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/product.service.ts",
+      "source_line": 21,
+      "sink_line": 21,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/two-factor-auth-service.ts",
+      "source_line": 36,
+      "sink_line": 36,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/two-factor-auth-service.ts",
+      "source_line": 43,
+      "sink_line": 43,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/two-factor-auth-service.ts",
+      "source_line": 48,
+      "sink_line": 48,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/two-factor-auth-service.ts",
+      "source_line": 56,
+      "sink_line": 56,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/user.service.ts",
+      "source_line": 71,
+      "sink_line": 71,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/app/Services/user.service.ts",
+      "source_line": 79,
+      "sink_line": 79,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/lib/insecurity.ts",
+      "source_line": 152,
+      "sink_line": 152,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/lib/startup/customizeApplication.ts",
+      "source_line": 46,
+      "sink_line": 46,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/lib/startup/customizeApplication.ts",
+      "source_line": 51,
+      "sink_line": 51,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/lib/utils.ts",
+      "source_line": 124,
+      "sink_line": 124,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/routes/order.ts",
+      "source_line": 45,
+      "sink_line": 45,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/routes/search.ts",
+      "source_line": 47,
+      "sink_line": 47,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/routes/userProfile.ts",
+      "source_line": 86,
+      "sink_line": 86,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/routes/videoHandler.ts",
+      "source_line": 69,
+      "sink_line": 69,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/rsn/rsnUtil.ts",
+      "source_line": 22,
+      "sink_line": 22,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/server.ts",
+      "source_line": 286,
+      "sink_line": 286,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 1634,
+      "sink_line": 1634,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 1635,
+      "sink_line": 1635,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 1636,
+      "sink_line": 1636,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 1661,
+      "sink_line": 1661,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 1662,
+      "sink_line": 1662,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 1663,
+      "sink_line": 1663,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 1768,
+      "sink_line": 1768,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 1769,
+      "sink_line": 1769,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 1770,
+      "sink_line": 1770,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 2090,
+      "sink_line": 2090,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 2091,
+      "sink_line": 2091,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 2092,
+      "sink_line": 2092,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 2103,
+      "sink_line": 2103,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 2104,
+      "sink_line": 2104,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 2105,
+      "sink_line": 2105,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 4370,
+      "sink_line": 4370,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 4371,
+      "sink_line": 4371,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 4372,
+      "sink_line": 4372,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 4655,
+      "sink_line": 4655,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 4656,
+      "sink_line": 4656,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 4657,
+      "sink_line": 4657,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 7823,
+      "sink_line": 7823,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 7854,
+      "sink_line": 7854,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 9879,
+      "sink_line": 9879,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 9888,
+      "sink_line": 9888,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 9889,
+      "sink_line": 9889,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 10668,
+      "sink_line": 10668,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 11902,
+      "sink_line": 11902,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 12527,
+      "sink_line": 12527,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 12551,
+      "sink_line": 12554,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 12560,
+      "sink_line": 12560,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 12601,
+      "sink_line": 12601,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 12667,
+      "sink_line": 12667,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13024,
+      "sink_line": 13024,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13192,
+      "sink_line": 13192,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13285,
+      "sink_line": 13285,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13291,
+      "sink_line": 13291,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13297,
+      "sink_line": 13297,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13313,
+      "sink_line": 13313,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13343,
+      "sink_line": 13343,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13344,
+      "sink_line": 13344,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13345,
+      "sink_line": 13345,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13383,
+      "sink_line": 13383,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13398,
+      "sink_line": 13398,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13399,
+      "sink_line": 13399,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13406,
+      "sink_line": 13406,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13428,
+      "sink_line": 13428,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13456,
+      "sink_line": 13456,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13470,
+      "sink_line": 13470,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13486,
+      "sink_line": 13486,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13825,
+      "sink_line": 13825,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13831,
+      "sink_line": 13831,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13837,
+      "sink_line": 13837,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13843,
+      "sink_line": 13843,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13849,
+      "sink_line": 13849,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13855,
+      "sink_line": 13855,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13866,
+      "sink_line": 13866,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13882,
+      "sink_line": 13882,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13934,
+      "sink_line": 13934,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13945,
+      "sink_line": 13945,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13978,
+      "sink_line": 13978,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13981,
+      "sink_line": 13981,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13983,
+      "sink_line": 13983,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13989,
+      "sink_line": 13989,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 13990,
+      "sink_line": 13990,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 14009,
+      "sink_line": 14009,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 14010,
+      "sink_line": 14010,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 14033,
+      "sink_line": 14033,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 14037,
+      "sink_line": 14037,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 14043,
+      "sink_line": 14043,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 14047,
+      "sink_line": 14047,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 14051,
+      "sink_line": 14051,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 14057,
+      "sink_line": 14057,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 14061,
+      "sink_line": 14061,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 14067,
+      "sink_line": 14067,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 14073,
+      "sink_line": 14073,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 14080,
+      "sink_line": 14080,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 14171,
+      "sink_line": 14171,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 14195,
+      "sink_line": 14195,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 19324,
+      "sink_line": 19324,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 19353,
+      "sink_line": 19353,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 19357,
+      "sink_line": 19357,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 19361,
+      "sink_line": 19361,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21270,
+      "sink_line": 21270,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21271,
+      "sink_line": 21271,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21272,
+      "sink_line": 21272,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21273,
+      "sink_line": 21273,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21274,
+      "sink_line": 21274,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21275,
+      "sink_line": 21275,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21277,
+      "sink_line": 21277,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21278,
+      "sink_line": 21278,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21280,
+      "sink_line": 21280,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21281,
+      "sink_line": 21281,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21595,
+      "sink_line": 21595,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21597,
+      "sink_line": 21597,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21599,
+      "sink_line": 21599,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21600,
+      "sink_line": 21600,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21660,
+      "sink_line": 21660,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21664,
+      "sink_line": 21664,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21670,
+      "sink_line": 21670,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21676,
+      "sink_line": 21676,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21684,
+      "sink_line": 21684,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21690,
+      "sink_line": 21690,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21698,
+      "sink_line": 21698,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21699,
+      "sink_line": 21699,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21705,
+      "sink_line": 21705,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21706,
+      "sink_line": 21706,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21707,
+      "sink_line": 21707,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21735,
+      "sink_line": 21735,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21736,
+      "sink_line": 21736,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21760,
+      "sink_line": 21760,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21775,
+      "sink_line": 21775,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21777,
+      "sink_line": 21777,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21779,
+      "sink_line": 21779,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21780,
+      "sink_line": 21780,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21783,
+      "sink_line": 21783,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 21873,
+      "sink_line": 21873,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22894,
+      "sink_line": 22894,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22895,
+      "sink_line": 22895,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22896,
+      "sink_line": 22896,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22908,
+      "sink_line": 22908,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22909,
+      "sink_line": 22909,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22910,
+      "sink_line": 22910,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22930,
+      "sink_line": 22930,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22931,
+      "sink_line": 22931,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22933,
+      "sink_line": 22933,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22934,
+      "sink_line": 22934,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22936,
+      "sink_line": 22936,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22937,
+      "sink_line": 22937,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22953,
+      "sink_line": 22953,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22954,
+      "sink_line": 22954,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22956,
+      "sink_line": 22956,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22957,
+      "sink_line": 22957,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22959,
+      "sink_line": 22959,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22960,
+      "sink_line": 22960,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22992,
+      "sink_line": 22992,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22993,
+      "sink_line": 22993,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22994,
+      "sink_line": 22994,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22996,
+      "sink_line": 22996,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22997,
+      "sink_line": 22997,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 22998,
+      "sink_line": 22998,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23000,
+      "sink_line": 23000,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23001,
+      "sink_line": 23001,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23002,
+      "sink_line": 23002,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23018,
+      "sink_line": 23018,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23019,
+      "sink_line": 23019,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23020,
+      "sink_line": 23020,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23022,
+      "sink_line": 23022,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23023,
+      "sink_line": 23023,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23024,
+      "sink_line": 23024,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23026,
+      "sink_line": 23026,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23027,
+      "sink_line": 23027,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23028,
+      "sink_line": 23028,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23044,
+      "sink_line": 23044,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23045,
+      "sink_line": 23045,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23046,
+      "sink_line": 23046,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23048,
+      "sink_line": 23048,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23049,
+      "sink_line": 23049,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23050,
+      "sink_line": 23050,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23052,
+      "sink_line": 23052,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23053,
+      "sink_line": 23053,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23054,
+      "sink_line": 23054,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23074,
+      "sink_line": 23074,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23075,
+      "sink_line": 23075,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23076,
+      "sink_line": 23076,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23077,
+      "sink_line": 23077,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23079,
+      "sink_line": 23079,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23080,
+      "sink_line": 23080,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23081,
+      "sink_line": 23081,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23082,
+      "sink_line": 23082,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23084,
+      "sink_line": 23084,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23085,
+      "sink_line": 23085,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23086,
+      "sink_line": 23086,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23087,
+      "sink_line": 23087,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23103,
+      "sink_line": 23103,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23104,
+      "sink_line": 23104,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23105,
+      "sink_line": 23105,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23106,
+      "sink_line": 23106,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23108,
+      "sink_line": 23108,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23109,
+      "sink_line": 23109,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23110,
+      "sink_line": 23110,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23111,
+      "sink_line": 23111,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23113,
+      "sink_line": 23113,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23114,
+      "sink_line": 23114,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23115,
+      "sink_line": 23115,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23116,
+      "sink_line": 23116,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23132,
+      "sink_line": 23132,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23133,
+      "sink_line": 23133,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23134,
+      "sink_line": 23134,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23135,
+      "sink_line": 23135,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23137,
+      "sink_line": 23137,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23138,
+      "sink_line": 23138,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23139,
+      "sink_line": 23139,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23140,
+      "sink_line": 23140,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23142,
+      "sink_line": 23142,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23143,
+      "sink_line": 23143,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23144,
+      "sink_line": 23144,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 23145,
+      "sink_line": 23145,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 27483,
+      "sink_line": 27483,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 27912,
+      "sink_line": 27912,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 28021,
+      "sink_line": 28021,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 28068,
+      "sink_line": 28068,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 34445,
+      "sink_line": 34445,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 34468,
+      "sink_line": 34468,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 34724,
+      "sink_line": 34724,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 34725,
+      "sink_line": 34725,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 34756,
+      "sink_line": 34756,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    },
+    {
+      "file": "/frontend/src/assets/private/three.js",
+      "source_line": 34758,
+      "sink_line": 34758,
+      "vulnerability": "Vulnerability Query for CWE-915"
+    }
+  ],
+  "false_negatives": [
+    {
+      "file": "./server.ts",
+      "line": 364,
+      "challenges": [
+        "changeProductChallenge"
+      ]
+    },
+    {
+      "file": "./server.ts",
+      "line": 269,
+      "challenges": [
+        "directoryListingChallenge",
+        "accessLogDisclosureChallenge"
+      ]
+    },
+    {
+      "file": "./server.ts",
+      "line": 270,
+      "challenges": [
+        "directoryListingChallenge",
+        "accessLogDisclosureChallenge"
+      ]
+    },
+    {
+      "file": "./server.ts",
+      "line": 281,
+      "challenges": [
+        "directoryListingChallenge",
+        "accessLogDisclosureChallenge"
+      ]
+    },
+    {
+      "file": "./server.ts",
+      "line": 283,
+      "challenges": [
+        "directoryListingChallenge",
+        "accessLogDisclosureChallenge"
+      ]
+    },
+    {
+      "file": "./server.ts",
+      "line": 341,
+      "challenges": [
+        "resetPasswordMortyChallenge"
+      ]
+    },
+    {
+      "file": "./server.ts",
+      "line": 504,
+      "challenges": [
+        "registerAdminChallenge"
+      ]
+    },
+    {
+      "file": "./server.ts",
+      "line": 713,
+      "challenges": [
+        "exposedMetricsChallenge"
+      ]
+    },
+    {
+      "file": "./lib/insecurity.ts",
+      "line": 126,
+      "challenges": [
+        "redirectChallenge",
+        "redirectCryptoCurrencyChallenge"
+      ]
+    },
+    {
+      "file": "./lib/insecurity.ts",
+      "line": 127,
+      "challenges": [
+        "redirectChallenge",
+        "redirectCryptoCurrencyChallenge"
+      ]
+    },
+    {
+      "file": "./lib/insecurity.ts",
+      "line": 128,
+      "challenges": [
+        "redirectChallenge",
+        "redirectCryptoCurrencyChallenge"
+      ]
+    },
+    {
+      "file": "./routes/updateProductReviews.ts",
+      "line": 16,
+      "challenges": [
+        "forgedReviewChallenge",
+        "noSqlReviewsChallenge"
+      ]
+    },
+    {
+      "file": "./routes/updateProductReviews.ts",
+      "line": 20,
+      "challenges": [
+        "forgedReviewChallenge",
+        "noSqlReviewsChallenge"
+      ]
+    },
+    {
+      "file": "./frontend/src/app/search-result/search-result.component.ts",
+      "line": 145,
+      "challenges": [
+        "restfulXssChallenge"
+      ]
+    },
+    {
+      "file": "./frontend/src/app/search-result/search-result.component.ts",
+      "line": 171,
+      "challenges": [
+        "localXssChallenge",
+        "xssBonusChallenge"
+      ]
+    },
+    {
+      "file": "./models/user.ts",
+      "line": 77,
+      "challenges": [
+        "weakPasswordChallenge"
+      ]
+    },
+    {
+      "file": "./frontend/src/app/app.routing.ts",
+      "line": 63,
+      "challenges": [
+        "web3SandboxChallenge",
+        "scoreBoardChallenge",
+        "adminSectionChallenge"
+      ]
+    },
+    {
+      "file": "./frontend/src/app/app.routing.ts",
+      "line": 174,
+      "challenges": [
+        "web3SandboxChallenge",
+        "scoreBoardChallenge",
+        "adminSectionChallenge"
+      ]
+    },
+    {
+      "file": "./frontend/src/app/app.routing.ts",
+      "line": 227,
+      "challenges": [
+        "web3SandboxChallenge",
+        "scoreBoardChallenge",
+        "adminSectionChallenge"
+      ]
+    },
+    {
+      "file": "./frontend/src/app/app.routing.ts",
+      "line": 241,
+      "challenges": [
+        "web3SandboxChallenge",
+        "tokenSaleChallenge",
+        "scoreBoardChallenge",
+        "adminSectionChallenge"
+      ]
+    }
+  ]
+}
