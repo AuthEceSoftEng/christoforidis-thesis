@@ -8,6 +8,7 @@ from collections import defaultdict
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+from utils.general import extract_call_graph, format_call_graph_for_cwe
 from utils.create_db import create_codeql_database
 from utils.query_runner import run_codeql_query_tables, run_codeql_path_problem
 from utils.methods_post_process import deduplicate_methods, methods_to_json, compare_with_advisories, classify_vulnerable_methods
@@ -340,12 +341,23 @@ def main():
             #cwes_filtered = [cwe for cwe in cwes if cwe >= 330] # temp: only check CWEs >= x if something goes wrong during evaluation
             logger.info(f"CWEs to check for {project_name}: {cwes}")
 
+            # Extract call graph ONCE for this project
+            logger.info(f"Extracting call graph for {project_name}")
+            call_graph_df = extract_call_graph(database_path, project_name, include_frontend=True)
+
+            if call_graph_df is None:
+                logger.warning(f"Failed to extract call graph for {project_name}, proceeding without it")
+
             # refine vulnerability query for each CWE; on failure skip only the current CWE
             failed_cwes = []
             for cwe_id in cwes:
             #for cwe_id in cwes_filtered: # temp: only when filtering CWEs
                 try:
-                    refine_vulnerability_query(cwe_id, project_name, general=False, extra_folder=None, track_query_fn=track_codeql_refinement_query)
+                    formatted_call_graph = None
+                    if call_graph_df is not None:
+                        formatted_call_graph = format_call_graph_for_cwe(call_graph_df, cwe_id, project_name)
+                    refine_vulnerability_query(cwe_id, project_name, general=False, extra_folder=None, 
+                                   call_graph=formatted_call_graph, track_query_fn=track_codeql_refinement_query)
                 except Exception as e:
                     logger.warning("Failed to refine query for CWE %s in %s: %s. Skipping this CWE.", cwe_id, project_name, str(e))
                     failed_cwes.append((cwe_id, str(e)))
@@ -368,11 +380,11 @@ def main():
             # Run final queries for this project (moved here from the separate loop)
             logger.info(f"Running final queries for {project_name}")
             if os.path.exists(project_specific_dir):
-                queries = [f for f in os.listdir(project_specific_dir) if f.endswith('final_claude4compats.ql')]
+                queries = [f for f in os.listdir(project_specific_dir) if f.endswith('final_claude4callgraphs.ql')]
 
                 for query in queries:
                     query_path = os.path.join(project_specific_dir, query)
-                    output_path = os.path.join(project_root, "output", "dvna_evaluation1", project_name, query)
+                    output_path = os.path.join(project_root, "output", "dvna_callgraphs1", project_name, query)
                     os.makedirs(os.path.dirname(output_path), exist_ok=True)
                     success, error, query_time = run_codeql_path_problem(database_path, query_path, output_path)
                     track_codeql_query(project_name, query_time)
@@ -381,7 +393,7 @@ def main():
                 if len(prob_queries) > 0:
                     for query in prob_queries:
                         query_path = os.path.join(os.path.dirname(__file__), '..', query)
-                        output_path = os.path.join(project_root, "output", "dvna_evaluation1", project_name, "problems", query.replace('/', '_').replace('.ql', ''))
+                        output_path = os.path.join(project_root, "output", "dvna_callgraphs1", project_name, "problems", query.replace('/', '_').replace('.ql', ''))
                         os.makedirs(os.path.dirname(output_path), exist_ok=True)
                         success, error, query_time = run_codeql_path_problem(database_path, query_path, output_path)
                         track_codeql_query(project_name, query_time)

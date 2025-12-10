@@ -877,7 +877,7 @@ def general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, flow_predica
 
     return query
 
-def refine_sink_vulnerability_query(cwe_id, project_name, general: bool = False, extra_folder: str = None, track_query_fn=None):
+def refine_sink_vulnerability_query(cwe_id, project_name, general: bool = False, extra_folder: str = None, call_graph: str = None, track_query_fn=None):
     sinks = get_cwe_specific_sinks(cwe_id, project_name)
     sinks = sinks['classic_categories']
     cwe_details = get_cwe_details(cwe_id)
@@ -918,9 +918,9 @@ def refine_sink_vulnerability_query(cwe_id, project_name, general: bool = False,
                 package_content = file.read()
         except FileNotFoundError:
             package_content = "No package.json found for this project."
-        messages = sink_explaination_prompt(cwe_details, sink_predicate, sinks_extracted, docs, readme_content, package_content)
+        messages = sink_explaination_prompt(cwe_details, sink_predicate, sinks_extracted, docs, readme_content, package_content, call_graph)
     else:
-        messages = sink_explaination_prompt(cwe_details, sink_predicate, sinks_extracted, docs)
+        messages = sink_explaination_prompt(cwe_details, sink_predicate, sinks_extracted, docs, call_graph=call_graph)
     explanation = llm.send_message(messages)
     messages = sink_implementation_prompt(sink_predicate, explanation, docs)
     refined_sink_predicate = llm.send_message(messages)
@@ -967,7 +967,7 @@ def refine_sink_vulnerability_query(cwe_id, project_name, general: bool = False,
             f.write(initial_query)
     return sink_predicate
 
-def refine_flow_vulnerability_query(cwe_id, project_name, general: bool = False, extra_folder: str = None, track_query_fn=None):
+def refine_flow_vulnerability_query(cwe_id, project_name, general: bool = False, extra_folder: str = None, call_graph: str = None, track_query_fn=None):
     sinks = get_cwe_specific_sinks(cwe_id, project_name)
     sinks = sinks['classic_categories']
     cwe_details = get_cwe_details(cwe_id)
@@ -1006,9 +1006,9 @@ def refine_flow_vulnerability_query(cwe_id, project_name, general: bool = False,
                 package_content = file.read()
         except FileNotFoundError:
             package_content = "No package.json found for this project."
-        messages = flow_explaination_prompt(cwe_details, flow_predicate, sink_predicate, sinks_extracted, docs, readme_content, package_content)
+        messages = flow_explaination_prompt(cwe_details, flow_predicate, sink_predicate, sinks_extracted, docs, readme_content, package_content, call_graph)
     else:
-        messages = flow_explaination_prompt(cwe_details, flow_predicate, sink_predicate, sinks_extracted, docs)
+        messages = flow_explaination_prompt(cwe_details, flow_predicate, sink_predicate, sinks_extracted, docs, call_graph=call_graph)
     explanation = llm.send_message(messages)
     messages = flow_implementation_prompt(flow_predicate, explanation, docs)
     refined_flow_predicate = llm.send_message(messages)
@@ -1055,13 +1055,13 @@ def refine_flow_vulnerability_query(cwe_id, project_name, general: bool = False,
             f.write(initial_query)
     return [flow_predicate, sanitizer_predicate]
 
-def refine_vulnerability_query(cwe_id, project_name, general: bool = False, extra_folder: str = None, track_query_fn=None):
-    sink_predicate = refine_sink_vulnerability_query(cwe_id, project_name, general, extra_folder, track_query_fn)
-    flow_predicate, sanitizer_predicate = refine_flow_vulnerability_query(cwe_id, project_name, general, extra_folder, track_query_fn)
+def refine_vulnerability_query(cwe_id, project_name, general: bool = False, extra_folder: str = None, call_graph: str = None, track_query_fn=None):
+    sink_predicate = refine_sink_vulnerability_query(cwe_id, project_name, general, extra_folder, call_graph, track_query_fn)
+    flow_predicate, sanitizer_predicate = refine_flow_vulnerability_query(cwe_id, project_name, general, extra_folder, call_graph, track_query_fn)
     
     query = general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, flow_predicate)
 
-    output_path = os.path.join(os.path.dirname(__file__), "..", "codeql", "project_specific", project_name, f"cwe_{cwe_id}_vulnerability_final_claude4compats.ql")
+    output_path = os.path.join(os.path.dirname(__file__), "..", "codeql", "project_specific", project_name, f"cwe_{cwe_id}_vulnerability_final_claude4callgraphs.ql")
     with open(output_path, 'w') as f:
         f.write(query)
     
