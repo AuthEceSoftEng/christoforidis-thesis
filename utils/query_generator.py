@@ -845,6 +845,8 @@ def general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, flow_predica
     */
     module CWE{cwe_details['id']}Configuration implements DataFlow::ConfigSig {{
     predicate isSource(DataFlow::Node source) {{
+        isSources(source)
+        or
         exists(DataFlow::CallNode call |
             VulnerableMethodsClassificationLib::isVulnerableSource(call) and
             source = call
@@ -853,10 +855,6 @@ def general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, flow_predica
         query += f"""
         or
         DefaultCWE{str(cwe_id)}Compat::defaultIsSource(source)"""
-    else:
-        query += f"""
-        or
-        source instanceof RemoteFlowSource"""
     query += f"""\n
     }}
 
