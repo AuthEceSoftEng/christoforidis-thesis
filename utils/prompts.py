@@ -425,3 +425,28 @@ DO NOT ADD ANY OTHER PREDICATES ONLY THE ONE REQUESTED.
 """
     
     return [{"role": "user", "message": prompt}]
+
+def keywords_filter_prompt(cwe_id, cwe_details):
+    keyword_prompt = [{
+        "role": "user",
+        "message": f"""You are analyzing a call graph to identify security-relevant function calls for a specific vulnerability type.
+
+CWE-{cwe_id}: {cwe_details['name']}
+Description: {cwe_details['description']}
+
+Based on this vulnerability, identify 5-10 keywords that would appear in function/method names that are relevant to detecting this vulnerability.
+
+For example:
+- For SQL Injection: query, execute, find, sql, database, insert, update, delete
+- For Command Injection: exec, spawn, command, shell, child_process
+- For XSS: render, send, html, write, innerHTML
+
+Focus on:
+1. API functions commonly involved in this vulnerability
+2. Method names that handle the vulnerable data type
+3. Operations that could be dangerous if misused
+
+Return ONLY a comma-separated list of keywords, nothing else.
+Example output: query, execute, find, sql, database"""
+    }]
+    return keyword_prompt
