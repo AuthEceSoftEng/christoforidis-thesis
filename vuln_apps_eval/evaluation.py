@@ -3,6 +3,7 @@ import time
 import os
 import sys
 import json
+import shutil  # ADD THIS
 from datetime import datetime
 from collections import defaultdict
 
@@ -10,7 +11,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from utils.general import extract_call_graph, format_call_graph_for_cwe
 from utils.create_db import create_codeql_database
-from utils.query_runner import run_codeql_query_tables, run_codeql_path_problem
+from utils.query_runner import run_codeql_query_tables, run_codeql_path_problem, run_codeql_queries_batch  # ADD run_codeql_queries_batch
 from utils.methods_post_process import deduplicate_methods, methods_to_json, compare_with_advisories, classify_vulnerable_methods
 from utils.query_generator import generate_codeql_package_classification, generate_conditional_sanitizer_library, cleanup_test_queries, refine_vulnerability_query
 from utils.cwe_decider import cwes_to_check
@@ -141,9 +142,8 @@ def append_project_stats(report_file_path, project_name, llm_stats, codeql_stats
         f.write(f"  DB Creation: {codeql_stats['db_creation_time']:.2f}s ({codeql_stats['db_creation_time']/60:.1f} min)\n")
         f.write(f"  Methods Extraction: {codeql_stats['methods_extraction_time']:.2f}s ({codeql_stats['methods_extraction_time']/60:.1f} min)\n")
         f.write(f"  Refinement/Validation Queries: {codeql_stats['refinement_query_time']:.2f}s ({codeql_stats['refinement_query_count']} queries)\n")
-        f.write(f"  Final Analysis Queries: {codeql_stats['total_query_time']:.2f}s ({codeql_stats['query_count']} queries)\n")
+        f.write(f"  Final Analysis Queries: {codeql_stats['total_query_time']:.2f}s ({codeql_stats['query_count']} batch runs)\n")
         f.write(f"  Average Refinement Time: {codeql_stats['average_refinement_time']:.2f}s\n")
-        f.write(f"  Average Analysis Time: {codeql_stats['average_query_time']:.2f}s\n")
         f.write(f"  Total CodeQL Duration: {codeql_stats['total_codeql_time']:.2f}s ({codeql_stats['total_codeql_time']/60:.1f} min)\n")
         f.write(f"  % of Total: {(codeql_stats['total_codeql_time']/total_duration)*100:.1f}%\n")
         
@@ -153,10 +153,11 @@ def append_project_stats(report_file_path, project_name, llm_stats, codeql_stats
 def initialize_report_file(report_file_path, start_time):
     """Initialize the report file with header information"""
     with open(report_file_path, 'w') as f:
-        f.write("LLM USAGE EVALUATION REPORT\n")
+        f.write("LLM USAGE EVALUATION REPORT (BATCH QUERY EXECUTION)\n")
         f.write("=" * 60 + "\n")
         f.write(f"Started: {datetime.fromtimestamp(start_time).strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Report File: {os.path.basename(report_file_path)}\n")
+        f.write("\nQuery Execution: Batch with threading (codeql database analyze --threads)\n")
         f.write("\nThis file tracks progress in real-time. Each project is appended as completed.\n")
         f.write("=" * 60 + "\n")
 
@@ -177,7 +178,7 @@ def finalize_report(report_file_path, total_start_time, final_llm_stats, final_c
         f.write(f"  - DB Creation: {final_codeql_stats['db_creation_time']:.2f}s ({final_codeql_stats['db_creation_time']/60:.1f} min)\n")
         f.write(f"  - Methods Extraction: {final_codeql_stats['methods_extraction_time']:.2f}s ({final_codeql_stats['methods_extraction_time']/60:.1f} min)\n")
         f.write(f"  - Refinement/Validation: {final_codeql_stats['refinement_query_time']:.2f}s ({final_codeql_stats['refinement_query_count']} queries)\n")
-        f.write(f"  - Final Analysis: {final_codeql_stats['total_query_time']:.2f}s ({final_codeql_stats['query_count']} queries)\n")
+        f.write(f"  - Final Analysis (Batch): {final_codeql_stats['total_query_time']:.2f}s\n")
         f.write(f"LLM % of Total: {(final_llm_stats['total_request_time']/total_execution_time)*100:.1f}%\n")
         f.write(f"CodeQL % of Total: {(final_codeql_stats['total_codeql_time']/total_execution_time)*100:.1f}%\n")
         f.write(f"Projects Processed: {len(project_names)}\n\n")
@@ -192,12 +193,11 @@ def finalize_report(report_file_path, total_start_time, final_llm_stats, final_c
         
         f.write("GLOBAL CODEQL STATISTICS\n")
         f.write("-" * 40 + "\n")
-        f.write(f"Total CodeQL Queries: {final_codeql_stats['query_count']}\n")
-        f.write(f"Average Query Time: {final_codeql_stats['average_query_time']:.2f}s\n\n")
+        f.write(f"Total CodeQL Batch Runs: {final_codeql_stats['query_count']}\n\n")
         
         f.write("PROJECT COMPARISON\n")
         f.write("-" * 110 + "\n")
-        f.write(f"{'Project':<20} {'Total(min)':<12} {'LLM(min)':<10} {'LLM%':<8} {'CodeQL(min)':<12} {'CodeQL%':<10} {'DB(min)':<10} {'Queries':<10}\n")
+        f.write(f"{'Project':<20} {'Total(min)':<12} {'LLM(min)':<10} {'LLM%':<8} {'CodeQL(min)':<12} {'CodeQL%':<10} {'DB(min)':<10} {'Batches':<10}\n")
         f.write("-" * 110 + "\n")
         
         for project_name in project_names:
@@ -229,7 +229,6 @@ def finalize_report(report_file_path, total_start_time, final_llm_stats, final_c
             f.write(f"Average LLM per Project: {avg_llm_per_project/60:.1f} min\n")
             f.write(f"Average CodeQL per Project: {avg_codeql_per_project/60:.1f} min\n")
             f.write(f"Average LLM Requests per Project: {final_llm_stats['request_count'] / len(project_names):.1f}\n")
-            f.write(f"Average CodeQL Queries per Project: {final_codeql_stats['query_count'] / len(project_names):.1f}\n")
         
         f.write(f"\n{'='*60}\n")
         f.write("EVALUATION COMPLETED SUCCESSFULLY\n")
@@ -248,7 +247,7 @@ def main():
     os.makedirs(reports_dir, exist_ok=True)
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    report_file_path = os.path.join(reports_dir, f"llm_evaluation_progress_{timestamp}.txt")
+    report_file_path = os.path.join(reports_dir, f"llm_evaluation_batch_{timestamp}.txt")
     
     initialize_report_file(report_file_path, start_time)
     logger.info(f"Progress report initialized: {report_file_path}")
@@ -377,28 +376,52 @@ def main():
                         f.write(f"- {cwe}: {snippet}\n")
                     f.flush()
 
-            # Run final queries for this project (moved here from the separate loop)
-            logger.info(f"Running final queries for {project_name}")
+            # BATCH QUERY EXECUTION
+            logger.info(f"Preparing batch queries for {project_name}")
+            batch_queries_dir = os.path.join(project_specific_dir, "batch_queries")
+            os.makedirs(batch_queries_dir, exist_ok=True)
+            
+            # Copy final queries to batch folder
             if os.path.exists(project_specific_dir):
-                queries = [f for f in os.listdir(project_specific_dir) if f.endswith('final_claude4callgraphs.ql')]
-
-                for query in queries:
-                    query_path = os.path.join(project_specific_dir, query)
-                    output_path = os.path.join(project_root, "output", "dvna_callgraphs1", project_name, query)
-                    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-                    success, error, query_time = run_codeql_path_problem(database_path, query_path, output_path)
-                    track_codeql_query(project_name, query_time)
+                final_queries = [f for f in os.listdir(project_specific_dir) 
+                               if f.endswith('final_claude4callgraphs.ql')]
                 
-                prob_queries = problem_queries(cwes)
-                if len(prob_queries) > 0:
-                    for query in prob_queries:
-                        query_path = os.path.join(os.path.dirname(__file__), '..', query)
-                        output_path = os.path.join(project_root, "output", "dvna_callgraphs1", project_name, "problems", query.replace('/', '_').replace('.ql', ''))
-                        os.makedirs(os.path.dirname(output_path), exist_ok=True)
-                        success, error, query_time = run_codeql_path_problem(database_path, query_path, output_path)
-                        track_codeql_query(project_name, query_time)
+                for query_file in final_queries:
+                    src = os.path.join(project_specific_dir, query_file)
+                    dst = os.path.join(batch_queries_dir, query_file)
+                    shutil.copy(src, dst)
+                
+                # Copy library files
+                for lib_file in ["ConditionalSanitizers.qll", "VulnerableMethodsClassification.qll"]:
+                    src = os.path.join(project_specific_dir, lib_file)
+                    dst = os.path.join(batch_queries_dir, lib_file)
+                    if os.path.exists(src):
+                        shutil.copy(src, dst)
+                
+                # Copy problem queries
+                prob_queries_list = problem_queries(cwes)
+                for prob in prob_queries_list:
+                    src = os.path.join(project_root, prob)
+                    dst = os.path.join(batch_queries_dir, os.path.basename(prob))
+                    if os.path.exists(src):
+                        shutil.copy(src, dst)
+                
+                logger.info(f"Copied {len(final_queries)} final queries and {len(prob_queries_list)} problem queries to batch folder")
+            
+            # Run batch queries with threading
+            logger.info(f"Running batch queries for {project_name}")
+            batch_output_dir = os.path.join(project_root, "output", "dvna_callgraphs1", project_name)
+            os.makedirs(batch_output_dir, exist_ok=True)
+            
+            success, error, batch_time = run_codeql_queries_batch(database_path, batch_queries_dir, batch_output_dir, threads=0)
+            track_codeql_query(project_name, batch_time)
+            
+            if not success:
+                logger.error(f"Batch query execution failed for {project_name}: {error}")
+            else:
+                logger.info(f"Batch query execution completed in {batch_time:.1f}s")
 
-            # NOW the project is truly completed (after all queries including final ones)
+            # NOW the project is truly completed (after batch query execution)
             project_end_time = time.time()
             total_duration = project_end_time - project_start_time
             project_durations[project_name] = total_duration
@@ -413,7 +436,7 @@ def main():
             logger.info(f"  - CodeQL time: {codeql_stats['total_codeql_time']:.1f}s ({codeql_stats['total_codeql_time']/60:.1f} min)")
             logger.info(f"    - DB creation: {codeql_stats['db_creation_time']:.1f}s")
             logger.info(f"    - Methods extraction: {codeql_stats['methods_extraction_time']:.1f}s")
-            logger.info(f"    - Other queries: {codeql_stats['total_query_time']:.1f}s ({codeql_stats['query_count']} queries)")
+            logger.info(f"    - Batch queries: {codeql_stats['total_query_time']:.1f}s ({codeql_stats['query_count']} batch runs)")
             logger.info(f"  - LLM %: {(project_stats['total_request_time']/total_duration)*100:.1f}%")
             logger.info(f"  - CodeQL %: {(codeql_stats['total_codeql_time']/total_duration)*100:.1f}%")
             
@@ -455,7 +478,7 @@ def main():
     
     # Enhanced console summary
     logger.info("="*60)
-    logger.info("EVALUATION COMPLETED")
+    logger.info("EVALUATION COMPLETED (BATCH QUERY EXECUTION)")
     logger.info("="*60)
     logger.info(f"Total execution time: {total_execution_time:.1f}s ({total_execution_time/60:.1f} min, {total_execution_time/3600:.1f} hr)")
     logger.info(f"Total LLM time: {final_llm_stats['total_request_time']:.1f}s ({final_llm_stats['total_request_time']/60:.1f} min)")
@@ -465,7 +488,7 @@ def main():
     logger.info(f"Total CodeQL time: {final_codeql_stats['total_codeql_time']:.1f}s ({final_codeql_stats['total_codeql_time']/60:.1f} min)")
     logger.info(f"  - DB creation: {final_codeql_stats['db_creation_time']:.1f}s ({final_codeql_stats['db_creation_time']/60:.1f} min)")
     logger.info(f"  - Methods extraction: {final_codeql_stats['methods_extraction_time']:.1f}s ({final_codeql_stats['methods_extraction_time']/60:.1f} min)")
-    logger.info(f"  - Other queries: {final_codeql_stats['total_query_time']:.1f}s")
+    logger.info(f"  - Batch queries: {final_codeql_stats['total_query_time']:.1f}s")
     logger.info(f"CodeQL % of total: {(final_codeql_stats['total_codeql_time']/total_execution_time)*100:.1f}%")
     logger.info(f"Avg time per project: {total_execution_time/len(completed_projects)/60:.1f} min" if completed_projects else "N/A")
     logger.info(f"Full report saved to: {report_file_path}")

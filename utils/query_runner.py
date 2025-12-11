@@ -176,3 +176,93 @@ def run_codeql_path_problem(database_path: str, query_path: str, output_path: st
         error_msg = f"An unexpected error occurred running the CodeQL query: {str(e)}"
         logger.error(error_msg)
         return False, error_msg, time.time() - start_time
+    
+def run_codeql_queries_batch(database_path: str, queries_dir: str, output_dir: str, threads: int = 0) -> Tuple[bool, Optional[str], float]:
+    """
+    Run multiple CodeQL queries in parallel using database analyze with threading.
+    
+    Args:
+        database_path: Path to the CodeQL database
+        queries_dir: Directory containing .ql query files
+        output_dir: Directory to save output results
+        threads: Number of threads (0 = all cores, -1 = all except 1)
+    
+    Returns:
+        Tuple of (success_status, error_message or None, execution_time)
+    """
+    start_time = time.time()
+    
+    if not os.path.exists(database_path):
+        return False, f"Database path does not exist: {database_path}", 0.0
+    
+    if not os.path.exists(queries_dir):
+        return False, f"Queries directory does not exist: {queries_dir}", 0.0
+    
+    # Check if there are any queries
+    query_files = [f for f in os.listdir(queries_dir) if f.endswith('.ql')]
+    if not query_files:
+        return False, f"No .ql files found in {queries_dir}", 0.0
+    
+    os.makedirs(output_dir, exist_ok=True)
+    
+    logger.info(f"Running {len(query_files)} queries in parallel with {threads if threads > 0 else 'all'} threads")
+    
+    # Use database analyze for batch execution with threading
+    sarif_output = os.path.join(output_dir, "batch_results.sarif")
+    command = [
+        "codeql", "database", "analyze",
+        f"--threads={threads}",
+        "--rerun",
+        database_path,
+        queries_dir,  # Point to directory of queries
+        "--format=sarif-latest",
+        f"--output={sarif_output}"
+    ]
+    
+    logger.info(f"Executing: {' '.join(command)}")
+    
+    try:
+        result = subprocess.run(
+            command,
+            check=True,
+            text=True,
+            capture_output=True
+        )
+        
+        logger.info(f"Batch query execution completed. SARIF saved to {sarif_output}")
+        
+        # Also generate CSV output (decode SARIF or run again with CSV format)
+        csv_output = os.path.join(output_dir, "batch_results.csv")
+        command_csv = [
+            "codeql", "database", "analyze",
+            f"--threads={threads}",
+            database_path,
+            queries_dir,
+            "--format=csv",
+            f"--output={csv_output}"
+        ]
+        
+        try:
+            csv_result = subprocess.run(
+                command_csv,
+                check=True,
+                text=True,
+                capture_output=True
+            )
+            logger.info(f"CSV results saved to {csv_output}")
+        except Exception as e:
+            logger.warning(f"Could not generate CSV: {e}")
+        
+        end_time = time.time()
+        execution_time = end_time - start_time
+        return True, None, execution_time
+        
+    except subprocess.CalledProcessError as e:
+        error_msg = f"Batch query execution failed: {e.stderr}"
+        logger.error(error_msg)
+        return False, error_msg, time.time() - start_time
+    
+    except Exception as e:
+        error_msg = f"Unexpected error during batch execution: {str(e)}"
+        logger.error(error_msg)
+        return False, error_msg, time.time() - start_time
