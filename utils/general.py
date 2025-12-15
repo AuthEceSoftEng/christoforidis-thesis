@@ -12,6 +12,20 @@ from . prompts import keywords_filter_prompt
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+def extract_line(file_path, line_number):
+    """Extract a specific line from a file."""
+    try:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            lines = f.readlines()
+            if 1 <= line_number <= len(lines):
+                return lines[line_number - 1].rstrip('\n')
+            else:
+                logger.warning(f"Line number {line_number} out of range for file {file_path}")
+                return None
+    except Exception as e:
+        logger.error(f"Error reading file {file_path}: {e}")
+        return None
+
 def get_smart_context_range(file_path, sink_line, max_buffer=50):
     """Find statement/function boundaries around sink_line using JS parsing"""
     full_path = os.path.join(os.path.dirname(__file__), "codebases", "dvna", file_path.lstrip('/\\'))
@@ -121,7 +135,7 @@ def extract_context_from_file(file_path: str, context_start: int, context_end: i
         if highlight_line is not None and context_start <= highlight_line <= context_end:
             highlight_idx = highlight_line - context_start
             if 0 <= highlight_idx < len(context_lines):
-                context_lines[highlight_idx] = f"→ {context_lines[highlight_idx]}"
+                context_lines[highlight_idx] = f"→→→ {context_lines[highlight_idx]}"
 
         return ''.join(context_lines)
     

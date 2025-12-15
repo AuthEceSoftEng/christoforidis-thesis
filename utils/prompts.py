@@ -484,3 +484,57 @@ Return ONLY a comma-separated list of keywords, nothing else.
 Example output: query, execute, find, sql, database"""
     }]
     return keyword_prompt
+
+def get_vulnerability_confidence(context, file_path, source_line, source_expression, sink_line, sink_expression, query_name, description):
+    prompt = f"""
+You are a security analyst reviewing a code snippet to determine if it contains a vulnerability.
+**Reported Vulnerability Type**: {query_name} - {description}
+**Note**: This classification comes from static analysis and may be imprecise. Your job is to assess if ANY security vulnerability exists in the code, even if it's a different type than reported.
+
+**File Path**: {file_path}
+
+**Source Line**: {source_line} - {source_expression}
+    Note: This may not be visible in the snippet if it's outside the context window.
+
+**Sink Line**: {sink_line} - {sink_expression}
+    Note: This may be the highlighted line (with →→→) in the snippet but is not necessarily the vulnerable line.
+
+**Code Snippet/Context** (around the sink line):
+```javascript
+{context}
+```
+
+**Your Task**: Analyze the code snippet and determine if this is a TRUE vulnerability or a FALSE POSITIVE.
+
+**Analysis Checklist:**
+1. Is the source user-controlled input (req.body, req.query, req.params, etc.)?
+2. Can you trace data flow from source to sink (or is sink using a variable that likely contains user input)?
+3. Is there validation/sanitization between source and sink?
+4. Is there any appropriate sanitization?
+
+**Note**: The vulnerability type above is based on static analysis classification, which may not be 100% accurate. 
+Focus on whether the CODE exhibits ANY security vulnerability, even if it doesn't exactly match the stated CWE type.
+If you see a different vulnerability type (e.g., SQL injection when CWE-116 is stated), still rate it highly.
+**Important**: If the code has a vulnerability but it's a different type than the reported CWE (e.g., XSS instead of Prototype Pollution), you should still rate it highly. Focus on whether the code is exploitable, not whether it matches the specific CWE.
+This applies to ALL vulnerability types (injection, authentication bypass, information disclosure, etc.), not just these examples. Focus on whether the code is exploitable, not whether it matches the specific CWE label.
+
+**Respond with ONLY this JSON (no markdown code blocks, no preamble):**
+{{
+  "confidence": <float 0.0-1.0>,
+  "reasoning": "<brief explanation>",
+  "verdict": "ASSESSMENT" | "INSUFFICIENT_CONTEXT"
+}}
+
+**Confidence Scale:**
+- 0.85-1.0: Clear vulnerability. Direct unsanitized flow from user input to dangerous sink.
+- 0.6-0.84: Likely vulnerable. Flow appears unsafe but minor uncertainty about context.
+- 0.3-0.59: Uncertain. Sanitization may exist outside visible context or flow is unclear.
+- 0.1-0.29: Likely false positive. Evidence of sanitization or safe usage.
+- 0.0-0.09: Definitely false positive. Hard-coded values, test code, or properly sanitized.
+
+**Verdict**: 
+- Use "ASSESSMENT" for normal cases where you can provide a confidence score.
+- Use "INSUFFICIENT_CONTEXT" ONLY if critical code is missing (e.g., entire function is truncated) and you cannot make ANY assessment. In this case, set confidence to 0.5.
+"""
+    
+    return [{"role": "user", "message": prompt}]
