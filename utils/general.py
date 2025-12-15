@@ -3,6 +3,7 @@ import logging
 import pandas as pd
 import requests
 import tempfile
+import esprima
 from collections import defaultdict
 from .query_runner import run_codeql_query_tables
 from . prompts import keywords_filter_prompt
@@ -10,6 +11,79 @@ from . prompts import keywords_filter_prompt
 # set up logging configuration
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+def get_smart_context_range(file_path, sink_line, max_buffer=50):
+    """Find statement/function boundaries around sink_line using JS parsing"""
+    full_path = os.path.join(os.path.dirname(__file__), "codebases", "dvna", file_path.lstrip('/\\'))
+    
+    # Read file first for fallback
+    try:
+        with open(full_path, 'r', encoding='utf-8', errors='ignore') as f:
+            code = f.read()
+        lines = code.split('\n')
+        total_lines = len(lines)
+    except Exception as e:
+        logger.warning(f"Could not read file {full_path}: {e}")
+        return max(1, sink_line - 15), sink_line + 15
+    
+    # Only attempt parsing for .js and .ts files
+    if file_path.endswith(('.js', '.ts', '.jsx', '.tsx')):
+        try:
+            tree = esprima.parseScript(code, {'loc': True, 'tolerant': True})
+            
+            # Find meaningful context nodes (prefer functions/statements)
+            candidates = []
+            
+            def walk(node):
+                if hasattr(node, 'loc') and node.loc:
+                    node_start = node.loc.start.line
+                    node_end = node.loc.end.line
+                    
+                    if node_start <= sink_line <= node_end:
+                        # Prioritize meaningful node types
+                        node_type = node.type if hasattr(node, 'type') else 'Unknown'
+                        priority = 0
+                        
+                        if node_type in ['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression']:
+                            priority = 3
+                        elif node_type in ['ExpressionStatement', 'VariableDeclaration', 'CallExpression']:
+                            priority = 2
+                        elif node_type in ['BlockStatement', 'Program']:
+                            priority = 1
+                        
+                        size = node_end - node_start
+                        candidates.append((priority, size, node_start, node_end))
+                
+                for key, value in node.__dict__.items():
+                    if isinstance(value, list):
+                        for item in value:
+                            if hasattr(item, '__dict__'):
+                                walk(item)
+                    elif hasattr(value, '__dict__'):
+                        walk(value)
+            
+            walk(tree)
+            
+            if candidates:
+                # Sort by priority (high first), then size (small first)
+                candidates.sort(key=lambda x: (-x[0], x[1]))
+                _, _, best_start, best_end = candidates[0]
+                
+                # Ensure minimum context size
+                if best_end - best_start < 5:
+                    best_start = max(1, sink_line - 10)
+                    best_end = min(total_lines, sink_line + 10)
+                
+                logger.debug(f"✓ Parsed {file_path}:{sink_line} -> {best_start}-{best_end}")
+                return best_start, best_end
+                
+        except Exception as e:
+            logger.debug(f"Parse failed for {file_path}: {str(e)[:50]}")
+    else:
+        logger.debug(f"Skipping parse for {file_path} (template/non-JS file)")
+    
+    # Fallback to simple buffer with bounds checking
+    return max(1, sink_line - 15), min(total_lines, sink_line + 15)
 
 def extract_context_from_file(file_path: str, context_start: int, context_end: int, highlight_line: int = None) -> str:
     """
