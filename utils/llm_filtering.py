@@ -9,7 +9,7 @@ from .LLM import LLMHandler
 
 logger = logging.getLogger(__name__)
 
-def filter_llm_findings(csv_path, filtered_csv_path, threshold = 0.6, response_output_path = None):
+def filter_llm_findings(project_name, csv_path, filtered_csv_path, threshold = 0.6, response_output_path = None):
     # Initialize LLM handler
     llm_handler = LLMHandler('claude', temperature=0.2)
 
@@ -26,7 +26,7 @@ def filter_llm_findings(csv_path, filtered_csv_path, threshold = 0.6, response_o
         source_line = row[5]
         sink_line = row[7]
 
-        file_path = os.path.join(os.path.dirname(__file__), "..", "codebases", "dvna", relative_path.lstrip('/\\'))
+        file_path = os.path.join(os.path.dirname(__file__), "..", "codebases", project_name, relative_path.lstrip('/\\'))
 
         # get context
         start, end = get_smart_context_range(file_path, sink_line)
