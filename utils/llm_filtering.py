@@ -85,5 +85,75 @@ def filter_llm_findings(project_name, csv_path, filtered_csv_path, threshold = 0
         logger.info(f"Wrote filtered findings to {filtered_csv_path} ({len(filtered_rows)} findings retained)")
     else:
         logger.warning("No findings retained after filtering; no output CSV created.")
-
+def filter_with_existing_responses(csv_path, responses_json_path, filtered_csv_path, threshold=0.6):
+    """
+    Filter findings using pre-existing LLM responses from a JSON file.
+    Each line in the JSON file corresponds to a row in the CSV file.
+    
+    Args:
+        csv_path: Path to the CSV file with findings
+        responses_json_path: Path to the JSON file with LLM responses (one per line)
+        filtered_csv_path: Path where filtered CSV will be saved
+        threshold: Confidence threshold for filtering (default 0.6)
+    """
+    filtered_rows = []
+    
+    results = pd.read_csv(csv_path, header=None)
+    logger.info(f"Processing {len(results)} findings from {csv_path}")
+    
+    # Read all responses from JSON file
+    with open(responses_json_path, 'r', encoding='utf-8') as f:
+        responses = [line.strip() for line in f if line.strip()]
+    
+    if len(responses) != len(results):
+        logger.warning(f"Mismatch: {len(results)} CSV rows but {len(responses)} JSON responses")
+        # Use minimum to avoid index errors
+        num_entries = min(len(responses), len(results))
+    else:
+        num_entries = len(results)
+    
+    for idx in range(num_entries):
+        row = results.iloc[idx]
+        confidence_response = responses[idx]
         
+        relative_path = row[4]
+        sink_line = row[7]
+        
+        # Parse JSON response
+        try:
+            # Clean response (remove potential markdown blocks)
+            clean_response = confidence_response.strip()
+            if clean_response.startswith('```'):
+                clean_response = clean_response.split('```')[1]
+                if clean_response.startswith('json'):
+                    clean_response = clean_response[4:]
+                clean_response = clean_response.strip()
+            
+            result = json.loads(clean_response)
+            confidence = float(result.get("confidence", 0.0))
+            verdict = result.get("verdict", "UNKNOWN")
+            reasoning = result.get("reasoning", "")
+            
+            logger.info(f"[{idx+1}/{num_entries}] {relative_path}:{sink_line} - "
+                       f"Confidence: {confidence:.2f}, Verdict: {verdict}")
+            
+            # Keep if above threshold or insufficient context
+            if confidence >= threshold or verdict == "INSUFFICIENT_CONTEXT":
+                filtered_rows.append(row)
+                logger.debug(f"Retained finding: {relative_path}:{sink_line} - Reasoning: {reasoning}, Confidence: {confidence:.2f}, Verdict: {verdict}")
+            else:
+                logger.debug(f"Filtered out finding: {relative_path}:{sink_line} - Reasoning: {reasoning}, Confidence: {confidence:.2f}, Verdict: {verdict}")
+        
+        except (json.JSONDecodeError, ValueError) as e:
+            logger.warning(f"Failed to parse LLM response for row {idx}: {e}")
+            logger.debug(f"Response was: {confidence_response[:100]}")
+            # On parse error, keep the finding (conservative approach)
+            filtered_rows.append(row)
+    
+    # Write filtered results to new CSV
+    if filtered_rows:
+        filtered_df = pd.DataFrame(filtered_rows)
+        filtered_df.to_csv(filtered_csv_path, index=False, header=False)
+        logger.info(f"Wrote filtered findings to {filtered_csv_path} ({len(filtered_rows)} findings retained)")
+    else:
+        logger.warning("No findings retained after filtering; no output CSV created.")
