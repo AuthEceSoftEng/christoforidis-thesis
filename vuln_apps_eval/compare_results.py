@@ -9,7 +9,7 @@ def load_results(filepath):
 def get_tp_key(tp):
     """Create unique key for a true positive"""
     # Use file + sink_line as the unique identifier
-    return (tp['file'], tp['sink_line'], tp.get('vulnerability', ''))
+    return (tp['file'], tp['sink_line'])
 
 def compare_true_positives(file1, file2, output_file=None):
     """
@@ -47,7 +47,6 @@ def compare_true_positives(file1, file2, output_file=None):
         for tp in unique_to_file1:
             print(f"\n  File: {tp['file']}")
             print(f"  Sink Line: {tp['sink_line']}")
-            print(f"  Vulnerability: {tp.get('vulnerability', 'N/A')}")
             print(f"  Challenges: {', '.join(tp.get('challenges', []))}")
     else:
         print("\nNo true positives were lost!")
