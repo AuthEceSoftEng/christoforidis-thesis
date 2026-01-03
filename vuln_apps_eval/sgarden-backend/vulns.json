@@ -1,0 +1,122 @@
+{
+    "CodeInjection": {
+        "file": "./src/routes/data.js",
+        "startLine": 218,
+        "endLine": 218,
+        "vulnLines": [218]
+    },
+    "CommandInjection": {
+        "file": "./src/routes/user-system.js",
+        "startLine": 205,
+        "endLine": 205,
+        "vulnLines": [205]
+    },
+    "CommandInjection2": {
+        "file": "./src/routes/user-system.js",
+        "startLine": 226,
+        "endLine": 226,
+        "vulnLines": [226]
+    },
+    "CommandInjection3": {
+        "file": "./src/routes/user-system.js",
+        "startLine": 252,
+        "endLine": 252,
+        "vulnLines": [252]
+    },
+    "Other": {
+        "file": "./src/routes/user-system.js",
+        "startLine": 289,
+        "endLine": 289,
+        "vulnLines": [289]
+    },
+    "ImproperAuthorization": {
+        "file": "./src/routes/user.js",
+        "startLine": 180,
+        "endLine": 180,
+        "vulnLines": [180]
+    },
+    "CodeInjection2": {
+        "file": "./src/routes/user.js",
+        "startLine": 200,
+        "endLine": 200,
+        "vulnLines": [200]
+    },
+    "PathTraversal": {
+        "file": "./src/routes/data.js",
+        "startLine": 53,
+        "endLine": 53,
+        "vulnLines": [53]
+    },
+    "XSS": {
+        "file": "./src/routes/data.js",
+        "startLine": 59,
+        "endLine": 59,
+        "vulnLines": [59]
+    },
+    "PathTraversal2": {
+        "file": "./src/routes/data.js",
+        "startLine": 77,
+        "endLine": 77,
+        "vulnLines": [77]
+    },
+    "XSS2": {
+        "file": "./src/routes/data.js",
+        "startLine": 81,
+        "endLine": 81,
+        "vulnLines": [81]
+    },
+    "PathTraversal3": {
+        "file": "./src/routes/data.js",
+        "startLine": 99,
+        "endLine": 99,
+        "vulnLines": [99]
+    },
+    "PathTraversal4": {
+        "file": "./src/routes/data.js",
+        "startLine": 126,
+        "endLine": 126,
+        "vulnLines": [126]
+    },
+    "PathTraversal5": {
+        "file": "./src/routes/data.js",
+        "startLine": 151,
+        "endLine": 151,
+        "vulnLines": [151]
+    },
+    "PathTraversal6": {
+        "file": "./src/routes/data.js",
+        "startLine": 157,
+        "endLine": 157,
+        "vulnLines": [157]
+    },
+    "PathTraversal7": {
+        "file": "./src/routes/data.js",
+        "startLine": 190,
+        "endLine": 190,
+        "vulnLines": [190]
+    },
+    "CodeInjection3": {
+        "file": "./src/routes/data.js",
+        "startLine": 218,
+        "endLine": 218,
+        "vulnLines": [218]
+    },
+    "CryptographicIssues": {
+        "file": "./src/routes/user-system.js",
+        "startLine": 272,
+        "endLine": 272,
+        "vulnLines": [272]
+    },
+    "MassAssignment": {
+        "file": "./src/routes/user.js",
+        "startLine": 159,
+        "endLine": 159,
+        "vulnLines": [159]
+    },
+    "CodeInjection4": {
+        "file": "./src/routes/user.js",
+        "startLine": 200,
+        "endLine": 200,
+        "vulnLines": [200]
+    }
+}
