@@ -1,2 +1,4 @@
 juice-shop/results*.json
+sgarden-frontend/results*.json
+sgarden-backend/results*.json
 __pycache__/
