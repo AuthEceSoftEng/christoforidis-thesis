@@ -1,0 +1,395 @@
+{
+  "metrics": {
+    "true_positives": 7,
+    "false_positives": 27,
+    "false_negatives": 19,
+    "precision": 20.59,
+    "recall": 26.92,
+    "f1_score": 23.33
+  },
+  "true_positives": [
+    {
+      "file": "/core/appHandler.js",
+      "ground_truth_file": "./core/appHandler.js",
+      "source_line": 39,
+      "sink_line": 39,
+      "matched_line": 39,
+      "vulnerability": "Uncontrolled command line",
+      "challenges": [
+        "CommandInjection"
+      ],
+      "detection_count": 1
+    },
+    {
+      "file": "/views/app/products.ejs",
+      "ground_truth_file": "./views/app/products.ejs",
+      "source_line": 20,
+      "sink_line": 20,
+      "matched_line": 20,
+      "vulnerability": "Client-side cross-site scripting",
+      "challenges": [
+        "ReflectedXSSinSearchQuery"
+      ],
+      "detection_count": 1
+    },
+    {
+      "file": "/core/appHandler.js",
+      "ground_truth_file": "./core/appHandler.js",
+      "source_line": 218,
+      "sink_line": 218,
+      "matched_line": 218,
+      "vulnerability": "Code injection",
+      "challenges": [
+        "InsecureDeserialization"
+      ],
+      "detection_count": 1
+    },
+    {
+      "file": "/core/appHandler.js",
+      "ground_truth_file": "./core/appHandler.js",
+      "source_line": 188,
+      "sink_line": 188,
+      "matched_line": 188,
+      "vulnerability": "Server-side URL redirect",
+      "challenges": [
+        "UnvalidatedRedirectsandForwards"
+      ],
+      "detection_count": 1
+    },
+    {
+      "file": "/core/appHandler.js",
+      "ground_truth_file": "./core/appHandler.js",
+      "source_line": 235,
+      "sink_line": 235,
+      "matched_line": 235,
+      "vulnerability": "XML external entity expansion",
+      "challenges": [
+        "XMLExternalEntities"
+      ],
+      "detection_count": 2
+    },
+    {
+      "file": "/routes/app.js",
+      "ground_truth_file": "./routes/app.js",
+      "source_line": 42,
+      "sink_line": 42,
+      "matched_line": 42,
+      "vulnerability": "Missing rate limiting",
+      "challenges": [
+        "UnauthorizedAccesstoUsersAPI1"
+      ],
+      "detection_count": 1
+    },
+    {
+      "file": "/server.js",
+      "ground_truth_file": "./server.js",
+      "source_line": 24,
+      "sink_line": 24,
+      "matched_line": 24,
+      "vulnerability": "Hard-coded credentials",
+      "challenges": [
+        "InsecureSessionSecret"
+      ],
+      "detection_count": 1
+    }
+  ],
+  "false_positives": [
+    {
+      "file": "/core/appHandler.js",
+      "source_line": 11,
+      "sink_line": 11,
+      "vulnerability": "Database query built from user-controlled sources"
+    },
+    {
+      "file": "/server.js",
+      "source_line": 23,
+      "sink_line": 28,
+      "vulnerability": "Clear text transmission of sensitive cookie"
+    },
+    {
+      "file": "/routes/app.js",
+      "source_line": 6,
+      "sink_line": 6,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/routes/app.js",
+      "source_line": 10,
+      "sink_line": 10,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/routes/app.js",
+      "source_line": 16,
+      "sink_line": 16,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/routes/app.js",
+      "source_line": 22,
+      "sink_line": 22,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/routes/app.js",
+      "source_line": 26,
+      "sink_line": 26,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/routes/app.js",
+      "source_line": 28,
+      "sink_line": 28,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/routes/app.js",
+      "source_line": 30,
+      "sink_line": 30,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/routes/app.js",
+      "source_line": 32,
+      "sink_line": 32,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/routes/app.js",
+      "source_line": 36,
+      "sink_line": 36,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/routes/app.js",
+      "source_line": 44,
+      "sink_line": 44,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/routes/app.js",
+      "source_line": 50,
+      "sink_line": 50,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/routes/app.js",
+      "source_line": 52,
+      "sink_line": 52,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/routes/app.js",
+      "source_line": 52,
+      "sink_line": 52,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/routes/app.js",
+      "source_line": 54,
+      "sink_line": 54,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/routes/app.js",
+      "source_line": 56,
+      "sink_line": 56,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/routes/app.js",
+      "source_line": 58,
+      "sink_line": 58,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/routes/app.js",
+      "source_line": 60,
+      "sink_line": 60,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/routes/app.js",
+      "source_line": 62,
+      "sink_line": 62,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/routes/app.js",
+      "source_line": 64,
+      "sink_line": 64,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/routes/main.js",
+      "source_line": 6,
+      "sink_line": 6,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/routes/main.js",
+      "source_line": 10,
+      "sink_line": 10,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/routes/main.js",
+      "source_line": 14,
+      "sink_line": 14,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/routes/main.js",
+      "source_line": 32,
+      "sink_line": 32,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/routes/main.js",
+      "source_line": 36,
+      "sink_line": 36,
+      "vulnerability": "Missing rate limiting"
+    },
+    {
+      "file": "/views/common/head.ejs",
+      "source_line": 11,
+      "sink_line": 12,
+      "vulnerability": "Inclusion of functionality from an untrusted source"
+    }
+  ],
+  "false_negatives": [
+    {
+      "file": "./core/appHandler.js",
+      "line": 10,
+      "challenges": [
+        "SQLInjection"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 207,
+      "challenges": [
+        "HashedPasswordsDisclosed"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 208,
+      "challenges": [
+        "HashedPasswordsDisclosed"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 209,
+      "challenges": [
+        "HashedPasswordsDisclosed"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 210,
+      "challenges": [
+        "HashedPasswordsDisclosed"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 145,
+      "challenges": [
+        "MissingAuthorizationcheckinEditUser"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 146,
+      "challenges": [
+        "MissingAuthorizationcheckinEditUser"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 147,
+      "challenges": [
+        "MissingAuthorizationcheckinEditUser"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 148,
+      "challenges": [
+        "MissingAuthorizationcheckinEditUser"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 197,
+      "challenges": [
+        "ApplicationsendsStackTrace"
+      ]
+    },
+    {
+      "file": "./views/app/admin.ejs",
+      "line": 30,
+      "challenges": [
+        "UnauthorizedAccesstoUsersAPI2"
+      ]
+    },
+    {
+      "file": "./views/app/products.ejs",
+      "line": 49,
+      "challenges": [
+        "StoredXSSinProductListing"
+      ]
+    },
+    {
+      "file": "./views/app/products.ejs",
+      "line": 50,
+      "challenges": [
+        "StoredXSSinProductListing"
+      ]
+    },
+    {
+      "file": "./views/app/products.ejs",
+      "line": 51,
+      "challenges": [
+        "StoredXSSinProductListing"
+      ]
+    },
+    {
+      "file": "./views/app/products.ejs",
+      "line": 52,
+      "challenges": [
+        "StoredXSSinProductListing"
+      ]
+    },
+    {
+      "file": "./views/app/products.ejs",
+      "line": 53,
+      "challenges": [
+        "StoredXSSinProductListing"
+      ]
+    },
+    {
+      "file": "./views/app/adminusers.ejs",
+      "line": 40,
+      "challenges": [
+        "DOMXSSinuserlisting"
+      ]
+    },
+    {
+      "file": "./views/app/adminusers.ejs",
+      "line": 41,
+      "challenges": [
+        "DOMXSSinuserlisting"
+      ]
+    },
+    {
+      "file": "./views/app/adminusers.ejs",
+      "line": 42,
+      "challenges": [
+        "DOMXSSinuserlisting"
+      ]
+    }
+  ]
+}

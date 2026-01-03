@@ -1,0 +1,431 @@
+{
+  "metrics": {
+    "true_positives": 7,
+    "false_positives": 33,
+    "false_negatives": 19,
+    "precision": 17.5,
+    "recall": 26.92,
+    "f1_score": 21.21
+  },
+  "true_positives": [
+    {
+      "file": "/views/app/products.ejs",
+      "ground_truth_file": "./views/app/products.ejs",
+      "source_line": 20,
+      "sink_line": 20,
+      "matched_line": 20,
+      "vulnerability": "Vulnerability Query for CWE-1004",
+      "challenges": [
+        "ReflectedXSSinSearchQuery"
+      ],
+      "detection_count": 1
+    },
+    {
+      "file": "/core/appHandler.js",
+      "ground_truth_file": "./core/appHandler.js",
+      "source_line": 39,
+      "sink_line": 39,
+      "matched_line": 39,
+      "vulnerability": "Vulnerability Query for CWE-1286",
+      "challenges": [
+        "CommandInjection"
+      ],
+      "detection_count": 1
+    },
+    {
+      "file": "/core/appHandler.js",
+      "ground_truth_file": "./core/appHandler.js",
+      "source_line": 218,
+      "sink_line": 218,
+      "matched_line": 218,
+      "vulnerability": "Vulnerability Query for CWE-1286",
+      "challenges": [
+        "InsecureDeserialization"
+      ],
+      "detection_count": 1
+    },
+    {
+      "file": "/core/appHandler.js",
+      "ground_truth_file": "./core/appHandler.js",
+      "source_line": 188,
+      "sink_line": 188,
+      "matched_line": 188,
+      "vulnerability": "Vulnerability Query for CWE-20",
+      "challenges": [
+        "UnvalidatedRedirectsandForwards"
+      ],
+      "detection_count": 1
+    },
+    {
+      "file": "/core/appHandler.js",
+      "ground_truth_file": "./core/appHandler.js",
+      "source_line": 197,
+      "sink_line": 197,
+      "matched_line": 197,
+      "vulnerability": "Vulnerability Query for CWE-20",
+      "challenges": [
+        "ApplicationsendsStackTrace"
+      ],
+      "detection_count": 1
+    },
+    {
+      "file": "/core/appHandler.js",
+      "ground_truth_file": "./core/appHandler.js",
+      "source_line": 235,
+      "sink_line": 235,
+      "matched_line": 235,
+      "vulnerability": "Vulnerability Query for CWE-20",
+      "challenges": [
+        "XMLExternalEntities"
+      ],
+      "detection_count": 1
+    },
+    {
+      "file": "/server.js",
+      "ground_truth_file": "./server.js",
+      "source_line": 24,
+      "sink_line": 24,
+      "matched_line": 24,
+      "vulnerability": "Vulnerability Query for CWE-798",
+      "challenges": [
+        "InsecureSessionSecret"
+      ],
+      "detection_count": 1
+    }
+  ],
+  "false_positives": [
+    {
+      "file": "/core/appHandler.js",
+      "source_line": 11,
+      "sink_line": 11,
+      "vulnerability": "Vulnerability Query for CWE-1286"
+    },
+    {
+      "file": "/core/appHandler.js",
+      "source_line": 178,
+      "sink_line": 178,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/core/appHandler.js",
+      "source_line": 179,
+      "sink_line": 179,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/core/appHandler.js",
+      "source_line": 180,
+      "sink_line": 180,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/core/authHandler.js",
+      "source_line": 49,
+      "sink_line": 49,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/core/authHandler.js",
+      "source_line": 51,
+      "sink_line": 51,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/core/authHandler.js",
+      "source_line": 78,
+      "sink_line": 78,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/core/authHandler.js",
+      "source_line": 79,
+      "sink_line": 79,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/core/authHandler.js",
+      "source_line": 96,
+      "sink_line": 96,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/core/authHandler.js",
+      "source_line": 97,
+      "sink_line": 97,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/app.js",
+      "source_line": 23,
+      "sink_line": 23,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/main.js",
+      "source_line": 16,
+      "sink_line": 16,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/main.js",
+      "source_line": 18,
+      "sink_line": 18,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/main.js",
+      "source_line": 19,
+      "sink_line": 19,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/routes/main.js",
+      "source_line": 20,
+      "sink_line": 20,
+      "vulnerability": "Vulnerability Query for CWE-20"
+    },
+    {
+      "file": "/core/appHandler.js",
+      "source_line": 77,
+      "sink_line": 77,
+      "vulnerability": "Vulnerability Query for CWE-284"
+    },
+    {
+      "file": "/core/authHandler.js",
+      "source_line": 20,
+      "sink_line": 20,
+      "vulnerability": "Vulnerability Query for CWE-284"
+    },
+    {
+      "file": "/core/authHandler.js",
+      "source_line": 42,
+      "sink_line": 42,
+      "vulnerability": "Vulnerability Query for CWE-284"
+    },
+    {
+      "file": "/core/authHandler.js",
+      "source_line": 70,
+      "sink_line": 70,
+      "vulnerability": "Vulnerability Query for CWE-284"
+    },
+    {
+      "file": "/core/authHandler.js",
+      "source_line": 71,
+      "sink_line": 71,
+      "vulnerability": "Vulnerability Query for CWE-284"
+    },
+    {
+      "file": "/config/db.js",
+      "source_line": 3,
+      "sink_line": 3,
+      "vulnerability": "Vulnerability Query for CWE-312"
+    },
+    {
+      "file": "/models/user.js",
+      "source_line": 23,
+      "sink_line": 26,
+      "vulnerability": "Vulnerability Query for CWE-312"
+    },
+    {
+      "file": "/core/appHandler.js",
+      "source_line": 234,
+      "sink_line": 234,
+      "vulnerability": "Vulnerability Query for CWE-434"
+    },
+    {
+      "file": "/core/appHandler.js",
+      "source_line": 236,
+      "sink_line": 236,
+      "vulnerability": "Vulnerability Query for CWE-502"
+    },
+    {
+      "file": "/config/db.js",
+      "source_line": 5,
+      "sink_line": 5,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/config/server.js",
+      "source_line": 2,
+      "sink_line": 2,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/models/index.js",
+      "source_line": 6,
+      "sink_line": 6,
+      "vulnerability": "Vulnerability Query for CWE-798"
+    },
+    {
+      "file": "/core/appHandler.js",
+      "source_line": 157,
+      "sink_line": 157,
+      "vulnerability": "Vulnerability Query for CWE-96"
+    },
+    {
+      "file": "/core/appHandler.js",
+      "source_line": 158,
+      "sink_line": 158,
+      "vulnerability": "Vulnerability Query for CWE-96"
+    },
+    {
+      "file": "/core/appHandler.js",
+      "source_line": 159,
+      "sink_line": 159,
+      "vulnerability": "Vulnerability Query for CWE-96"
+    },
+    {
+      "file": "/core/appHandler.js",
+      "source_line": 166,
+      "sink_line": 166,
+      "vulnerability": "Vulnerability Query for CWE-96"
+    },
+    {
+      "file": "/core/appHandler.js",
+      "source_line": 167,
+      "sink_line": 167,
+      "vulnerability": "Vulnerability Query for CWE-96"
+    },
+    {
+      "file": "/core/appHandler.js",
+      "source_line": 168,
+      "sink_line": 168,
+      "vulnerability": "Vulnerability Query for CWE-96"
+    }
+  ],
+  "false_negatives": [
+    {
+      "file": "./core/appHandler.js",
+      "line": 10,
+      "challenges": [
+        "SQLInjection"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 207,
+      "challenges": [
+        "HashedPasswordsDisclosed"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 208,
+      "challenges": [
+        "HashedPasswordsDisclosed"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 209,
+      "challenges": [
+        "HashedPasswordsDisclosed"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 210,
+      "challenges": [
+        "HashedPasswordsDisclosed"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 145,
+      "challenges": [
+        "MissingAuthorizationcheckinEditUser"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 146,
+      "challenges": [
+        "MissingAuthorizationcheckinEditUser"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 147,
+      "challenges": [
+        "MissingAuthorizationcheckinEditUser"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 148,
+      "challenges": [
+        "MissingAuthorizationcheckinEditUser"
+      ]
+    },
+    {
+      "file": "./routes/app.js",
+      "line": 42,
+      "challenges": [
+        "UnauthorizedAccesstoUsersAPI1"
+      ]
+    },
+    {
+      "file": "./views/app/admin.ejs",
+      "line": 30,
+      "challenges": [
+        "UnauthorizedAccesstoUsersAPI2"
+      ]
+    },
+    {
+      "file": "./views/app/products.ejs",
+      "line": 49,
+      "challenges": [
+        "StoredXSSinProductListing"
+      ]
+    },
+    {
+      "file": "./views/app/products.ejs",
+      "line": 50,
+      "challenges": [
+        "StoredXSSinProductListing"
+      ]
+    },
+    {
+      "file": "./views/app/products.ejs",
+      "line": 51,
+      "challenges": [
+        "StoredXSSinProductListing"
+      ]
+    },
+    {
+      "file": "./views/app/products.ejs",
+      "line": 52,
+      "challenges": [
+        "StoredXSSinProductListing"
+      ]
+    },
+    {
+      "file": "./views/app/products.ejs",
+      "line": 53,
+      "challenges": [
+        "StoredXSSinProductListing"
+      ]
+    },
+    {
+      "file": "./views/app/adminusers.ejs",
+      "line": 40,
+      "challenges": [
+        "DOMXSSinuserlisting"
+      ]
+    },
+    {
+      "file": "./views/app/adminusers.ejs",
+      "line": 41,
+      "challenges": [
+        "DOMXSSinuserlisting"
+      ]
+    },
+    {
+      "file": "./views/app/adminusers.ejs",
+      "line": 42,
+      "challenges": [
+        "DOMXSSinuserlisting"
+      ]
+    }
+  ]
+}
