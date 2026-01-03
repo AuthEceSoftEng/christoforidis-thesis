@@ -1,122 +1,104 @@
 {
     "CodeInjection": {
         "file": "./src/routes/data.js",
-        "startLine": 218,
-        "endLine": 218,
+        "startLine": 204,
+        "endLine": 228,
         "vulnLines": [218]
     },
     "CommandInjection": {
         "file": "./src/routes/user-system.js",
-        "startLine": 205,
-        "endLine": 205,
+        "startLine": 194,
+        "endLine": 214,
         "vulnLines": [205]
     },
     "CommandInjection2": {
         "file": "./src/routes/user-system.js",
-        "startLine": 226,
-        "endLine": 226,
+        "startLine": 216,
+        "endLine": 239,
         "vulnLines": [226]
     },
     "CommandInjection3": {
         "file": "./src/routes/user-system.js",
-        "startLine": 252,
-        "endLine": 252,
+        "startLine": 241,
+        "endLine": 261,
         "vulnLines": [252]
     },
-    "Other": {
+    "CryptographicIssues": {
         "file": "./src/routes/user-system.js",
-        "startLine": 289,
-        "endLine": 289,
+        "startLine": 280,
+        "endLine": 297,
         "vulnLines": [289]
     },
     "ImproperAuthorization": {
         "file": "./src/routes/user.js",
-        "startLine": 180,
-        "endLine": 180,
+        "startLine": 172,
+        "endLine": 190,
         "vulnLines": [180]
     },
     "CodeInjection2": {
         "file": "./src/routes/user.js",
-        "startLine": 200,
-        "endLine": 200,
+        "startLine": 192,
+        "endLine": 209,
         "vulnLines": [200]
     },
     "PathTraversal": {
         "file": "./src/routes/data.js",
-        "startLine": 53,
-        "endLine": 53,
-        "vulnLines": [53]
+        "startLine": 45,
+        "endLine": 67,
+        "vulnLines": [55, 56]
     },
     "XSS": {
         "file": "./src/routes/data.js",
-        "startLine": 59,
-        "endLine": 59,
+        "startLine": 45,
+        "endLine": 67,
         "vulnLines": [59]
     },
     "PathTraversal2": {
         "file": "./src/routes/data.js",
-        "startLine": 77,
-        "endLine": 77,
-        "vulnLines": [77]
+        "startLine": 69,
+        "endLine": 89,
+        "vulnLines": [79, 80]
     },
     "XSS2": {
         "file": "./src/routes/data.js",
-        "startLine": 81,
-        "endLine": 81,
+        "startLine": 69,
+        "endLine": 89,
         "vulnLines": [81]
     },
     "PathTraversal3": {
         "file": "./src/routes/data.js",
-        "startLine": 99,
-        "endLine": 99,
-        "vulnLines": [99]
+        "startLine": 91,
+        "endLine": 112,
+        "vulnLines": [101]
     },
     "PathTraversal4": {
         "file": "./src/routes/data.js",
-        "startLine": 126,
-        "endLine": 126,
-        "vulnLines": [126]
+        "startLine": 114,
+        "endLine": 141,
+        "vulnLines": [128, 129]
     },
     "PathTraversal5": {
         "file": "./src/routes/data.js",
-        "startLine": 151,
-        "endLine": 151,
-        "vulnLines": [151]
+        "startLine": 143,
+        "endLine": 176,
+        "vulnLines": [153, 154, 158]
     },
     "PathTraversal6": {
         "file": "./src/routes/data.js",
-        "startLine": 157,
-        "endLine": 157,
-        "vulnLines": [157]
+        "startLine": 178,
+        "endLine": 202,
+        "vulnLines": [192, 193]
     },
-    "PathTraversal7": {
-        "file": "./src/routes/data.js",
-        "startLine": 190,
-        "endLine": 190,
-        "vulnLines": [190]
-    },
-    "CodeInjection3": {
-        "file": "./src/routes/data.js",
-        "startLine": 218,
-        "endLine": 218,
-        "vulnLines": [218]
-    },
-    "CryptographicIssues": {
+    "CryptographicIssues2": {
         "file": "./src/routes/user-system.js",
-        "startLine": 272,
-        "endLine": 272,
+        "startLine": 263,
+        "endLine": 278,
         "vulnLines": [272]
     },
     "MassAssignment": {
         "file": "./src/routes/user.js",
-        "startLine": 159,
-        "endLine": 159,
+        "startLine": 144,
+        "endLine": 170,
         "vulnLines": [159]
-    },
-    "CodeInjection4": {
-        "file": "./src/routes/user.js",
-        "startLine": 200,
-        "endLine": 200,
-        "vulnLines": [200]
     }
 }

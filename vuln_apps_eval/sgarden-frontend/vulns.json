@@ -1,9 +1,9 @@
 {
     "XSS": {
         "file": "./src/components/Search.js",
-        "startLine": 35,
-        "endLine": 35,
-        "vulnLines": [35]
+        "startLine": 15,
+        "endLine": 69,
+        "vulnLines": [35, 48]
     },
     "CryptographicIssues": {
         "file": "./src/screens/Auth.js",
@@ -13,8 +13,8 @@
     },
     "CodeInjection": {
         "file": "./src/utils/adjust-colors.js",
-        "startLine": 4,
-        "endLine": 4,
+        "startLine": 3,
+        "endLine": 6,
         "vulnLines": [4]
     }
 }
