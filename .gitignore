@@ -2,3 +2,4 @@ venv/
 utils/__pycache__/
 *.log
 .env
+test*

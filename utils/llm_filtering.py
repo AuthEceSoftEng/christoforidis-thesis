@@ -29,7 +29,7 @@ def filter_llm_findings(project_name, csv_path, filtered_csv_path, threshold = 0
         file_path = os.path.join(os.path.dirname(__file__), "..", "codebases", project_name, relative_path.lstrip('/\\'))
 
         # get context
-        start, end = get_smart_context_range(file_path, sink_line)
+        start, end = get_smart_context_range(file_path, sink_line, project_name)
         context = extract_context_from_file(file_path, start, end, sink_line)
 
         source_expression = extract_line(file_path, source_line)

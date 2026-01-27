@@ -26,9 +26,9 @@ def extract_line(file_path, line_number):
         logger.error(f"Error reading file {file_path}: {e}")
         return None
 
-def get_smart_context_range(file_path, sink_line, max_buffer=50):
+def get_smart_context_range(file_path, sink_line, project_name, max_buffer=50):
     """Find statement/function boundaries around sink_line using JS parsing"""
-    full_path = os.path.join(os.path.dirname(__file__), "codebases", "dvna", file_path.lstrip('/\\'))
+    full_path = os.path.join(os.path.dirname(__file__), "codebases", project_name, file_path.lstrip('/\\'))
     
     # Read file first for fallback
     try:
