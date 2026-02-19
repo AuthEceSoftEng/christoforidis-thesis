@@ -1,0 +1,255 @@
+{
+  "metrics": {
+    "true_positives": 6,
+    "false_positives": 3,
+    "false_negatives": 20,
+    "precision": 66.67,
+    "recall": 23.08,
+    "f1_score": 34.29
+  },
+  "true_positives": [
+    {
+      "file": "server.js",
+      "ground_truth_file": "./server.js",
+      "source_line": 23,
+      "sink_line": 28,
+      "matched_line": 24,
+      "vulnerability": "Consider changing the default session cookie name. An attacker can use it to fingerprint the server and target attacks accordingly.",
+      "check_id": "cookie_session_default",
+      "challenges": [
+        "InsecureSessionSecret"
+      ],
+      "detection_count": 6
+    },
+    {
+      "file": "core/appHandler.js",
+      "ground_truth_file": "./core/appHandler.js",
+      "source_line": 188,
+      "sink_line": 188,
+      "matched_line": 188,
+      "vulnerability": "Untrusted user input in redirect() can result in Open Redirect vulnerability. An http parameter may contain a URL value and could cause the web application to redirect the request to the specified URL",
+      "check_id": "express_open_redirect",
+      "challenges": [
+        "UnvalidatedRedirectsandForwards"
+      ],
+      "detection_count": 1
+    },
+    {
+      "file": "core/appHandler.js",
+      "ground_truth_file": "./core/appHandler.js",
+      "source_line": 218,
+      "sink_line": 218,
+      "matched_line": 218,
+      "vulnerability": "User controlled data in 'unserialize()' or 'deserialize()' function can result in Object Injection or Remote Code Injection.",
+      "check_id": "node_deserialize",
+      "challenges": [
+        "InsecureDeserialization"
+      ],
+      "detection_count": 1
+    },
+    {
+      "file": "core/appHandler.js",
+      "ground_truth_file": "./core/appHandler.js",
+      "source_line": 235,
+      "sink_line": 235,
+      "matched_line": 235,
+      "vulnerability": "User controlled data in XML parsers can result in XML External or Internal Entity (XXE) Processing vulnerabilities",
+      "check_id": "node_xxe",
+      "challenges": [
+        "XMLExternalEntities"
+      ],
+      "detection_count": 1
+    },
+    {
+      "file": "views/app/products.ejs",
+      "ground_truth_file": "./views/app/products.ejs",
+      "source_line": 51,
+      "sink_line": 51,
+      "matched_line": 49,
+      "vulnerability": "The EJS/ECT template has an unescaped variable. Untrusted user input passed to this variable results in Cross Site Scripting (XSS).",
+      "check_id": "ejs_ect_template",
+      "challenges": [
+        "StoredXSSinProductListing"
+      ],
+      "detection_count": 5
+    },
+    {
+      "file": "views/app/products.ejs",
+      "ground_truth_file": "./views/app/products.ejs",
+      "source_line": 20,
+      "sink_line": 20,
+      "matched_line": 20,
+      "vulnerability": "The EJS/ECT template has an unescaped variable. Untrusted user input passed to this variable results in Cross Site Scripting (XSS).",
+      "check_id": "ejs_ect_template",
+      "challenges": [
+        "ReflectedXSSinSearchQuery"
+      ],
+      "detection_count": 1
+    }
+  ],
+  "false_positives": [
+    {
+      "file": "routes/app.js",
+      "source_line": 23,
+      "sink_line": 23,
+      "vulnerability": "Untrusted user input in express render() function can result in arbitrary file read if hbs templating is used.",
+      "check_id": "express_lfr_warning"
+    },
+    {
+      "file": "routes/app.js",
+      "source_line": 37,
+      "sink_line": 39,
+      "vulnerability": "Untrusted user input in express render() function can result in arbitrary file read if hbs templating is used.",
+      "check_id": "express_lfr_warning"
+    },
+    {
+      "file": "config/db.js",
+      "source_line": 1,
+      "sink_line": 8,
+      "vulnerability": "The Sequelize connection string indicates that database server does not use TLS. Non TLS connections are susceptible to man in the middle (MITM) attacks.\n",
+      "check_id": "sequelize_tls"
+    }
+  ],
+  "false_negatives": [
+    {
+      "file": "./core/appHandler.js",
+      "line": 10,
+      "challenges": [
+        "SQLInjection"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 39,
+      "challenges": [
+        "CommandInjection"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 207,
+      "challenges": [
+        "HashedPasswordsDisclosed"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 208,
+      "challenges": [
+        "HashedPasswordsDisclosed"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 209,
+      "challenges": [
+        "HashedPasswordsDisclosed"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 210,
+      "challenges": [
+        "HashedPasswordsDisclosed"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 145,
+      "challenges": [
+        "MissingAuthorizationcheckinEditUser"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 146,
+      "challenges": [
+        "MissingAuthorizationcheckinEditUser"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 147,
+      "challenges": [
+        "MissingAuthorizationcheckinEditUser"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 148,
+      "challenges": [
+        "MissingAuthorizationcheckinEditUser"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 197,
+      "challenges": [
+        "ApplicationsendsStackTrace"
+      ]
+    },
+    {
+      "file": "./routes/app.js",
+      "line": 42,
+      "challenges": [
+        "UnauthorizedAccesstoUsersAPI1"
+      ]
+    },
+    {
+      "file": "./views/app/admin.ejs",
+      "line": 30,
+      "challenges": [
+        "UnauthorizedAccesstoUsersAPI2"
+      ]
+    },
+    {
+      "file": "./views/app/products.ejs",
+      "line": 50,
+      "challenges": [
+        "StoredXSSinProductListing"
+      ]
+    },
+    {
+      "file": "./views/app/products.ejs",
+      "line": 51,
+      "challenges": [
+        "StoredXSSinProductListing"
+      ]
+    },
+    {
+      "file": "./views/app/products.ejs",
+      "line": 52,
+      "challenges": [
+        "StoredXSSinProductListing"
+      ]
+    },
+    {
+      "file": "./views/app/products.ejs",
+      "line": 53,
+      "challenges": [
+        "StoredXSSinProductListing"
+      ]
+    },
+    {
+      "file": "./views/app/adminusers.ejs",
+      "line": 40,
+      "challenges": [
+        "DOMXSSinuserlisting"
+      ]
+    },
+    {
+      "file": "./views/app/adminusers.ejs",
+      "line": 41,
+      "challenges": [
+        "DOMXSSinuserlisting"
+      ]
+    },
+    {
+      "file": "./views/app/adminusers.ejs",
+      "line": 42,
+      "challenges": [
+        "DOMXSSinuserlisting"
+      ]
+    }
+  ]
+}

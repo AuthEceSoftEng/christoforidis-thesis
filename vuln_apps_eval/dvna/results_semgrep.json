@@ -1,11 +1,11 @@
 {
   "metrics": {
     "true_positives": 8,
-    "false_positives": 3,
+    "false_positives": 6,
     "false_negatives": 18,
-    "precision": 72.73,
+    "precision": 57.14,
     "recall": 30.77,
-    "f1_score": 43.24
+    "f1_score": 40.0
   },
   "true_positives": [
     {
@@ -107,10 +107,28 @@
   ],
   "false_positives": [
     {
+      "file": "Dockerfile",
+      "source_line": 13,
+      "sink_line": 13,
+      "vulnerability": "By not specifying a USER, a program in the container may run as 'root'. This is a security hazard. If an attacker can control a process running as root, they may have control over the container. Ensure that the last USER in a Dockerfile is a USER other than 'root'."
+    },
+    {
       "file": "config/db.js",
       "source_line": 1,
       "sink_line": 8,
       "vulnerability": "If TLS is disabled on server side (Postgresql server), Sequelize establishes connection without TLS and no error will be thrown. To prevent MITN (Man In The Middle) attack, TLS must be enforce by Sequelize. Set \"ssl: true\" or define settings \"ssl: {...}\""
+    },
+    {
+      "file": "docker-compose.yml",
+      "source_line": 18,
+      "sink_line": 18,
+      "vulnerability": "Service 'mysql-db' allows for privilege escalation via setuid or setgid binaries. Add 'no-new-privileges:true' in 'security_opt' to prevent this."
+    },
+    {
+      "file": "docker-compose.yml",
+      "source_line": 18,
+      "sink_line": 18,
+      "vulnerability": "Service 'mysql-db' is running with a writable root filesystem. This may allow malicious applications to download and run additional payloads, or modify container files. If an application inside a container has to save something temporarily consider using a tmpfs. Add 'read_only: true' to this service to prevent this."
     },
     {
       "file": "models/index.js",

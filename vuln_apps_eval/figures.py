@@ -51,6 +51,16 @@ tp_semgrep = results['metrics']["true_positives"]
 fp_semgrep = results['metrics']["false_positives"]
 fn_semgrep = results['metrics']["false_negatives"]
 
+# njsscan data
+with open(os.path.join(results_path, "results_njsscan.json"), "r") as f:
+    results = json.load(f)
+precision_njsscan = results['metrics']["precision"]
+recall_njsscan = results['metrics']["recall"]
+f1_njsscan = results['metrics']["f1_score"]
+tp_njsscan = results['metrics']["true_positives"]
+fp_njsscan = results['metrics']["false_positives"]
+fn_njsscan = results['metrics']["false_negatives"]
+
 
 #=== FIGURE 1 ALL IN ONE PLOT ==#
 plt.figure(figsize=(10, 6))
@@ -87,6 +97,7 @@ fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(16, 5))
 ax1.plot(thresholds, precision, marker='o', color='blue', linewidth=2.5, markersize=8, label='Proposed System')
 ax1.axhline(y=precision_baseline, color='purple', linestyle='--', linewidth=1.5, alpha=0.6, label='CodeQL Baseline')
 ax1.axhline(y=precision_semgrep, color='orange', linestyle='--', linewidth=1.5, alpha=0.6, label='Semgrep Baseline')
+ax1.axhline(y=precision_njsscan, color='dimgrey', linestyle='--', linewidth=1.5, alpha=0.6, label='NJSScan Baseline')
 ax1.set_xlabel('Threshold', fontsize=12, fontweight='bold')
 ax1.set_ylabel('Precision (%)', fontsize=12, fontweight='bold')
 ax1.set_title('Precision vs Threshold', fontsize=14, fontweight='bold', pad=15)
@@ -100,6 +111,7 @@ ax1.set_ylim(0, 100)
 ax2.plot(thresholds, recall, marker='o', color='green', linewidth=2.5, markersize=8, label='Proposed System')
 ax2.axhline(y=recall_baseline, color='purple', linestyle='--', linewidth=1.5, alpha=0.6, label='CodeQL Baseline')
 ax2.axhline(y=recall_semgrep, color='orange', linestyle='--', linewidth=1.5, alpha=0.6, label='Semgrep Baseline')
+ax2.axhline(y=recall_njsscan, color='dimgrey', linestyle='--', linewidth=1.5, alpha=0.6, label='NJSScan Baseline')
 ax2.set_xlabel('Threshold', fontsize=12, fontweight='bold')
 ax2.set_ylabel('Recall (%)', fontsize=12, fontweight='bold')
 ax2.set_title('Recall vs Threshold', fontsize=14, fontweight='bold', pad=15)
@@ -113,6 +125,7 @@ ax2.set_ylim(0, 100)
 ax3.plot(thresholds, f1, marker='o', color='red', linewidth=2.5, markersize=8, label='Proposed System')
 ax3.axhline(y=f1_baseline, color='purple', linestyle='--', linewidth=1.5, alpha=0.6, label='CodeQL Baseline')
 ax3.axhline(y=f1_semgrep, color='orange', linestyle='--', linewidth=1.5, alpha=0.6, label='Semgrep Baseline')
+ax3.axhline(y=f1_njsscan, color='dimgrey', linestyle='--', linewidth=1.5, alpha=0.6, label='NJSScan Baseline')
 ax3.set_xlabel('Threshold', fontsize=12, fontweight='bold')
 ax3.set_ylabel('F1 Score (%)', fontsize=12, fontweight='bold')
 ax3.set_title('F1 Score vs Threshold', fontsize=14, fontweight='bold', pad=15)
@@ -137,6 +150,7 @@ for i, value in enumerate(thresholds):
     
 plt.scatter(recall_baseline, precision_baseline, color='purple', s=200, marker='X', edgecolors='black', linewidths=1.5 ,label='CodeQL Baseline', zorder=4)
 plt.scatter(recall_semgrep, precision_semgrep, color='orange', s=200, marker='X', edgecolors='black', linewidths=1.5 ,label='Semgrep Baseline', zorder=4)
+plt.scatter(recall_njsscan, precision_njsscan, color='dimgrey', s=200, marker='X', edgecolors='black', linewidths=1.5 ,label='NJSScan Baseline', zorder=4)
 
 plt.xlabel('Recall (%)', fontsize=14, fontweight='bold')
 plt.ylabel('Precision (%)', fontsize=14, fontweight='bold')
@@ -201,9 +215,9 @@ plt.savefig(os.path.join(results_path, "tp_fp_stacked_bar_chart.png"), dpi=300, 
 #== FIGURE 6 GROUPED BAR CHART TP FP ==#
 fig, ax = plt.subplots(figsize=(12,6))
 
-thresholds_with_baseline = ['Semgrep', 'CodeQL Baseline'] + thresholds
-tp_with_baseline = [tp_semgrep, tp_baseline] + tp_counts
-fp_with_baseline = [fp_semgrep, fp_baseline] + fp_counts
+thresholds_with_baseline = ['NJSScan','Semgrep', 'CodeQL Baseline'] + thresholds
+tp_with_baseline = [tp_njsscan, tp_semgrep, tp_baseline] + tp_counts
+fp_with_baseline = [fp_njsscan, fp_semgrep, fp_baseline] + fp_counts
 
 x_pos = np.arange(len(thresholds_with_baseline))
 width = 0.35
