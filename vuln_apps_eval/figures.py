@@ -41,6 +41,17 @@ tp_baseline = results['metrics']["true_positives"]
 fp_baseline = results['metrics']["false_positives"]
 fn_baseline = results['metrics']["false_negatives"]
 
+# semgrep data
+with open(os.path.join(results_path, "results_semgrep.json"), "r") as f:
+    results = json.load(f)
+precision_semgrep = results['metrics']["precision"]
+recall_semgrep = results['metrics']["recall"]
+f1_semgrep = results['metrics']["f1_score"]
+tp_semgrep = results['metrics']["true_positives"]
+fp_semgrep = results['metrics']["false_positives"]
+fn_semgrep = results['metrics']["false_negatives"]
+
+
 #=== FIGURE 1 ALL IN ONE PLOT ==#
 plt.figure(figsize=(10, 6))
 
@@ -74,7 +85,8 @@ fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(16, 5))
 
 # precision
 ax1.plot(thresholds, precision, marker='o', color='blue', linewidth=2.5, markersize=8, label='Proposed System')
-ax1.axhline(y=precision_baseline, color='blue', linestyle='--', linewidth=1.5, alpha=0.6, label='Baseline')
+ax1.axhline(y=precision_baseline, color='purple', linestyle='--', linewidth=1.5, alpha=0.6, label='CodeQL Baseline')
+ax1.axhline(y=precision_semgrep, color='orange', linestyle='--', linewidth=1.5, alpha=0.6, label='Semgrep Baseline')
 ax1.set_xlabel('Threshold', fontsize=12, fontweight='bold')
 ax1.set_ylabel('Precision (%)', fontsize=12, fontweight='bold')
 ax1.set_title('Precision vs Threshold', fontsize=14, fontweight='bold', pad=15)
@@ -86,7 +98,8 @@ ax1.set_ylim(0, 100)
 
 # recall
 ax2.plot(thresholds, recall, marker='o', color='green', linewidth=2.5, markersize=8, label='Proposed System')
-ax2.axhline(y=recall_baseline, color='green', linestyle='--', linewidth=1.5, alpha=0.6, label='Baseline')
+ax2.axhline(y=recall_baseline, color='purple', linestyle='--', linewidth=1.5, alpha=0.6, label='CodeQL Baseline')
+ax2.axhline(y=recall_semgrep, color='orange', linestyle='--', linewidth=1.5, alpha=0.6, label='Semgrep Baseline')
 ax2.set_xlabel('Threshold', fontsize=12, fontweight='bold')
 ax2.set_ylabel('Recall (%)', fontsize=12, fontweight='bold')
 ax2.set_title('Recall vs Threshold', fontsize=14, fontweight='bold', pad=15)
@@ -98,7 +111,8 @@ ax2.set_ylim(0, 100)
 
 # f1 score
 ax3.plot(thresholds, f1, marker='o', color='red', linewidth=2.5, markersize=8, label='Proposed System')
-ax3.axhline(y=f1_baseline, color='red', linestyle='--', linewidth=1.5, alpha=0.6, label='Baseline')
+ax3.axhline(y=f1_baseline, color='purple', linestyle='--', linewidth=1.5, alpha=0.6, label='CodeQL Baseline')
+ax3.axhline(y=f1_semgrep, color='orange', linestyle='--', linewidth=1.5, alpha=0.6, label='Semgrep Baseline')
 ax3.set_xlabel('Threshold', fontsize=12, fontweight='bold')
 ax3.set_ylabel('F1 Score (%)', fontsize=12, fontweight='bold')
 ax3.set_title('F1 Score vs Threshold', fontsize=14, fontweight='bold', pad=15)
@@ -115,13 +129,14 @@ plt.savefig(os.path.join(results_path, "metrics_vs_thresholds_subplots.png"), dp
 #=== FIGURE 3 PRECISION-RECALL CURVE ===#
 plt.figure(figsize=(10,8))
 
-plt.plot(recall, precision, marker='o', color='purple', linewidth=2.5, markersize=10, label='Proposed System', zorder=3)
+plt.plot(recall, precision, marker='o', color='blue', linewidth=2.5, markersize=10, label='Proposed System', zorder=3)
 
 for i, value in enumerate(thresholds):
     plt.annotate(f'{value}', xy=(recall[i], precision[i]), textcoords="offset points", xytext=(8, 8), fontsize=9,
                  bbox=dict(boxstyle="round,pad=0.3", fc='white', edgecolor='grey', alpha=0.9))
     
-plt.scatter(recall_baseline, precision_baseline, color='red', s=200, marker='X', edgecolors='black', linewidths=1.5 ,label='Baseline', zorder=4)
+plt.scatter(recall_baseline, precision_baseline, color='purple', s=200, marker='X', edgecolors='black', linewidths=1.5 ,label='CodeQL Baseline', zorder=4)
+plt.scatter(recall_semgrep, precision_semgrep, color='orange', s=200, marker='X', edgecolors='black', linewidths=1.5 ,label='Semgrep Baseline', zorder=4)
 
 plt.xlabel('Recall (%)', fontsize=14, fontweight='bold')
 plt.ylabel('Precision (%)', fontsize=14, fontweight='bold')
@@ -186,9 +201,9 @@ plt.savefig(os.path.join(results_path, "tp_fp_stacked_bar_chart.png"), dpi=300, 
 #== FIGURE 6 GROUPED BAR CHART TP FP ==#
 fig, ax = plt.subplots(figsize=(12,6))
 
-thresholds_with_baseline = ['Baseline'] + thresholds
-tp_with_baseline = [tp_baseline] + tp_counts
-fp_with_baseline = [fp_baseline] + fp_counts
+thresholds_with_baseline = ['Semgrep', 'CodeQL Baseline'] + thresholds
+tp_with_baseline = [tp_semgrep, tp_baseline] + tp_counts
+fp_with_baseline = [fp_semgrep, fp_baseline] + fp_counts
 
 x_pos = np.arange(len(thresholds_with_baseline))
 width = 0.35

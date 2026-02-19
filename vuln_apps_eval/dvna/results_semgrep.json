@@ -1,0 +1,256 @@
+{
+  "metrics": {
+    "true_positives": 8,
+    "false_positives": 3,
+    "false_negatives": 18,
+    "precision": 72.73,
+    "recall": 30.77,
+    "f1_score": 43.24
+  },
+  "true_positives": [
+    {
+      "file": "core/appHandler.js",
+      "ground_truth_file": "./core/appHandler.js",
+      "source_line": 11,
+      "sink_line": 11,
+      "matched_line": 10,
+      "vulnerability": "Untrusted input might be used to build a database query, which can lead to a SQL injection vulnerability. An attacker can execute malicious SQL statements and gain unauthorized access to sensitive data, modify, delete data, or execute arbitrary system commands. To prevent this vulnerability, use prepared statements that do not concatenate user-controllable strings and use parameterized queries where SQL commands and user data are strictly separated. Also, consider using an object-relational (ORM) framework to operate with safer abstractions.",
+      "challenges": [
+        "SQLInjection"
+      ],
+      "detection_count": 2
+    },
+    {
+      "file": "core/appHandler.js",
+      "ground_truth_file": "./core/appHandler.js",
+      "source_line": 39,
+      "sink_line": 39,
+      "matched_line": 39,
+      "vulnerability": "Untrusted input might be injected into a command executed by the application, which can lead to a command injection vulnerability. An attacker can execute arbitrary commands, potentially gaining complete control of the system. To prevent this vulnerability, avoid executing OS commands with user input. If this is unavoidable, validate and sanitize the user input, and use safe methods for executing the commands. For more information, see [Command injection prevention for JavaScript ] (https://semgrep.dev/docs/cheat-sheets/javascript-command-injection/).",
+      "challenges": [
+        "CommandInjection"
+      ],
+      "detection_count": 1
+    },
+    {
+      "file": "core/appHandler.js",
+      "ground_truth_file": "./core/appHandler.js",
+      "source_line": 188,
+      "sink_line": 188,
+      "matched_line": 188,
+      "vulnerability": "The application builds a URL using user-controlled input which can lead to an open redirect vulnerability. An attacker can manipulate the URL and redirect users to an arbitrary domain. Open redirect vulnerabilities can lead to issues such as Cross-site scripting (XSS) or redirecting to a malicious domain for activities such as phishing to capture users' credentials. To prevent this vulnerability perform strict input validation of the domain against an allowlist of approved domains. Notify a user in your application that they are leaving the website. Display a domain where they are redirected to the user. A user can then either accept or deny the redirect to an untrusted site.",
+      "challenges": [
+        "UnvalidatedRedirectsandForwards"
+      ],
+      "detection_count": 3
+    },
+    {
+      "file": "core/appHandler.js",
+      "ground_truth_file": "./core/appHandler.js",
+      "source_line": 218,
+      "sink_line": 218,
+      "matched_line": 218,
+      "vulnerability": "The following function call serialize.unserialize accepts user controlled data which can result in Remote Code Execution (RCE) through Object Deserialization. It is recommended to use secure data processing alternatives such as JSON.parse() and Buffer.from().",
+      "challenges": [
+        "InsecureDeserialization"
+      ],
+      "detection_count": 1
+    },
+    {
+      "file": "core/appHandler.js",
+      "ground_truth_file": "./core/appHandler.js",
+      "source_line": 235,
+      "sink_line": 235,
+      "matched_line": 235,
+      "vulnerability": "The libxml library processes user-input with the `noent` attribute is set to `true` which can lead to being vulnerable to XML External Entities (XXE) type attacks. It is recommended to set `noent` to `false` when using this feature to ensure you are protected.",
+      "challenges": [
+        "XMLExternalEntities"
+      ],
+      "detection_count": 1
+    },
+    {
+      "file": "server.js",
+      "ground_truth_file": "./server.js",
+      "source_line": 23,
+      "sink_line": 28,
+      "matched_line": 24,
+      "vulnerability": "Don\u2019t use the default session cookie name Using the default session cookie name can open your app to attacks. The security issue posed is similar to X-Powered-By: a potential attacker can use it to fingerprint the server and target attacks accordingly.",
+      "challenges": [
+        "InsecureSessionSecret"
+      ],
+      "detection_count": 7
+    },
+    {
+      "file": "views/app/products.ejs",
+      "ground_truth_file": "./views/app/products.ejs",
+      "source_line": 20,
+      "sink_line": 20,
+      "matched_line": 20,
+      "vulnerability": "Detected an explicit unescape in an EJS template, using '<%- ... %>' If external data can reach these locations, your application is exposed to a cross-site scripting (XSS) vulnerability. Use '<%= ... %>' to escape this data. If you need escaping, ensure no external data can reach this location.",
+      "challenges": [
+        "ReflectedXSSinSearchQuery"
+      ],
+      "detection_count": 1
+    },
+    {
+      "file": "views/app/products.ejs",
+      "ground_truth_file": "./views/app/products.ejs",
+      "source_line": 49,
+      "sink_line": 49,
+      "matched_line": 49,
+      "vulnerability": "Detected an explicit unescape in an EJS template, using '<%- ... %>' If external data can reach these locations, your application is exposed to a cross-site scripting (XSS) vulnerability. Use '<%= ... %>' to escape this data. If you need escaping, ensure no external data can reach this location.",
+      "challenges": [
+        "StoredXSSinProductListing"
+      ],
+      "detection_count": 5
+    }
+  ],
+  "false_positives": [
+    {
+      "file": "config/db.js",
+      "source_line": 1,
+      "sink_line": 8,
+      "vulnerability": "If TLS is disabled on server side (Postgresql server), Sequelize establishes connection without TLS and no error will be thrown. To prevent MITN (Man In The Middle) attack, TLS must be enforce by Sequelize. Set \"ssl: true\" or define settings \"ssl: {...}\""
+    },
+    {
+      "file": "models/index.js",
+      "source_line": 43,
+      "sink_line": 43,
+      "vulnerability": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "file": "server.js",
+      "source_line": 11,
+      "sink_line": 11,
+      "vulnerability": "A CSRF middleware was not detected in your express application. Ensure you are either using one such as `csurf` or `csrf` (see rule references) and/or you are properly doing CSRF validation in your routes with a token or cookies."
+    }
+  ],
+  "false_negatives": [
+    {
+      "file": "./core/appHandler.js",
+      "line": 207,
+      "challenges": [
+        "HashedPasswordsDisclosed"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 208,
+      "challenges": [
+        "HashedPasswordsDisclosed"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 209,
+      "challenges": [
+        "HashedPasswordsDisclosed"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 210,
+      "challenges": [
+        "HashedPasswordsDisclosed"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 145,
+      "challenges": [
+        "MissingAuthorizationcheckinEditUser"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 146,
+      "challenges": [
+        "MissingAuthorizationcheckinEditUser"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 147,
+      "challenges": [
+        "MissingAuthorizationcheckinEditUser"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 148,
+      "challenges": [
+        "MissingAuthorizationcheckinEditUser"
+      ]
+    },
+    {
+      "file": "./core/appHandler.js",
+      "line": 197,
+      "challenges": [
+        "ApplicationsendsStackTrace"
+      ]
+    },
+    {
+      "file": "./routes/app.js",
+      "line": 42,
+      "challenges": [
+        "UnauthorizedAccesstoUsersAPI1"
+      ]
+    },
+    {
+      "file": "./views/app/admin.ejs",
+      "line": 30,
+      "challenges": [
+        "UnauthorizedAccesstoUsersAPI2"
+      ]
+    },
+    {
+      "file": "./views/app/products.ejs",
+      "line": 50,
+      "challenges": [
+        "StoredXSSinProductListing"
+      ]
+    },
+    {
+      "file": "./views/app/products.ejs",
+      "line": 51,
+      "challenges": [
+        "StoredXSSinProductListing"
+      ]
+    },
+    {
+      "file": "./views/app/products.ejs",
+      "line": 52,
+      "challenges": [
+        "StoredXSSinProductListing"
+      ]
+    },
+    {
+      "file": "./views/app/products.ejs",
+      "line": 53,
+      "challenges": [
+        "StoredXSSinProductListing"
+      ]
+    },
+    {
+      "file": "./views/app/adminusers.ejs",
+      "line": 40,
+      "challenges": [
+        "DOMXSSinuserlisting"
+      ]
+    },
+    {
+      "file": "./views/app/adminusers.ejs",
+      "line": 41,
+      "challenges": [
+        "DOMXSSinuserlisting"
+      ]
+    },
+    {
+      "file": "./views/app/adminusers.ejs",
+      "line": 42,
+      "challenges": [
+        "DOMXSSinuserlisting"
+      ]
+    }
+  ]
+}
