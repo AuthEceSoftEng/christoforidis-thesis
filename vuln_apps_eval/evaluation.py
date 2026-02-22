@@ -292,22 +292,7 @@ def process_single_project(project_name, codebases_folder, project_root, report_
         generate_codeql_package_classification(classified_methods, qll_path)
         
         # conditional sanitizers
-        """
-        IGNORE CONDITIONAL SANITIZERS FOR JUICE-SHOP/DVNA EVALUATION
-        THEY ARE NOT RELEVANT FOR THIS PROJECT
-        TIME-SAVING PURPOSES
-        """
-        with open(f"{results_path}_vulnerable_classified.json", 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            cleaned = [
-                        entry for entry in data
-                        if entry.get("classification", "").lower() != "conditional_sanitizer"
-                    ]
-        with open(f"{results_path}_vulnerable_classified.json", 'w', encoding='utf-8') as f:
-            json.dump(cleaned, f, indent=2, ensure_ascii=False)
         qll_path = os.path.join(project_specific_dir, "ConditionalSanitizers.qll")
-        with open(f"{results_path}_vulnerable_classified.json", 'r', encoding='utf-8') as f:
-            classified_methods = json.load(f)
         generate_conditional_sanitizer_library(classified_methods, qll_path)
 
         cleanup_test_queries(project_specific_dir)
@@ -465,7 +450,7 @@ def main():
     logger.info(f"Progress report initialized: {report_file_path}")
 
 
-    project_names = ["dvna", "juice-shop"] # dvna evaluation #temp
+    project_names = ["dvna"] # dvna evaluation #temp
     codebases_folder = os.path.join(project_root, "codebases")
 
     completed_projects = []
