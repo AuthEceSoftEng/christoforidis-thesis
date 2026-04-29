@@ -1,3 +1,29 @@
+"""
+CodeQL query generation and LLM-based iterative refinement engine.
+
+This is the core intelligence module of the pipeline. It handles:
+
+  1. Package classification library generation: Converts LLM-classified methods
+     into CodeQL .qll predicates (isVulnerableSource, isVulnerableSink, etc.)
+
+  2. Conditional sanitizer library generation: Uses the LLM to write CodeQL
+     predicates that detect when a sanitizer can be bypassed, with iterative
+     error correction (up to 5 rounds of compile -> fix -> recompile).
+
+  3. Vulnerability query assembly: Builds complete @kind path-problem CodeQL
+     queries for each CWE, combining sources, sinks, sanitizers, and taint
+     flow steps.
+
+  4. Two-phase query refinement:
+     - Sink refinement: LLM explains missing sink patterns, then implements them
+     - Flow refinement: LLM explains missing flow steps, then implements them
+     Both phases use RAG from the ChromaDB vector database of CodeQL documentation
+     and validate generated code against the CodeQL compiler.
+
+  5. Registry-based CWE compatibility: Checks which CWEs have compatibility
+     layers (compat/) and uses them to bridge standard CodeQL with custom queries.
+"""
+
 import glob
 import re
 import os

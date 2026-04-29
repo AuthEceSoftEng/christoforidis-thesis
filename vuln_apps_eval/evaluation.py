@@ -1,3 +1,20 @@
+"""
+Vulnerable application evaluation pipeline.
+
+Adapted version of evaluation_cves/specific_evaluator.py for evaluating the
+system against intentionally vulnerable applications (DVNA, OWASP Juice Shop,
+SecureGarden). Includes call graph extraction and CWE-specific call graph
+filtering for project-aware query refinement.
+
+Key differences from the CVE evaluator:
+  - Works with pre-cloned applications (no CVE-based commit checkout)
+  - Integrates call graph analysis for project-specific context
+  - Supports batch query execution for efficiency
+
+Note: This is a temporary adaptation pending full integration with the
+CVE evaluator due to different project structure assumptions.
+"""
+
 import logging
 import time
 import os
@@ -13,18 +30,11 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from utils.general import extract_call_graph, format_call_graph_for_cwe
 from utils.create_db import create_codeql_database
-from utils.query_runner import run_codeql_query_tables, run_codeql_path_problem, run_codeql_queries_batch  # ADD run_codeql_queries_batch
+from utils.query_runner import run_codeql_query_tables, run_codeql_path_problem, run_codeql_queries_batch
 from utils.methods_post_process import deduplicate_methods, methods_to_json, compare_with_advisories, classify_vulnerable_methods
 from utils.query_generator import generate_codeql_package_classification, generate_conditional_sanitizer_library, cleanup_test_queries, refine_vulnerability_query
 from utils.cwe_decider import cwes_to_check
 from utils.LLM import set_current_project, get_llm_stats, get_all_project_stats, reset_llm_stats
-
-"""
-COPY OF EVALUATION_CVES.SPECIFIC_EVALUATOR.PYY WITH MODIFICATIONS FOR VULN APPS (JUICE-SHOP DVNA ETC) EVALUATION
-TEMPORARY FILE UNTIL FINAL INTEGRATION IS DONE
-COULD NOT REUSE THE ORIGINAL EVALUATION FILE DUE TO DIFFERENT PROJECT STRUCTURE
-SHOULD MAKE INTEGRATION EASIER LATER ON
-"""
 
 # set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

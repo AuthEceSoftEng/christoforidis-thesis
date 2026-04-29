@@ -1,3 +1,17 @@
+"""
+LLM-based false positive filtering for CodeQL vulnerability findings.
+
+After CodeQL produces raw vulnerability detections, this module sends each
+finding (along with surrounding source code context) to the LLM for a
+confidence assessment. Findings below a configurable threshold are filtered
+out as likely false positives.
+
+Provides two modes:
+  - filter_llm_findings(): Live filtering that calls the LLM for each finding
+  - filter_with_existing_responses(): Re-filter using previously saved LLM responses
+    at different confidence thresholds without re-invoking the LLM
+"""
+
 import pandas as pd
 import os
 import logging
@@ -10,6 +24,21 @@ from .LLM import LLMHandler
 logger = logging.getLogger(__name__)
 
 def filter_llm_findings(project_name, csv_path, filtered_csv_path, threshold = 0.6, response_output_path = None):
+    """
+    Filter CodeQL findings using LLM-based confidence scoring.
+
+    For each finding in the CSV, extracts the surrounding source code context
+    (using smart AST-based range detection), sends it to the LLM with the
+    vulnerability details, and parses the confidence score from the response.
+    Findings below the threshold are filtered out as likely false positives.
+
+    Args:
+        project_name: Name of the project (used to locate source files).
+        csv_path: Path to the CSV file with raw CodeQL findings.
+        filtered_csv_path: Path to write the filtered CSV output.
+        threshold: Minimum confidence score to retain a finding (default 0.6).
+        response_output_path: Optional path to save raw LLM responses for later re-filtering.
+    """
     # Initialize LLM handler
     llm_handler = LLMHandler('claude', temperature=0.2)
 

@@ -1,7 +1,21 @@
+"""
+Post-processing script to combine and deduplicate CSV result files.
+
+Walks through all subdirectories of a given output directory, finds CSV
+result files (excluding already-combined/deduplicated files), merges them
+into a single combined.csv, and then deduplicates based on file path,
+source line, and sink line columns to produce deduplicated.csv.
+
+Usage:
+    Edit the `parent_dir` variable below to point to your output directory,
+    then run: python results_process.py
+"""
+
 import os
 import pandas as pd
 
 # Path to the parent directory containing all the folders
+# NOTE: Update this path to point to your specific output directory
 parent_dir = r"C:\Projects\thesis\output\juice-shop_evaluation2\juice-shop"
 
 # Walk through all subdirectories

@@ -1,3 +1,13 @@
+"""
+Repository cloning and web scraping utilities.
+
+Provides two main capabilities:
+  - clone_vulnerable_repos(): Reads CVE JSON files to clone repositories at
+    their pre-patch commit, creating a snapshot of the vulnerable codebase.
+  - extract_cwe_codes(): Scrapes OWASP Top 10 web pages to extract CWE codes,
+    used to build the evaluation subset of CVEs.
+"""
+
 import os
 import json
 import subprocess
@@ -11,7 +21,17 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 def clone_vulnerable_repos(json_folder: str, output_folder: str):
+    """
+    Clone repositories at their pre-patch commits for vulnerability evaluation.
 
+    Reads CVE JSON files from the given folder, extracts the repository URL
+    and pre-patch commit hash, and clones each repo at that specific commit.
+    Skips repositories that have already been cloned.
+
+    Args:
+        json_folder: Path to directory containing CVE JSON files.
+        output_folder: Path to directory where repos will be cloned.
+    """
     # output folder exists
     os.makedirs(output_folder, exist_ok=True)
 
@@ -48,7 +68,18 @@ def clone_vulnerable_repos(json_folder: str, output_folder: str):
                     logger.error(f"Git error in {filename}: {e}")
 
 def extract_cwe_codes(url):
-    # extract CWE codes from a given URL (scraping the page)
+    """
+    Scrape CWE codes from a given URL (e.g., OWASP Top 10 pages).
+
+    Fetches the page HTML, extracts all text, and finds all occurrences
+    of the pattern 'CWE-<number>'.
+
+    Args:
+        url: URL of the page to scrape.
+
+    Returns:
+        List of unique CWE code strings (e.g., ['CWE-79', 'CWE-89']).
+    """
     try:
         response = requests.get(url)
         response.raise_for_status()

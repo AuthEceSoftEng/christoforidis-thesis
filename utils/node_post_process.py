@@ -1,3 +1,16 @@
+"""
+Post-processing of CodeQL source/sink node extraction results.
+
+Handles the full processing pipeline for extracted nodes:
+  1. Deduplication by context (keeps entries with the most context lines)
+  2. Full expression extraction (resolves truncated '...' expressions by
+     reading the original source files)
+  3. Deduplication by expression (keeps the longest full expression)
+  4. Context range validation (ensures ranges stay within file boundaries,
+     trims oversized contexts, centers around the node line)
+  5. Conversion to JSON format with highlighted context text
+"""
+
 import json
 import os
 import pandas as pd

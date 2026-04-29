@@ -1,3 +1,15 @@
+"""
+Text extraction from CodeQL documentation files.
+
+Reads raw documentation files (.md, .ql, .qll, .rst) from docs_original/,
+extracts their text content, cleans it (removes URLs, excessive whitespace),
+and saves the processed text as .txt files in docs_txt/. These text files
+are then indexed by create_vector_db.py into the ChromaDB vector database.
+
+Usage:
+    python vector_db/extraction.py
+"""
+
 import re
 import os
 import logging

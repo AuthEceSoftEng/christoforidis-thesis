@@ -1,3 +1,21 @@
+"""
+Vulnerability detection result analyzer.
+
+Compares CodeQL detection results (CSV) against ground truth vulnerability
+data (JSON) to compute standard security evaluation metrics:
+  - True Positives (TP): Correctly identified vulnerabilities
+  - False Positives (FP): Reported vulnerabilities that don't exist
+  - False Negatives (FN): Missed vulnerabilities
+  - Precision, Recall, and F1 Score
+
+Matching logic supports two conditions:
+  1. Exact line match: source or sink line matches a known vulnerable line
+  2. Range match: source and sink span a known vulnerable code range
+
+Usage:
+    python analyze_results.py <csv_file> <json_ground_truth> [output.json]
+"""
+
 import csv
 import json
 import sys

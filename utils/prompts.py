@@ -1,4 +1,24 @@
+"""
+LLM prompt templates for all stages of the vulnerability detection pipeline.
+
+This module contains prompt-building functions that construct structured messages
+for the LLM at each stage of the analysis:
+
+  - Method classification (SOURCE/SINK/PROPAGATOR/CONDITIONAL_SANITIZER)
+  - Conditional sanitizer predicate generation and refinement
+  - Sink selection for specific CWEs
+  - Two-phase sink and flow step refinement (explanation -> implementation)
+  - CWE identification from project metadata
+  - False positive confidence scoring
+  - Call graph keyword filtering
+
+Each function returns a list of message dicts with 'role' and 'message' keys,
+ready to be passed to LLMHandler.send_message().
+"""
+
+
 def get_initial_sanitizer_prompt(sanitizer):
+    """Build prompt for generating a CodeQL predicate to detect a bypassable conditional sanitizer."""
     package = sanitizer["package"]
     method = sanitizer["method"]
     bypass_condition = sanitizer["bypass_condition"]
@@ -33,6 +53,7 @@ DO NOT ADD ANY OTHER PREDICATES ONLY THE ONE REQUESTED.
     ]
 
 def get_refinement_sanitizer_prompt(sanitizer, initial_predicate, docs_text, errors):
+    """Build prompt for refining a sanitizer predicate after compilation errors."""
     package = sanitizer["package"]
     method = sanitizer["method"]
     bypass_condition = sanitizer["bypass_condition"]
@@ -79,6 +100,7 @@ DO NOT ADD ANY OTHER PREDICATES ONLY THE ONE REQUESTED.
 
 
 def get_classifying_methods_prompt(package_name, version, method, advisory):
+    """Build prompt for classifying an npm method as SOURCE/SINK/PROPAGATOR/CONDITIONAL_SANITIZER."""
     CLASSIFYING_METHODS_PROMPT = [
         {
             "role": "user",
@@ -128,6 +150,7 @@ Only provide the output in this format. Do not include any explanations or comme
     return CLASSIFYING_METHODS_PROMPT
 
 def get_sink_selection_prompt(cwe_details):
+    """Build prompt for selecting relevant sink categories for a given CWE."""
     sink_selection_prompt = f"""
 You are a security analyst tasked with selecting the most relevant sinks for a given CWE (Common Weakness Enumeration) vulnerability.
 Select the appropriate sink categories from the following list for detecting the following CWE:
@@ -153,6 +176,7 @@ Return only the selected sink categories in a comma-separated format without any
     return [{"role": "user", "message": sink_selection_prompt}]
 
 def flow_explaination_prompt(cwe_details, flow_predicate, sink_predicate, sinks_extracted, docs, readme_content=None, package_content=None, call_graph=None):
+    """Build prompt for the explanation phase of flow step refinement (phase 1 of 2)."""
     prompt = f"""
     You are a CodeQL expert specialized in security vulnerabilities for Javascript projects. You are tasked with improving an isAdditionalFlowStep predicate in a custom configuration.
     The configuration tries to detect the following CWE (Common Weakness Enumeration) vulnerability.
@@ -231,6 +255,7 @@ CURRENT IMPLEMENTATION:
     return [{"role": "user", "message": prompt}]
 
 def flow_implementation_prompt(flow_predicate, explanation, docs):
+    """Build prompt for the implementation phase of flow step refinement (phase 2 of 2)."""
     prompt = f"""
     You are a CodeQL expert specialized in security vulnerabilities for Javascript projects. Based on your previous analysis of missing flow patterns:
 
@@ -265,6 +290,7 @@ def flow_implementation_prompt(flow_predicate, explanation, docs):
     return [{"role": "user", "message": prompt}]
 
 def flow_refinement_prompt(flow_predicate, errors, docs):
+    """Build prompt for fixing compilation errors in a flow step predicate."""
     prompt = f"""
 You are a CodeQL expert specialized in security vulnerabilities for Javascript projects. You previously wrote an improved predicate for missing flow patterns
 
@@ -291,6 +317,7 @@ Write only the improved predicate code without explanation or commentary and ext
     return [{"role": "user", "message": prompt}]
 
 def decide_cwes_prompt(project_name: str, readme_content: str, package_content: str):
+    """Build prompt for identifying applicable CWEs from project metadata."""
     prompt= f"""
 You are a security analyst tasked with identifying all Common Weakness Enumerations (CWEs) we should try to detect for a given JavaScript project.
 
@@ -319,6 +346,7 @@ Do not include any other text or explanation.
     return [{"role": "user", "message": prompt}]
 
 def sink_explaination_prompt(cwe_details, sink_predicate, sinks_extracted, docs, readme_content=None, package_content=None, call_graph=None):
+    """Build prompt for the explanation phase of sink refinement (phase 1 of 2)."""
     prompt = f"""
     You are a CodeQL expert specialized in security vulnerabilities for Javascript projects. You are tasked with improving an isSink predicate in a custom configuration.
     The configuration tries to detect the following CWE (Common Weakness Enumeration) vulnerability.
@@ -398,6 +426,7 @@ CURRENT IMPLEMENTATION:
     return [{"role": "user", "message": prompt}]
 
 def sink_implementation_prompt(sink_predicate, explanation, docs):
+    """Build prompt for the implementation phase of sink refinement (phase 2 of 2)."""
     prompt = f"""
     You are a CodeQL expert specialized in security vulnerabilities for Javascript projects. Based on your previous analysis of missing sink patterns:
 
@@ -434,6 +463,7 @@ def sink_implementation_prompt(sink_predicate, explanation, docs):
     return [{"role": "user", "message": prompt}]
 
 def sink_refinement_prompt(sink_predicate, errors, docs):
+    """Build prompt for fixing compilation errors in a sink predicate."""
     prompt = f"""
 You are a CodeQL expert specialized in security vulnerabilities for Javascript projects. You previously wrote an improved predicate for missing sink patterns
 
@@ -461,6 +491,7 @@ DO NOT ADD ANY OTHER PREDICATES ONLY THE ONE REQUESTED.
     return [{"role": "user", "message": prompt}]
 
 def keywords_filter_prompt(cwe_id, cwe_details):
+    """Build prompt for identifying call graph filtering keywords relevant to a CWE."""
     keyword_prompt = [{
         "role": "user",
         "message": f"""You are analyzing a call graph to identify security-relevant function calls for a specific vulnerability type.
@@ -486,6 +517,7 @@ Example output: query, execute, find, sql, database"""
     return keyword_prompt
 
 def get_vulnerability_confidence(context, file_path, source_line, source_expression, sink_line, sink_expression, query_name, description):
+    """Build prompt for assessing whether a detected vulnerability is a true positive or false positive."""
     prompt = f"""
 You are a security analyst reviewing a code snippet to determine if it contains a vulnerability.
 **Reported Vulnerability Type**: {query_name} - {description}

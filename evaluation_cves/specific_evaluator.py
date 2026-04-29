@@ -1,3 +1,19 @@
+"""
+CVE-based evaluation pipeline with detailed performance tracking.
+
+Runs the full vulnerability detection pipeline against real-world CVEs:
+  1. Clone repositories at their pre-patch (vulnerable) commits
+  2. Create CodeQL databases from the source code
+  3. Extract npm package methods and match against GitHub Security Advisories
+  4. Classify methods using LLM and generate CodeQL libraries
+  5. Determine applicable CWEs and generate/refine vulnerability queries
+  6. Run final queries and collect results
+
+Tracks detailed timing statistics for both LLM and CodeQL operations
+per project, enabling performance analysis of each pipeline stage.
+Outputs progress reports to output/reports/.
+"""
+
 import logging
 import time
 import os

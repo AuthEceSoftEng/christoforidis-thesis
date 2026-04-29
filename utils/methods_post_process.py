@@ -1,3 +1,16 @@
+"""
+Post-processing of extracted npm package methods for vulnerability analysis.
+
+This module handles the full lifecycle of method analysis:
+  1. Deduplication of extracted methods from CodeQL results
+  2. Conversion of method DataFrames to JSON format
+  3. Fetching npm security advisories via the GitHub API
+  4. Comparing project dependencies against known advisories (version range matching)
+  5. LLM-based classification of vulnerable methods into taint analysis roles
+     (SOURCE, SINK, PROPAGATOR, CONDITIONAL_SANITIZER)
+  6. Deduplication of conditional sanitizers using fuzzy string matching
+"""
+
 import semver
 import re
 import subprocess

@@ -1,3 +1,20 @@
+"""
+Build the ChromaDB vector database from CodeQL documentation.
+
+Creates two separate collections for retrieval-augmented generation (RAG):
+  - codeql_queries: Indexed CodeQL query examples (.ql and .qll files)
+  - codeql_documentation: Indexed documentation (.rst and .md files)
+
+The vector database is used during query refinement to provide relevant
+CodeQL documentation context to the LLM when it encounters compilation
+errors or needs to implement new predicates.
+
+Uses the 'all-MiniLM-L6-v2' SentenceTransformer model for embeddings.
+
+Usage:
+    python vector_db/create_vector_db.py
+"""
+
 import os
 import glob
 import logging

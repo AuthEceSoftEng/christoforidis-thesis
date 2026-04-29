@@ -1,3 +1,16 @@
+"""
+CodeQL CLI wrapper for executing queries and decoding results.
+
+Provides functions to run CodeQL queries against a database and convert
+the output into usable formats (CSV, SARIF):
+
+  - run_codeql_query_tables(): Run @kind table queries -> BQRS -> CSV
+  - run_codeql_path_problem(): Run @kind path-problem queries -> SARIF + CSV
+  - run_codeql_queries_batch(): Run multiple queries in parallel with threading
+
+All functions return a tuple of (success_status, error_message, execution_time).
+"""
+
 import os
 import subprocess
 import logging

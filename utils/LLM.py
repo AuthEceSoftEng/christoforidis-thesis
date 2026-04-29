@@ -1,3 +1,21 @@
+"""
+Multi-model LLM handler for interacting with different language model providers.
+
+Supports three backends:
+  - Claude 3.7 Sonnet (via AWS Bedrock) - primary model
+  - Llama 3.2 (via AWS Bedrock)
+  - GPT-4o (via OpenAI API, currently disabled)
+
+Provides a unified `LLMHandler` class that abstracts away model-specific
+message formatting and API calls. Also includes global and per-project
+statistics tracking (request count, timing, token estimation) for
+performance analysis during evaluation runs.
+
+Environment Variables:
+    ACCOUNT_ID: AWS account ID for constructing Bedrock inference profile ARNs.
+    OPENAI_API_KEY: (Optional) OpenAI API key for GPT-4o support.
+"""
+
 import os
 import json
 import boto3 # type: ignore

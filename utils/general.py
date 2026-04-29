@@ -1,3 +1,15 @@
+"""
+General utility functions for the vulnerability detection pipeline.
+
+Provides helpers for:
+  - Extracting lines and code context from source files
+  - Smart context range detection using JavaScript AST parsing (esprima)
+  - Fetching CWE details from the MITRE CWE API
+  - Extracting CodeQL predicates from .qll files
+  - Extracting and formatting project call graphs via CodeQL queries
+  - Filtering call graph data by CWE-relevant keywords (using LLM)
+"""
+
 import os
 import logging
 import pandas as pd
@@ -101,7 +113,7 @@ def get_smart_context_range(file_path, sink_line, project_name, max_buffer=50):
 
 def extract_context_from_file(file_path: str, context_start: int, context_end: int, highlight_line: int = None) -> str:
     """
-    Extart context text from a file given the start and end line numbers.
+    Extract context text from a file given the start and end line numbers.
 
     Args:
         file_path (str): Path to the file.

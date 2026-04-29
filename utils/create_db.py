@@ -1,3 +1,14 @@
+"""
+CodeQL database creation from JavaScript/Node.js source code.
+
+Wraps the `codeql database create` CLI command to build a CodeQL database
+from a target project's source code. The database is stored in the
+`databases/` directory and is required before any CodeQL queries can be run.
+
+Handles existing database detection (prompts for overwrite), thread
+configuration, and error reporting.
+"""
+
 import os
 import subprocess
 import logging
