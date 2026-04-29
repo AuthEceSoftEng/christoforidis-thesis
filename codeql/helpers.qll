@@ -2,7 +2,7 @@
  * helper functions/predicates/classed for codeql queries
  */
 
- import javascript
+import javascript
  // Gets the line range for a node's context to avoid string truncation
 predicate getContextLineRange(DataFlow::Node node, int startLine, int endLine) {
   // Special case for WebSocket handler parameters

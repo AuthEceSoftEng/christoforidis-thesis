@@ -2,7 +2,7 @@
  * Common sinks predicates for JavaScript
  */
 
- import javascript
+ import semmle.javascript.AST
  import semmle.javascript.security.dataflow.SqlInjectionQuery as SqlInjection
  import semmle.javascript.security.dataflow.NosqlInjectionQuery as NosqlInjection
  import semmle.javascript.security.dataflow.CommandInjectionQuery as CommandInjection
