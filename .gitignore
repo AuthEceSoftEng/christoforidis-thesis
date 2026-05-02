@@ -1,6 +1,18 @@
-venv/ 
+venv/
 utils/__pycache__/
 *.log
 .env
 test*
 .venv/*
+AriadneAPI_QUICKSTART-2.pdf
+chrisvobi_thesis.pdf
+codebases/*
+!codebases/.keep
+
+# Vector DB - ignore contents but keep the folders (via .keep files)
+vector_db/docs_original/*
+!vector_db/docs_original/.keep
+vector_db/docs_txt/*
+!vector_db/docs_txt/.keep
+vector_db/chroma_db/*
+!vector_db/chroma_db/.keep

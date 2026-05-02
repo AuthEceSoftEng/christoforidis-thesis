@@ -249,14 +249,17 @@ def finalize_report(report_file_path, total_start_time, final_llm_stats, final_c
 def process_single_project(project_name, codebases_folder, project_root, report_file_path):
     """Process a single project - designed to run in parallel with other projects"""
     project_start_time = time.time()
-    
+
     # set current project for llm tracking
     set_current_project(project_name)
     reset_llm_stats(project_name)
 
+    # Model name used for query filename suffix
+    model_name = os.environ.get("ARIADNE_MODEL_ID", "unknown-model")
+
     project_path = os.path.join(codebases_folder, project_name)
     logger.info(f"Processing project: {project_name}")
-    
+
     try:
         output_dir = os.path.join(project_root, "output", project_name)
         os.makedirs(output_dir, exist_ok=True)
@@ -354,9 +357,10 @@ def process_single_project(project_name, codebases_folder, project_root, report_
         os.makedirs(batch_queries_dir, exist_ok=True)
         
         # Copy final queries to batch folder
+        final_query_suffix = f"final_{model_name}.ql"
         if os.path.exists(project_specific_dir):
-            final_queries = [f for f in os.listdir(project_specific_dir) 
-                           if f.endswith('final_claude4callgraphs.ql')]
+            final_queries = [f for f in os.listdir(project_specific_dir)
+                           if f.endswith(final_query_suffix)]
             
             for query_file in final_queries:
                 src = os.path.join(project_specific_dir, query_file)
@@ -460,7 +464,7 @@ def main():
     logger.info(f"Progress report initialized: {report_file_path}")
 
 
-    project_names = ["dvna"] # dvna evaluation #temp
+    project_names = [os.environ.get("PROJECT_NAME", "dvna")]
     codebases_folder = os.path.join(project_root, "codebases")
 
     completed_projects = []

@@ -30,8 +30,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger('vectordb')
 
-device = "cpu"
-logger.info(f"Using device: {device}")
+EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
+EMBEDDING_DEVICE = os.environ.get("EMBEDDING_DEVICE", "cpu")
+logger.info(f"Using embedding model: {EMBEDDING_MODEL}, device: {EMBEDDING_DEVICE}")
 
 def load_documents(docs_dir):
     """Load text content from extracted documentation files."""
@@ -65,18 +66,19 @@ def load_documents(docs_dir):
     logger.info(f"Successfully loaded {len(documents)} documents")
     return documents
 
-def create_vector_db(db_path, model_name="all-MiniLM-L6-v2"):
+def create_vector_db(db_path, model_name=None):
     """Initialize and return a ChromaDB collection."""
+    model_name = model_name or EMBEDDING_MODEL
     # Create directories if they don't exist
     os.makedirs(db_path, exist_ok=True)
-    
+
     # Initialize ChromaDB client
     client = chromadb.PersistentClient(path=db_path)
-    
+
     # Create sentence transformer embedding function
     embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
-        model_name=model_name, 
-        device=device
+        model_name=model_name,
+        device=EMBEDDING_DEVICE
     )
     
     # Create or get collection
@@ -88,18 +90,19 @@ def create_vector_db(db_path, model_name="all-MiniLM-L6-v2"):
     
     return collection
 
-def create_categorized_vector_db(db_path, model_name="all-MiniLM-L6-v2"):
+def create_categorized_vector_db(db_path, model_name=None):
     """Initialize and return ChromaDB collections for queries and documentation."""
+    model_name = model_name or EMBEDDING_MODEL
     # Create directories if they don't exist
     os.makedirs(db_path, exist_ok=True)
-    
+
     # Initialize ChromaDB client
     client = chromadb.PersistentClient(path=db_path)
-    
+
     # Create sentence transformer embedding function
     embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
-        model_name=model_name, 
-        device=device
+        model_name=model_name,
+        device=EMBEDDING_DEVICE
     )
     
     # Create separate collections

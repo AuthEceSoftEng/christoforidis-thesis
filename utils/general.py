@@ -289,7 +289,7 @@ def format_call_graph_for_cwe(df: pd.DataFrame, cwe_id: int, project_name: str, 
     cwe_details = get_cwe_details(cwe_id)
     
     # Ask LLM to identify relevant keywords for filtering call graph
-    llm = LLMHandler('claude', temperature=0.1)
+    llm = LLMHandler(temperature=0.1)
     
     keyword_prompt = keywords_filter_prompt(cwe_id, cwe_details)
     

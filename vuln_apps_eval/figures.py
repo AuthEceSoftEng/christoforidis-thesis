@@ -3,7 +3,7 @@ import numpy as np
 import json
 import os
 
-project_name = "dvna"
+project_name = os.environ.get("PROJECT_NAME", "dvna")
 thresholds = [0, 0.4, 0.5, 0.6, 0.7, 0.75, 0.8, 0.9]
 precision = []
 recall = []

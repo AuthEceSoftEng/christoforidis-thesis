@@ -15,8 +15,8 @@ import os
 import pandas as pd
 
 # Path to the parent directory containing all the folders
-# NOTE: Update this path to point to your specific output directory
-parent_dir = r"C:\Projects\thesis\output\juice-shop_evaluation2\juice-shop"
+# Defaults to the current working directory if OUTPUT_DIR is not set
+parent_dir = os.environ.get("OUTPUT_DIR") or os.getcwd()
 
 # Walk through all subdirectories
 for root, dirs, files in os.walk(parent_dir):

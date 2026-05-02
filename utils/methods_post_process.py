@@ -288,7 +288,7 @@ def clean_version(version):
     return '.'.join(parts)
 
 def classify_vulnerable_methods(vulnerable_packages, output_path=None):
-    llm = LLMHandler('claude', temperature=0.6)
+    llm = LLMHandler(temperature=0.6)
 
     classified_methods = []
 

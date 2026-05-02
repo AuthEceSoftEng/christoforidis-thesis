@@ -40,7 +40,7 @@ def filter_llm_findings(project_name, csv_path, filtered_csv_path, threshold = 0
         response_output_path: Optional path to save raw LLM responses for later re-filtering.
     """
     # Initialize LLM handler
-    llm_handler = LLMHandler('claude', temperature=0.2)
+    llm_handler = LLMHandler(temperature=0.2)
 
     responses = []
     filtered_rows = []

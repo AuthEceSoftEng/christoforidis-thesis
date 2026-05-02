@@ -36,6 +36,9 @@ from .prompts import get_initial_sanitizer_prompt, get_refinement_sanitizer_prom
 from .query_runner import run_codeql_query_tables, run_codeql_path_problem
 from .general import get_cwe_details, extract_predicate_from_file
 
+EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
+EMBEDDING_DEVICE = os.environ.get("EMBEDDING_DEVICE", "cpu")
+
 # set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -206,7 +209,7 @@ def _get_relevant_documentation(queries, collection_type="both"):
         
         client = chromadb.PersistentClient(path=db_path)
         embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name="all-MiniLM-L6-v2", device="cpu"
+            model_name=EMBEDDING_MODEL, device=EMBEDDING_DEVICE
         )
         
         # Separate collections for queries and documentation
@@ -407,7 +410,7 @@ def generate_conditional_sanitizer_library(classified_methods, output_path, trac
             predicate_name_counts[base_name] += 1
     
     # Initialize LLM handler
-    llm_handler = LLMHandler('claude', temperature=0.2)
+    llm_handler = LLMHandler(temperature=0.2)
     
     with open(output_path, 'w') as f:
         # Write library header
@@ -670,7 +673,7 @@ def cleanup_test_queries(dir):
     logger.info(f"Removed {count} test query files from {dir}")
 
 def get_cwe_specific_sinks(cwe_id, project_name):
-    llm = LLMHandler('claude', temperature=0.2)
+    llm = LLMHandler(temperature=0.2)
 
     cwe_details = get_cwe_details(cwe_id)
 
@@ -922,7 +925,7 @@ def refine_sink_vulnerability_query(cwe_id, project_name, general: bool = False,
     sinks_path = os.path.join(base_dir, "codeql", "isSink.qll")
     sinks_extracted = [extract_predicate_from_file(sinks_path, sink) for sink in sinks]
 
-    llm = LLMHandler('claude', temperature=0.2)
+    llm = LLMHandler(temperature=0.2)
 
     if not general:
         try:
@@ -1010,7 +1013,7 @@ def refine_flow_vulnerability_query(cwe_id, project_name, general: bool = False,
     sinks_path = os.path.join(base_dir, "codeql", "isSink.qll")
     sinks_extracted = [extract_predicate_from_file(sinks_path, sink) for sink in sinks]
 
-    llm = LLMHandler('claude', temperature=0.2)
+    llm = LLMHandler(temperature=0.2)
 
     if not general:
         try:
@@ -1087,7 +1090,8 @@ def refine_vulnerability_query(cwe_id, project_name, general: bool = False, extr
     
     query = general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, flow_predicate)
 
-    output_path = os.path.join(os.path.dirname(__file__), "..", "codeql", "project_specific", project_name, f"cwe_{cwe_id}_vulnerability_final_claude4callgraphs.ql")
+    _model_name = os.environ.get("ARIADNE_MODEL_ID", "unknown-model")
+    output_path = os.path.join(os.path.dirname(__file__), "..", "codeql", "project_specific", project_name, f"cwe_{cwe_id}_vulnerability_final_{_model_name}.ql")
     with open(output_path, 'w') as f:
         f.write(query)
     

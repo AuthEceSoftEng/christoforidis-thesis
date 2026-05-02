@@ -115,14 +115,26 @@ def get_total_codeql_stats():
 
 def problem_queries(cwes):
     registry_path = os.path.join(os.path.dirname(__file__), '..', 'codeql', 'registry.json')
-    with open(registry_path, 'r') as f:
-        registry = json.load(f)
+    logger.debug(f"Loading registry from {registry_path}")
+    try:
+        with open(registry_path, 'r') as f:
+            registry = json.load(f)
+    except FileNotFoundError:
+        logger.error(f"Registry file not found: {registry_path}")
+        return []
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse registry JSON: {e}")
+        return []
     probs = []
     for cwe_id in cwes:
-        if str(cwe_id) in registry: 
-            prob = registry[str(cwe_id)]['problemQueries']
+        if str(cwe_id) in registry:
+            prob = registry[str(cwe_id)].get('problemQueries', [])
+            if not prob:
+                logger.warning(f"CWE {cwe_id} found in registry but has no problemQueries")
             for pr in prob:
                 probs.append(pr)
+        else:
+            logger.debug(f"CWE {cwe_id} not found in registry — no problem queries for it")
     return probs
 
 
@@ -268,7 +280,7 @@ def main():
     clone_vulnerable_repos(cves_folder, codebases_folder)
 
     project_names = [name for name in os.listdir(codebases_folder) if os.path.isdir(os.path.join(codebases_folder, name))]
-    project_names = ["swagger-u-c8ad396"] # TEMPORARY
+    # project_names = ["swagger-u-c8ad396"] # TEMPORARY
     logger.info(f"Cloned repositories for evaluation: {project_names}")
 
     completed_projects = []
@@ -304,40 +316,57 @@ def main():
             results_path = os.path.join(output_dir, "methods")
 
             # run the CodeQL query to extract methods from dependencies
+            logger.info(f"Running methods extraction query: {query_path} → {results_path}")
             success, error, extraction_time = run_codeql_query_tables(database_path, query_path, results_path)
             if not success:
-                logger.error(f"Error running methods extraction query: {error}")
-                return
+                logger.error(f"Methods extraction query failed for {project_name}: {error}")
+                continue  # skip project, not the entire run
             track_codeql_methods_extraction(project_name, extraction_time)
             logger.info(f"Methods extraction completed in {extraction_time:.1f}s. Results saved to {results_path}.csv")
-            
+
             # deduplicate the df in case codeql returns duplicates
+            logger.debug(f"Deduplicating methods from {results_path}.csv")
             processed_methods = deduplicate_methods(f"{results_path}.csv", f"{results_path}_processed.csv")
+            if processed_methods is None or (hasattr(processed_methods, '__len__') and len(processed_methods) == 0):
+                logger.warning(f"No methods after deduplication for {project_name} — advisory matching will be empty")
 
             # turn csv to json
+            logger.debug(f"Converting methods to JSON: {results_path}.json")
             methods_json = methods_to_json(processed_methods, f"{results_path}.json")
+            if not methods_json:
+                logger.warning(f"methods_to_json returned empty result for {project_name}")
 
             # check for vulnerable npm packages
+            logger.info(f"Comparing methods against advisories for {project_name}")
             vulnerable_packages = compare_with_advisories(methods_json, output_path=f"{results_path}_vulnerable.json")
+            logger.info(f"Advisory match: {len(vulnerable_packages) if vulnerable_packages else 0} vulnerable package(s) found")
 
             # classify vulnerable methods
+            logger.info(f"Classifying {len(vulnerable_packages) if vulnerable_packages else 0} vulnerable method(s) for {project_name}")
             classified_methods = classify_vulnerable_methods(vulnerable_packages, f"{results_path}_vulnerable_classified.json")
+            if not classified_methods:
+                logger.warning(f"classify_vulnerable_methods returned empty result for {project_name} — generated libraries will be stubs")
 
             # generate codeql library for package classifications (source, sinks, propagators)
             project_specific_dir = os.path.join(project_root, "codeql", "project_specific", project_name)
             os.makedirs(project_specific_dir, exist_ok=True)
             qll_path = os.path.join(project_specific_dir, "VulnerableMethodsClassification.qll")
+            logger.debug(f"Generating VulnerableMethodsClassification.qll → {qll_path}")
             generate_codeql_package_classification(classified_methods, qll_path)
-            
+
             # conditional sanitizers
             qll_path = os.path.join(project_specific_dir, "ConditionalSanitizers.qll")
+            logger.debug(f"Generating ConditionalSanitizers.qll → {qll_path}")
             generate_conditional_sanitizer_library(classified_methods, qll_path)
 
             cleanup_test_queries(project_specific_dir)
 
             # decide CWEs to check
             cwes = cwes_to_check(project_name, extra_folder="mini_cloned_repos")
-            logger.info(f"CWEs to check for {project_name}: {cwes}")
+            if not cwes:
+                logger.warning(f"cwes_to_check returned no CWEs for {project_name} — query refinement and final queries will be skipped")
+            else:
+                logger.info(f"CWEs to check for {project_name}: {cwes}")
 
             # refine vulnerability query for each CWE; on failure skip only the current CWE
             failed_cwes = []
@@ -367,22 +396,32 @@ def main():
             logger.info(f"Running final queries for {project_name}")
             if os.path.exists(project_specific_dir):
                 queries = [f for f in os.listdir(project_specific_dir) if f.endswith('final_claude4compats.ql')]
+                logger.info(f"Found {len(queries)} final path-problem query file(s) for {project_name}")
 
                 for query in queries:
                     query_path = os.path.join(project_specific_dir, query)
                     output_path = os.path.join(project_root, "output", "mini_evaluation4", project_name, query)
                     os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                    logger.debug(f"Running final query: {query}")
                     success, error, query_time = run_codeql_path_problem(database_path, query_path, output_path)
+                    if not success:
+                        logger.error(f"Final query failed [{query}] for {project_name}: {error}")
                     track_codeql_query(project_name, query_time)
-                
+
                 prob_queries = problem_queries(cwes)
+                logger.info(f"Found {len(prob_queries)} problem query file(s) for {project_name}")
                 if len(prob_queries) > 0:
                     for query in prob_queries:
                         query_path = os.path.join(os.path.dirname(__file__), '..', query)
                         output_path = os.path.join(project_root, "output", "mini_evaluation4", project_name, "problems", query.replace('/', '_').replace('.ql', ''))
                         os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                        logger.debug(f"Running problem query: {query}")
                         success, error, query_time = run_codeql_path_problem(database_path, query_path, output_path)
+                        if not success:
+                            logger.error(f"Problem query failed [{query}] for {project_name}: {error}")
                         track_codeql_query(project_name, query_time)
+            else:
+                logger.warning(f"Project-specific dir not found, skipping final queries: {project_specific_dir}")
 
             # NOW the project is truly completed (after all queries including final ones)
             project_end_time = time.time()

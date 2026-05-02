@@ -1,6 +1,6 @@
 # LLM-Augmented Static Analysis for JavaScript Vulnerability Detection
 
-An automated security vulnerability detection system for JavaScript/Node.js applications that combines **GitHub CodeQL** (static analysis) with **Large Language Models** (Claude 3.7 Sonnet via AWS Bedrock) to dynamically generate, refine, and validate security queries.
+An automated security vulnerability detection system for JavaScript/Node.js applications that combines **GitHub CodeQL** (static analysis) with **Large Language Models** (Claude Sonnet 4 via Ariadne API) to dynamically generate, refine, and validate security queries.
 
 The core innovation is using LLMs to:
 - **Generate and refine CodeQL queries** tailored to each project based on CWE vulnerability types
@@ -94,7 +94,7 @@ Target JS Project
 ├── results_process.py              # Post-processing: combine/deduplicate CSV results
 │
 ├── utils/                          # Core pipeline logic (Python)
-│   ├── LLM.py                     # Multi-model LLM handler (Claude/GPT/Llama via Bedrock)
+│   ├── LLM.py                     # Multi-model LLM handler (Claude/GPT via Ariadne API)
 │   ├── prompts.py                 # All LLM prompt templates
 │   ├── query_generator.py         # CodeQL query generation & LLM-based refinement
 │   ├── query_runner.py            # CodeQL CLI wrapper (run queries, decode results)
@@ -158,7 +158,7 @@ Target JS Project
 - **Python 3.10+**
 - **CodeQL CLI** - installed and available on `PATH` ([installation guide](https://docs.github.com/en/code-security/codeql-cli/getting-started-with-the-codeql-cli/setting-up-the-codeql-cli))
 - **GitHub CLI (`gh`)** - for fetching security advisories ([installation guide](https://cli.github.com/))
-- **AWS Account** with Bedrock access to Claude 3.7 Sonnet and Llama 3.2 models (eu-central-1 region)
+- **Ariadne API token** (`sk-proj-...`) with access to `claude-sonnet-4` (provider: `gcp`)
 - **Git**
 
 ---
@@ -187,15 +187,13 @@ Target JS Project
 
    Create a `.env` file in the project root:
    ```env
-   ACCOUNT_ID=<your-aws-account-id>
-   # OPENAI_API_KEY=<your-openai-key>    # Optional, for GPT-4o support
+   ARIADNE_API_KEY=sk-proj-YOUR-TOKEN-HERE
+   ARIADNE_BASE_URL=https://ariadne.issel.ee.auth.gr/api/v1
+   ARIADNE_MODEL_ID=claude-sonnet-4
+   ARIADNE_PROVIDER=gcp
    ```
 
-5. **Configure AWS credentials:**
-
-   Ensure your AWS credentials are configured (via `~/.aws/credentials`, environment variables, or IAM role) with access to Bedrock in `eu-central-1`.
-
-6. **Install CodeQL packs:**
+5. **Install CodeQL packs:**
    ```bash
    cd codeql
    codeql pack install
@@ -279,7 +277,7 @@ python results_process.py
 |---|---|
 | **Python** | Primary orchestration language |
 | **CodeQL (QL)** | Static analysis query language for vulnerability detection |
-| **AWS Bedrock** | LLM inference (Claude 3.7 Sonnet, Llama 3.2) |
+| **Ariadne API** | LLM inference (Claude Sonnet 4, GPT-4o) |
 | **ChromaDB** | Vector database for RAG over CodeQL documentation |
 | **SentenceTransformers** | Embedding model (`all-MiniLM-L6-v2`) for vector similarity |
 | **pandas** | Data manipulation for CSV/DataFrame processing |

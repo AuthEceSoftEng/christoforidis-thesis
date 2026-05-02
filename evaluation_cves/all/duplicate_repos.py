@@ -3,7 +3,8 @@ import json
 from collections import defaultdict
 
 # Path to the folder containing your JSON files
-FOLDER_PATH = r"C:\Projects\thesis\evaluation_cves\all"
+# Defaults to the current working directory if EVALUATION_CVES_DIR is not set
+FOLDER_PATH = os.environ.get("EVALUATION_CVES_DIR") or os.getcwd()
 
 def find_duplicate_repos(folder_path):
     repo_map = defaultdict(list)

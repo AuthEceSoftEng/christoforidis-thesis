@@ -49,7 +49,7 @@ def llm_decides_cwes(project_name: str, extra_folder: str = None):
     except FileNotFoundError:
         package_content = "No package.json found for this project."
 
-    llm = LLMHandler(model='claude', temperature=0.2)
+    llm = LLMHandler(temperature=0.2)
     messages = decide_cwes_prompt(project_name, readme_content, package_content)
     response = llm.send_message(messages)
 
