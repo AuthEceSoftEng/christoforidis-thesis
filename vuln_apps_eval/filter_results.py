@@ -15,5 +15,9 @@ csv_path = os.path.join(_output_dir, f"{project_name}_callgraphs1", project_name
 filtered_csv_path = os.path.join(_output_dir, f"{project_name}_callgraphs1", project_name, f"filtered{str(int(threshold*100))}_deduplicated.csv")
 response_output_path = os.path.join(_output_dir, f"{project_name}_callgraphs1", project_name, "llm_responses.json")
 
-#filter_llm_findings(project_name, csv_path, filtered_csv_path, threshold=threshold, response_output_path=response_output_path)
-filter_with_existing_responses(csv_path, response_output_path, filtered_csv_path, threshold=threshold)
+if not os.path.exists(response_output_path):
+    print(f"[first run] No cached LLM responses found — calling the LLM and saving to {response_output_path}")
+    filter_llm_findings(project_name, csv_path, filtered_csv_path, threshold=threshold, response_output_path=response_output_path)
+else:
+    print(f"[subsequent run] Using cached LLM responses from {response_output_path}")
+    filter_with_existing_responses(csv_path, response_output_path, filtered_csv_path, threshold=threshold)

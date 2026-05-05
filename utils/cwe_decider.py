@@ -53,7 +53,17 @@ def llm_decides_cwes(project_name: str, extra_folder: str = None):
     messages = decide_cwes_prompt(project_name, readme_content, package_content)
     response = llm.send_message(messages)
 
-    return [int(num.strip()) for num in response.split(',')]
+    cwes = []
+    for token in response.split(','):
+        # Strip whitespace and any "CWE-" prefix the LLM may include
+        cleaned = token.strip().upper().replace('CWE-', '')
+        try:
+            cwes.append(int(cleaned))
+        except ValueError:
+            logger.warning(f"Skipping non-integer CWE token from LLM response: {token!r}")
+    if not cwes:
+        logger.error(f"LLM returned no parseable CWE IDs. Raw response: {response!r}")
+    return cwes
     
 def cwes_from_vulnerable_methods(methods_vulnerable):
     """

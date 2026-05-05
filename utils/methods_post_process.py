@@ -94,26 +94,35 @@ def methods_to_json(df: pd.DataFrame, output_path: str = None) -> list:
 def get_npm_advisories():
     """
     Fetch npm advisories from GitHub API.
-    
+
     Returns:
         list: List of npm advisories.
     """
+    import shutil
+    if shutil.which("gh") is None:
+        logger.warning(
+            "GitHub CLI ('gh') not found on PATH. "
+            "Advisory-based CWE detection will be skipped. "
+            "Install gh (https://cli.github.com/) and run 'gh auth login' to enable it."
+        )
+        return []
+
     try:
         command = [
             "gh", "api", "/advisories?ecosystem=npm",
             "--header", "Accept: application/vnd.github+json",
             "--paginate"
         ]
-        
+
         result = subprocess.run(command, capture_output=True, text=True, encoding='utf-8')
-        
+
         if result.returncode != 0:
             logger.error(f"Error fetching npm advisories: {result.stderr}")
             return []
-        
+
         advisories = json.loads(result.stdout)
         return advisories
-    
+
     except Exception as e:
         logger.error(f"Error fetching npm advisories: {e}")
         return []
