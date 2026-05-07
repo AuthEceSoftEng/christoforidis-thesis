@@ -17,13 +17,15 @@ import os
 import logging
 import json
 
-from .general import get_smart_context_range, extract_context_from_file, extract_line
+from .general import get_smart_context_range, extract_context_from_file, extract_line, get_enriched_context
 from .prompts import get_vulnerability_confidence
 from .LLM import LLMHandler
 
 logger = logging.getLogger(__name__)
 
-def filter_llm_findings(project_name, csv_path, filtered_csv_path, threshold = 0.6, response_output_path = None):
+def filter_llm_findings(project_name, csv_path, filtered_csv_path, threshold=0.6,
+                        response_output_path=None, use_enriched_context=False,
+                        codebase_subfolder=None):
     """
     Filter CodeQL findings using LLM-based confidence scoring.
 
@@ -38,6 +40,14 @@ def filter_llm_findings(project_name, csv_path, filtered_csv_path, threshold = 0
         filtered_csv_path: Path to write the filtered CSV output.
         threshold: Minimum confidence score to retain a finding (default 0.6).
         response_output_path: Optional path to save raw LLM responses for later re-filtering.
+        use_enriched_context: If True, makes an additional LLM call per finding to extract
+            a semantic summary from inline comments and naming conventions before the main
+            confidence assessment. This implements the future extension described in §6 of
+            the thesis. Disable for the baseline experiment; enable for the ablation study.
+            Note: doubles the number of LLM calls for Phase 5.
+        codebase_subfolder: Optional subdirectory inside codebases/ containing the project
+            (e.g. "sgarden" for codebases/sgarden/backend). Passed through to
+            get_smart_context_range so file paths are resolved correctly.
     """
     # Initialize LLM handler
     llm_handler = LLMHandler(temperature=0.2)
@@ -55,17 +65,32 @@ def filter_llm_findings(project_name, csv_path, filtered_csv_path, threshold = 0
         source_line = row[5]
         sink_line = row[7]
 
-        file_path = os.path.join(os.path.dirname(__file__), "..", "codebases", project_name, relative_path.lstrip('/\\'))
+        _codebases_base = os.path.join(os.path.dirname(__file__), "..", "codebases")
+        if codebase_subfolder:
+            file_path = os.path.join(_codebases_base, codebase_subfolder, project_name, relative_path.lstrip('/\\'))
+        else:
+            file_path = os.path.join(_codebases_base, project_name, relative_path.lstrip('/\\'))
 
         # get context
-        start, end = get_smart_context_range(file_path, sink_line, project_name)
+        start, end = get_smart_context_range(file_path, sink_line, project_name, codebase_subfolder=codebase_subfolder)
         context = extract_context_from_file(file_path, start, end, sink_line)
 
         source_expression = extract_line(file_path, source_line)
         sink_expression = extract_line(file_path, sink_line)
 
+        # optionally enrich context with LLM-extracted semantic summary (ablation study flag)
+        enriched_summary = ""
+        if use_enriched_context:
+            enriched_summary = get_enriched_context(context, file_path, sink_line, query_name)
+            if enriched_summary:
+                logger.debug(f"Using enriched context for {relative_path}:{sink_line}")
+
         # get llm confidence score
-        confidence_prompt = get_vulnerability_confidence(context, file_path, source_line, source_expression, sink_line, sink_expression, query_name, description)
+        confidence_prompt = get_vulnerability_confidence(
+            context, file_path, source_line, source_expression,
+            sink_line, sink_expression, query_name, description,
+            enriched_summary=enriched_summary
+        )
         confidence_response = llm_handler.send_message(confidence_prompt)
         responses.append(confidence_response)
 

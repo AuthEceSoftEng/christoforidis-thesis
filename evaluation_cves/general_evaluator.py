@@ -73,7 +73,7 @@ def main():
         
         # conditional sanitizers
         qll_path = os.path.join(project_specific_dir, "ConditionalSanitizers.qll")
-        generate_conditional_sanitizer_library(classified_methods, qll_path)
+        generate_conditional_sanitizer_library(classified_methods, qll_path, validation_db=project_name)
 
         cleanup_test_queries(project_specific_dir)
 

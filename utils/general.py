@@ -18,7 +18,7 @@ import tempfile
 import esprima
 from collections import defaultdict
 from .query_runner import run_codeql_query_tables
-from . prompts import keywords_filter_prompt
+from . prompts import keywords_filter_prompt, enrich_context_prompt
 
 # set up logging configuration
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -38,9 +38,30 @@ def extract_line(file_path, line_number):
         logger.error(f"Error reading file {file_path}: {e}")
         return None
 
-def get_smart_context_range(file_path, sink_line, project_name, max_buffer=50):
-    """Find statement/function boundaries around sink_line using JS parsing"""
-    full_path = os.path.join(os.path.dirname(__file__), "codebases", project_name, file_path.lstrip('/\\'))
+def get_smart_context_range(file_path, sink_line, project_name, max_buffer=50, codebase_subfolder=None):
+    """Find statement/function boundaries around sink_line using JS parsing.
+
+    Args:
+        file_path: Path to the source file. May be:
+            - An absolute path (as built by llm_filtering.py) — used directly.
+            - A relative path from CodeQL (e.g. "src/app.js") — resolved against
+              codebases/<codebase_subfolder>/<project_name>/ when codebase_subfolder
+              is set, or codebases/<project_name>/ otherwise.
+        sink_line: 1-based line number of the sink.
+        project_name: Name of the project directory inside codebases/.
+        max_buffer: Fallback line buffer when AST parsing is unavailable.
+        codebase_subfolder: Optional subdirectory inside codebases/ that contains
+            the project (e.g. "sgarden" for codebases/sgarden/backend).
+    """
+    if os.path.isabs(file_path):
+        # Already an absolute path (built by the caller) — use directly.
+        full_path = file_path
+    else:
+        base = os.path.join(os.path.dirname(__file__), "..", "codebases")
+        if codebase_subfolder:
+            full_path = os.path.join(base, codebase_subfolder, project_name, file_path.lstrip('/\\'))
+        else:
+            full_path = os.path.join(base, project_name, file_path.lstrip('/\\'))
     
     # Read file first for fallback
     try:
@@ -155,6 +176,46 @@ def extract_context_from_file(file_path: str, context_start: int, context_end: i
         logger.error(f"Error extracting context from {file_path}: {e}")
         return ""
     
+def get_enriched_context(raw_context: str, file_path: str, sink_line: int, query_name: str) -> str:
+    """
+    Enrich the raw code context with an LLM-generated semantic summary.
+
+    This implements the future-extension suggested in §6 of the thesis:
+    exploiting inline documentation (JSDoc comments, inline annotations,
+    variable/function naming conventions) to give the confidence-scoring LLM
+    a richer understanding of the code's intent before it judges whether a
+    finding is a true positive.
+
+    The function makes **one additional LLM call** per finding.  It is
+    intentionally kept separate from ``get_smart_context_range`` /
+    ``extract_context_from_file`` so that the enrichment can be toggled via
+    the ``use_enriched_context`` flag in ``filter_llm_findings`` without
+    touching the base context-extraction logic (ablation-study friendly).
+
+    Args:
+        raw_context: The already-extracted code slice (with →→→ highlighting).
+        file_path: Absolute path to the source file (for the prompt).
+        sink_line: 1-based line number of the sink.
+        query_name: CodeQL query name / CWE label for the finding.
+
+    Returns:
+        A plain-text semantic summary produced by the LLM, or an empty string
+        if the LLM call fails (so the caller can fall back to raw context only).
+    """
+    from .LLM import LLMHandler
+
+    llm = LLMHandler(temperature=0.1)   # low temp: we want factual extraction, not creativity
+    prompt = enrich_context_prompt(raw_context, file_path, sink_line, query_name)
+
+    try:
+        summary = llm.send_message(prompt).strip()
+        logger.debug(f"Enriched context for {file_path}:{sink_line} ({len(summary)} chars)")
+        return summary
+    except Exception as e:
+        logger.warning(f"Enriched context LLM call failed for {file_path}:{sink_line}: {e}")
+        return ""
+
+
 def get_cwe_details(cwe_id):
     logger.info(f"Fetching details for CWE ID: {cwe_id}")
 

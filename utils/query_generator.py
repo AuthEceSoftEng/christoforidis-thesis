@@ -347,21 +347,57 @@ def _get_relevant_documentation(queries, collection_type="both"):
         logger.error(f"Error querying vector database: {e}")
         return ""
 
-def generate_conditional_sanitizer_library(classified_methods, output_path, track_query_fn=None):
+def _resolve_validation_database(base_dir: str, preferred: str | None) -> str:
+    """
+    Return a CodeQL database path suitable for compile-validation of generated predicates.
+
+    Priority:
+      1. ``preferred`` if given and the directory is non-empty.
+      2. The first non-empty subdirectory found inside ``databases/``.
+      3. ``databases/juice-shop`` as a last-resort fallback (legacy behaviour).
+    """
+    databases_root = os.path.join(base_dir, "databases")
+
+    if preferred:
+        candidate = os.path.join(databases_root, preferred)
+        if os.path.isdir(candidate) and os.listdir(candidate):
+            return candidate
+
+    if os.path.isdir(databases_root):
+        for entry in sorted(os.listdir(databases_root)):          # sorted → deterministic
+            candidate = os.path.join(databases_root, entry)
+            if os.path.isdir(candidate) and os.listdir(candidate):
+                logger.info(f"Using '{entry}' as compile-validation database for sanitizer predicates.")
+                return candidate
+
+    fallback = os.path.join(databases_root, "juice-shop")
+    logger.warning(
+        f"No usable CodeQL database found in '{databases_root}'. "
+        f"Falling back to '{fallback}'. Sanitizer predicate validation may fail if it does not exist."
+    )
+    return fallback
+
+
+def generate_conditional_sanitizer_library(classified_methods, output_path, track_query_fn=None, validation_db: str | None = None):
     """
     Generate a CodeQL library for conditional sanitizers with bypass detection predicates.
-    
+
     Args:
         classified_methods: List of classified methods with bypass conditions
         output_path: Path to write the generated .qll library
-        
+        track_query_fn: Optional callback to record per-query timing stats
+        validation_db: Name of the CodeQL database (under ``databases/``) to use for
+            compile-validation of generated predicates.  When *None* the pipeline
+            auto-selects the first available database, so callers should pass
+            ``project_name`` here whenever it is known.
+
     Returns:
         Path to the generated library or None if no sanitizers found
     """
     # Set up vector database connection
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    database_path = os.path.join(base_dir, "databases", "juice-shop") # dummy codeql database to "run" the query , MUST EXIST
+    database_path = _resolve_validation_database(base_dir, validation_db)
 
     # Extract conditional sanitizers
     conditional_sanitizers = [m for m in classified_methods if m["classification"] == "CONDITIONAL_SANITIZER"]

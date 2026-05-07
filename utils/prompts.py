@@ -516,7 +516,7 @@ Example output: query, execute, find, sql, database"""
     }]
     return keyword_prompt
 
-def get_vulnerability_confidence(context, file_path, source_line, source_expression, sink_line, sink_expression, query_name, description):
+def get_vulnerability_confidence(context, file_path, source_line, source_expression, sink_line, sink_expression, query_name, description, enriched_summary: str = ""):
     """Build prompt for assessing whether a detected vulnerability is a true positive or false positive."""
     prompt = f"""
 You are a security analyst reviewing a code snippet to determine if it contains a vulnerability.
@@ -535,7 +535,10 @@ You are a security analyst reviewing a code snippet to determine if it contains 
 ```javascript
 {context}
 ```
-
+{f"""
+**Semantic Summary** (extracted from inline comments and naming conventions):
+{enriched_summary}
+""" if enriched_summary else ""}
 **Your Task**: Analyze the code snippet and determine if this is a TRUE vulnerability or a FALSE POSITIVE.
 
 **Analysis Checklist:**
@@ -564,9 +567,50 @@ This applies to ALL vulnerability types (injection, authentication bypass, infor
 - 0.1-0.29: Likely false positive. Evidence of sanitization or safe usage.
 - 0.0-0.09: Definitely false positive. Hard-coded values, test code, or properly sanitized.
 
-**Verdict**: 
+**Verdict**:
 - Use "ASSESSMENT" for normal cases where you can provide a confidence score.
 - Use "INSUFFICIENT_CONTEXT" ONLY if critical code is missing (e.g., entire function is truncated) and you cannot make ANY assessment. In this case, set confidence to 0.5.
 """
-    
+
+    return [{"role": "user", "message": prompt}]
+
+
+def enrich_context_prompt(raw_context: str, file_path: str, sink_line: int, query_name: str) -> list:
+    """
+    Build a prompt that asks the LLM to extract semantic intent from raw code context,
+    leveraging inline comments, JSDoc annotations, and variable/function names.
+
+    This is the first stage of the enriched-context pipeline (ablation study variant).
+    The returned summary is then appended to the standard confidence prompt.
+
+    Args:
+        raw_context: The raw code slice around the sink (already highlighted with →→→).
+        file_path: Source file path (for context).
+        sink_line: Line number of the sink.
+        query_name: Name of the CodeQL query that triggered this finding.
+
+    Returns:
+        Single-turn prompt list for LLMHandler.send_message().
+    """
+    prompt = f"""You are a senior security engineer reading source code.
+
+**File**: {file_path}
+**Sink line**: {sink_line}
+**Reported issue**: {query_name}
+
+**Code snippet** (the sink line is marked with →→→):
+```javascript
+{raw_context}
+```
+
+Your task is to produce a concise **semantic summary** of this code to help a colleague assess whether a reported vulnerability is real.
+
+Extract and summarise:
+1. **Function intent**: What is this function supposed to do? Use JSDoc comments, function names, and parameter names as evidence.
+2. **Inline comments near the sink**: Are there any comments that explain what the highlighted line does, or that indicate sanitization / validation is happening?
+3. **Data origin**: Based on variable names and comments, where does the data reaching the sink appear to come from (user input, config, hardcoded value, etc.)?
+4. **Sanitization signals**: Are there any comments or naming conventions (e.g. `sanitized`, `escaped`, `validated`, `safe`) near the sink that suggest the data has been cleaned?
+
+**Respond in plain text, 4–8 sentences maximum. Do not repeat the code. Do not speculate beyond what is visible.**
+"""
     return [{"role": "user", "message": prompt}]

@@ -23,19 +23,39 @@ logger = logging.getLogger(__name__)
 def create_codeql_database(source_path: str,
                            output_path: str = None,
                            language: str = "javascript",
-                           threads: int = 0, 
+                           threads: int = None,
                            response: str = None) -> Tuple[bool, Optional[str], float]:
     """
     Create a CodeQL database from source code.
-    
+
+    Performance is controlled by three environment variables (same as query_runner.py):
+
+        CODEQL_THREADS=0      Threads for the extractor (0 = all cores).
+                              The JS extractor propagates this as LGTM_THREADS.
+        CODEQL_RAM=10240      MB hint passed to the extractor JVM via -M.
+                              The JS extractor uses half for the TypeScript
+                              compiler (LGTM_TYPESCRIPT_RAM).
+        CODEQL_DISK_CACHE=4096  MB for the on-disk predicate cache.
+
+    JavaScript-specific optimisation:
+        node_modules/ is excluded from extraction via the
+        ``javascript.index.filters`` extractor option.  Indexing node_modules
+        adds significant time and database size without improving analysis
+        quality for the queries in this pipeline (which target first-party code
+        and use advisory data for third-party package classification).
+
     Args:
-        source_path (str): Path to the source code directory codebases/{project_name}.
-        output_path (str, optional): Path to save the CodeQL database. If None creates in databases/{project_name}.
-        language (str, optional): Language of the source code. Defaults to "javascript".
-        threads (int, optional): Number of threads to use. Defaults to 0 (auto-detect).
+        source_path:  Path to the source code directory (codebases/{project}).
+        output_path:  Path to save the CodeQL database.  Defaults to
+                      databases/{project_name}.
+        language:     Source language.  Defaults to "javascript".
+        threads:      Override thread count.  When None, reads CODEQL_THREADS
+                      (default 0 = all cores).
+        response:     Pre-supplied answer ('y'/'n') for the existing-database
+                      prompt (avoids interactive input in automated runs).
 
     Returns:
-        Tuple[bool, Optional[str], float]: Success status, error message if any, and execution time.
+        (success, error_message | None, elapsed_seconds)
     """
     start_time = time.time()
 
@@ -81,16 +101,34 @@ def create_codeql_database(source_path: str,
             else:
                 response = input("Please enter 'y' or 'n'")
 
+    # Resolve performance settings from env vars (same vars as query_runner.py)
+    _threads    = threads if threads is not None else int(os.environ.get("CODEQL_THREADS",    "0"))
+    _ram_mb     = int(os.environ.get("CODEQL_RAM",        "4096"))
+    _cache_mb   = int(os.environ.get("CODEQL_DISK_CACHE", "2048"))
+
+    # JVM flags: 64 MB stack prevents StackOverflow during JS extraction;
+    # G1GC reduces GC pauses under large heaps.
+    _jvm_flags = ["-J=-Xss64m", "-J=-XX:+UseG1GC"]
+
     # command to create the CodeQL database
     command = [
-        "codeql", "database", "create", output_path,
+        "codeql",
+        *_jvm_flags,
+        "database", "create", output_path,
         f"--language={language}",
         f"--source-root={full_source_path}",
+        f"--threads={_threads}",
+        f"--ram={_ram_mb}",
+        f"--max-disk-cache={_cache_mb}",
     ]
 
-    # add threads option if specified
-    if threads > 0:
-        command.append(f"--threads={threads}")
+    # JavaScript-specific: exclude node_modules from extraction.
+    # node_modules can contain thousands of files and adds significant time
+    # and DB size without improving analysis of first-party code.
+    if language == "javascript":
+        command += [
+            "--extractor-option=javascript.index.filters=exclude:**/node_modules/**",
+        ]
     
     # execute the command
     try:

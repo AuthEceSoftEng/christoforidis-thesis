@@ -246,7 +246,7 @@ def finalize_report(report_file_path, total_start_time, final_llm_stats, final_c
         f.write("EVALUATION COMPLETED SUCCESSFULLY\n")
         f.write(f"{'='*60}\n")
 
-def process_single_project(project_name, codebases_folder, project_root, report_file_path):
+def process_single_project(project_name, codebases_folder, project_root, report_file_path, codebase_subfolder=None):
     """Process a single project - designed to run in parallel with other projects"""
     project_start_time = time.time()
 
@@ -306,12 +306,12 @@ def process_single_project(project_name, codebases_folder, project_root, report_
         
         # conditional sanitizers
         qll_path = os.path.join(project_specific_dir, "ConditionalSanitizers.qll")
-        generate_conditional_sanitizer_library(classified_methods, qll_path)
+        generate_conditional_sanitizer_library(classified_methods, qll_path, validation_db=project_name)
 
         cleanup_test_queries(project_specific_dir)
 
         # decide CWEs to check
-        cwes = cwes_to_check(project_name)
+        cwes = cwes_to_check(project_name, extra_folder=codebase_subfolder)
         #cwes_filtered = [cwe for cwe in cwes if cwe >= 330] # temp: only check CWEs >= x if something goes wrong during evaluation
         logger.info(f"CWEs to check for {project_name}: {cwes}")
 
@@ -330,7 +330,7 @@ def process_single_project(project_name, codebases_folder, project_root, report_
                 formatted_call_graph = None
                 if call_graph_df is not None:
                     formatted_call_graph = format_call_graph_for_cwe(call_graph_df, cwe_id, project_name)
-                refine_vulnerability_query(cwe_id, project_name, general=False, extra_folder=None, 
+                refine_vulnerability_query(cwe_id, project_name, general=False, extra_folder=codebase_subfolder,
                                call_graph=formatted_call_graph, track_query_fn=track_codeql_refinement_query)
             except Exception as e:
                 logger.warning("Failed to refine query for CWE %s in %s: %s. Skipping this CWE.", cwe_id, project_name, str(e))
@@ -465,7 +465,15 @@ def main():
 
 
     project_names = [os.environ.get("PROJECT_NAME", "dvna")]
-    codebases_folder = os.path.join(project_root, "codebases")
+    # CODEBASE_SUBFOLDER: optional subdirectory inside codebases/ that contains the
+    # project.  Use this when the source lives at codebases/<subfolder>/<project_name>
+    # rather than directly at codebases/<project_name>.
+    # Example: sgarden backend → PROJECT_NAME=backend CODEBASE_SUBFOLDER=sgarden
+    codebase_subfolder = os.environ.get("CODEBASE_SUBFOLDER", "").strip()
+    if codebase_subfolder:
+        codebases_folder = os.path.join(project_root, "codebases", codebase_subfolder)
+    else:
+        codebases_folder = os.path.join(project_root, "codebases")
 
     completed_projects = []
     project_durations = {}  # Track individual project durations
@@ -476,7 +484,7 @@ def main():
     if len(project_names) == 1:
         # Single project - no multiprocessing overhead
         logger.info("Processing single project")
-        result = process_single_project(project_names[0], codebases_folder, project_root, report_file_path)
+        result = process_single_project(project_names[0], codebases_folder, project_root, report_file_path, codebase_subfolder=codebase_subfolder)
         project_name, success, duration, error, proj_stats, cql_stats = result
         if success:
             completed_projects.append(project_name)
@@ -486,10 +494,11 @@ def main():
         logger.info(f"Processing {len(project_names)} projects in parallel with {num_workers} workers")
         
         # Use partial to fix the common arguments
-        process_func = partial(process_single_project, 
+        process_func = partial(process_single_project,
                               codebases_folder=codebases_folder,
                               project_root=project_root,
-                              report_file_path=report_file_path)
+                              report_file_path=report_file_path,
+                              codebase_subfolder=codebase_subfolder)
         
         with multiprocessing.Pool(processes=num_workers) as pool:
             results = pool.map(process_func, project_names)
