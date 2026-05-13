@@ -36,8 +36,9 @@ from .prompts import get_initial_sanitizer_prompt, get_refinement_sanitizer_prom
 from .query_runner import run_codeql_query_tables, run_codeql_path_problem
 from .general import get_cwe_details, extract_predicate_from_file
 
-EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
+EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "jinaai/jina-embeddings-v2-base-code")
 EMBEDDING_DEVICE = os.environ.get("EMBEDDING_DEVICE", "cpu")
+IS_NOMIC = EMBEDDING_MODEL.startswith("nomic-ai/")
 
 # set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -205,7 +206,8 @@ def _get_relevant_documentation(queries, collection_type="both"):
     """Get relevant documentation from vector database."""
     try:
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        db_path = os.path.join(base_dir, "vector_db", "chroma_db")
+        db_folder = "chroma_db_" + EMBEDDING_MODEL.split("/")[-1]
+        db_path = os.path.join(base_dir, "vector_db", db_folder)
         
         client = chromadb.PersistentClient(path=db_path)
         embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
@@ -223,6 +225,9 @@ def _get_relevant_documentation(queries, collection_type="both"):
             query_list = queries
         
         for query in query_list:
+            # Apply nomic-embed task prefix for queries when that model is active
+            prefixed_query = f"search_query: {query}" if IS_NOMIC else query
+
             # Get from query collection if requested
             if collection_type in ["both", "queries"]:
                 try:
@@ -231,7 +236,7 @@ def _get_relevant_documentation(queries, collection_type="both"):
                         embedding_function=embedding_function
                     )
                     query_results = query_collection.query(
-                        query_texts=[query],
+                        query_texts=[prefixed_query],
                         n_results=3
                     )
                     for i, (doc, metadata, distance) in enumerate(zip(
@@ -255,11 +260,11 @@ def _get_relevant_documentation(queries, collection_type="both"):
             if collection_type in ["both", "documentation"]:
                 try:
                     docs_collection = client.get_collection(
-                        name="codeql_documentation", 
+                        name="codeql_documentation",
                         embedding_function=embedding_function
                     )
                     doc_results = docs_collection.query(
-                        query_texts=[query],
+                        query_texts=[prefixed_query],
                         n_results=2
                     )
                     for i, (doc, metadata, distance) in enumerate(zip(
@@ -287,7 +292,7 @@ def _get_relevant_documentation(queries, collection_type="both"):
                         embedding_function=embedding_function
                     )
                     fallback_results = collection.query(
-                        query_texts=[query],
+                        query_texts=[prefixed_query],
                         n_results=3
                     )
                     all_docs = {}

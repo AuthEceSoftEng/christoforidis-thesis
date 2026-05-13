@@ -16,3 +16,15 @@ vector_db/docs_txt/*
 !vector_db/docs_txt/.keep
 vector_db/chroma_db/*
 !vector_db/chroma_db/.keep
+# Model-named ChromaDB folders (one per embedding model, experiment-only)
+vector_db/chroma_db_*/
+
+# Experiment results (multi-model, multi-embedder runs)
+experiments/
+
+# Runtime pipeline artifacts (generated per run)
+output/
+databases/
+codeql/project_specific/
+codeql/project_specific/*
+!codeql/project_specific/.keep

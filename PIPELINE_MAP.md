@@ -8,13 +8,17 @@ This document maps each stage of the vulnerability detection pipeline to the fil
 
 ### Vector Database Construction
 **Files:** `vector_db/extraction.py`, `vector_db/create_vector_db.py`  
-**Output:** `vector_db/chroma_db/`
+**Output:** `vector_db/chroma_db_<model-name>/` (one folder per embedding model)
 
 Run once before the main pipeline. Raw CodeQL documentation (`.md`, `.ql`, `.qll`, `.rst`) placed in `vector_db/docs_original/` is first converted to plain text files in `vector_db/docs_txt/` by `extraction.py`. Then `create_vector_db.py` reads those text files and builds a **ChromaDB** persistent vector database with two separate collections:
 - `codeql_queries` — indexed `.ql` / `.qll` examples
 - `codeql_documentation` — indexed `.rst` / `.md` reference docs
 
-Embeddings are produced by the `all-MiniLM-L6-v2` SentenceTransformer model. This database is later queried (RAG) during query refinement to give the LLM relevant CodeQL context.
+**Chunking:** Each source file is split into overlapping character chunks (1500 chars, 200-char overlap) before indexing. This is necessary because some CodeQL library files (e.g. `TypeScript.qll`, `ApiGraphs.qll`) exceed 80–100 KB, which translates to tens of thousands of tokens — far beyond any embedding model's context window. Without chunking, models with large windows (e.g. `nomic-embed-text-v1.5` at 8192 tokens) crash with OOM errors, while models with small windows (e.g. `bge-base-en-v1.5` at 512 tokens) silently truncate and lose most of the file content. Chunking ensures every model indexes the complete content of every file.
+
+**Embedding model:** Configured via the `EMBEDDING_MODEL` environment variable. The recommended model is `nomic-ai/nomic-embed-text-v1.5` (~550 MB RAM, 8192-token window, MTEB retrieval 62.28). The database folder is named after the model (e.g. `chroma_db_nomic-embed-text-v1.5/`) so multiple models can coexist on disk without overwriting each other. The model used to build the DB and the model used to query it **must always match**.
+
+This database is later queried (RAG) during query refinement to give the LLM relevant CodeQL context.
 
 ---
 
@@ -113,7 +117,7 @@ The final list is the **union** of both sources, deduplicated and sorted.
 ### Stage 8 — Generate & Iteratively Refine Vulnerability Queries
 **File:** `utils/query_generator.py` → `refine_vulnerability_query()`  
 **Prompt templates:** `utils/prompts.py` → `sink_explaination_prompt`, `sink_implementation_prompt`, `sink_refinement_prompt`, `flow_explaination_prompt`, `flow_implementation_prompt`, `flow_refinement_prompt`, `get_sink_selection_prompt`  
-**RAG:** `vector_db/chroma_db/` (queried inside `_get_relevant_documentation()`)  
+**RAG:** `vector_db/chroma_db_<model>/` (queried inside `_get_relevant_documentation()`)  
 **Output:** `codeql/project_specific/<project>/CWE-<id>.ql`
 
 For each CWE in the list from Stage 7, a `@kind path-problem` CodeQL query is assembled and refined in two phases:
@@ -228,7 +232,7 @@ CVE JSON files
       ▼
 [Stage 8] query_generator.py + RAG ────────────► codeql/project_specific/<project>/CWE-*.ql
       │         ▲
-      │   vector_db/chroma_db/
+      │   vector_db/chroma_db_<model>/
       ▼
 [Stage 9] query_runner.py ─────────────────────► output/<project>/batch_results.{sarif,csv}
       │

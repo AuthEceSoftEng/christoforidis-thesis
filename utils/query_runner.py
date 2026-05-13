@@ -58,6 +58,8 @@ import subprocess
 import logging
 import time
 from typing import Optional, Tuple
+from dotenv import load_dotenv
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -80,15 +82,11 @@ logger = logging.getLogger(__name__)
 _RAM_MB        = int(os.environ.get("CODEQL_RAM",        "4096"))
 _DISK_CACHE_MB = int(os.environ.get("CODEQL_DISK_CACHE", "2048"))
 _THREADS       = int(os.environ.get("CODEQL_THREADS",    "0"))
+_CODEQL_BIN    = os.environ.get("CODEQL_BIN", "codeql")
 
-# JVM flags injected via the -J= launcher prefix understood by the CodeQL shell
-# wrapper.  Xss64m prevents StackOverflow in deep JS taint-tracking recursion.
-# G1GC gives shorter GC pauses under large heaps (>4 GB).
-# Both are always safe to include regardless of machine.
-_JVM_FLAGS = [
-    "-J=-Xss64m",
-    "-J=-XX:+UseG1GC",
-]
+# Note: -J= JVM flags are not supported before subcommands in CodeQL 2.25+.
+# Stack/GC tuning is handled by CodeQL internally for this version.
+_JVM_FLAGS = []
 
 def _perf_flags() -> list:
     """Return the standard performance flags shared by all CodeQL subcommands."""
@@ -130,7 +128,7 @@ def run_codeql_query_tables(database_path: str, query_path: str, output_path: st
 
     # Step 1: evaluate the query → BQRS
     command_run = [
-        "codeql",
+        _CODEQL_BIN,
         *_JVM_FLAGS,
         "query", "run",
         f"--database={database_path}",
@@ -144,7 +142,7 @@ def run_codeql_query_tables(database_path: str, query_path: str, output_path: st
 
     # Step 2: decode BQRS → CSV (cheap I/O-only step, no re-evaluation)
     command_decode = [
-        "codeql",
+        _CODEQL_BIN,
         *_JVM_FLAGS,
         "bqrs", "decode",
         f"--output={csv_path}",
@@ -209,7 +207,7 @@ def run_codeql_path_problem(database_path: str, query_path: str, output_path: st
 
     # Step 1: evaluate — stores BQRS inside the database
     command_run = [
-        "codeql",
+        _CODEQL_BIN,
         *_JVM_FLAGS,
         "database", "run-queries",
         f"--threads={_THREADS}",
@@ -222,7 +220,7 @@ def run_codeql_path_problem(database_path: str, query_path: str, output_path: st
 
     # Step 2: interpret stored BQRS → SARIF (no re-evaluation)
     command_sarif = [
-        "codeql",
+        _CODEQL_BIN,
         *_JVM_FLAGS,
         "database", "interpret-results",
         "--format=sarif-latest",
@@ -234,7 +232,7 @@ def run_codeql_path_problem(database_path: str, query_path: str, output_path: st
 
     # Step 3: interpret stored BQRS → CSV (no re-evaluation)
     command_csv = [
-        "codeql",
+        _CODEQL_BIN,
         *_JVM_FLAGS,
         "database", "interpret-results",
         "--format=csv",
@@ -327,7 +325,7 @@ def run_codeql_queries_batch(database_path: str, queries_dir: str, output_dir: s
 
     # Step 1: evaluate all queries — shared intermediate predicates computed once
     command_run = [
-        "codeql",
+        _CODEQL_BIN,
         *_JVM_FLAGS,
         "database", "run-queries",
         f"--threads={_THREADS}",
@@ -340,7 +338,7 @@ def run_codeql_queries_batch(database_path: str, queries_dir: str, output_dir: s
 
     # Step 2: interpret → SARIF (reads stored BQRS, no re-evaluation)
     command_sarif = [
-        "codeql",
+        _CODEQL_BIN,
         *_JVM_FLAGS,
         "database", "interpret-results",
         "--format=sarif-latest",
@@ -352,7 +350,7 @@ def run_codeql_queries_batch(database_path: str, queries_dir: str, output_dir: s
 
     # Step 3: interpret → CSV (reads stored BQRS, no re-evaluation)
     command_csv = [
-        "codeql",
+        _CODEQL_BIN,
         *_JVM_FLAGS,
         "database", "interpret-results",
         "--format=csv",

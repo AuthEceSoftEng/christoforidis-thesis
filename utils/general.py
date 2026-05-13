@@ -312,7 +312,7 @@ def extract_call_graph(database_path: str, project_name: str, include_frontend: 
         
         try:
             # Read the CSV
-            df = pd.read_csv(csv_path)
+            df = pd.read_csv(csv_path, header=None, names=["caller_file", "caller_name", "call_name", "line"])
             
             # Filter frontend if needed
             if not include_frontend:

@@ -39,7 +39,7 @@ def deduplicate_methods(csv_path: str, output_path: str = None) -> pd.DataFrame:
     """
     try:
         # read csv file
-        df = df = pd.read_csv(csv_path, header = 0)
+        df = pd.read_csv(csv_path, header=None, names=["packageName", "version", "methodName"])
 
         # drop duplicates
         unique_df = df.drop_duplicates(["packageName", "version", "methodName"])

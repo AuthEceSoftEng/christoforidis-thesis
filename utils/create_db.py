@@ -15,6 +15,8 @@ import logging
 import time
 from typing import Tuple, Optional
 import shutil
+from dotenv import load_dotenv
+load_dotenv()
 
 # Set up logging configuration
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -106,14 +108,11 @@ def create_codeql_database(source_path: str,
     _ram_mb     = int(os.environ.get("CODEQL_RAM",        "4096"))
     _cache_mb   = int(os.environ.get("CODEQL_DISK_CACHE", "2048"))
 
-    # JVM flags: 64 MB stack prevents StackOverflow during JS extraction;
-    # G1GC reduces GC pauses under large heaps.
-    _jvm_flags = ["-J=-Xss64m", "-J=-XX:+UseG1GC"]
-
     # command to create the CodeQL database
+    _codeql_bin = os.environ.get("CODEQL_BIN", "codeql")
+
     command = [
-        "codeql",
-        *_jvm_flags,
+        _codeql_bin,
         "database", "create", output_path,
         f"--language={language}",
         f"--source-root={full_source_path}",

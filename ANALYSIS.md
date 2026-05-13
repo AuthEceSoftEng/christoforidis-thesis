@@ -68,6 +68,9 @@ The mapping between thesis phases and code stages is:
 - **Thesis:** RAG retrieves from two collections — query examples and documentation — to guide LLM code generation.
 - **Code:** `_get_relevant_documentation()` queries `codeql_queries` (top 3) and `codeql_documentation` (top 2). ✅
 
+- **Thesis:** Does not specify the embedding model or chunking strategy.
+- **Code:** Embedding model is `nomic-ai/nomic-embed-text-v1.5` (MTEB retrieval 62.28, 8192-token window, ~550 MB RAM). Source files are split into overlapping 1500-character chunks (200-char overlap) before indexing. Chunking is required because several CodeQL library files exceed 80–100 KB; without it, large-window models crash with OOM and small-window models silently truncate. The DB folder is named after the active model (`chroma_db_<model-name>/`) so multiple embedders can coexist on disk. When `nomic-ai/*` models are active, task-instruction prefixes (`search_document:` / `search_query:`) are applied automatically. ✅
+
 ### Phase 4 — Query Execution
 
 - **Thesis (§3.2.4):** Both refined taint-tracking queries and default CodeQL problem queries are executed in batch, in parallel, using all available CPU threads. Output is SARIF + CSV.

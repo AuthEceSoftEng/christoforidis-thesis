@@ -9,10 +9,22 @@ The vector database is used during query refinement to provide relevant
 CodeQL documentation context to the LLM when it encounters compilation
 errors or needs to implement new predicates.
 
-Uses the 'all-MiniLM-L6-v2' SentenceTransformer model for embeddings.
+Documents are split into overlapping character chunks before indexing (see
+CHUNK_SIZE / CHUNK_OVERLAP constants). This keeps every chunk within the
+embedding model's context window regardless of the original file size, and
+improves retrieval precision by ensuring each chunk is semantically focused.
 
-Usage:
-    python vector_db/create_vector_db.py
+The database folder name is derived from the active EMBEDDING_MODEL so that
+multiple embedding models can coexist on disk without overwriting each other
+(e.g. vector_db/chroma_db_nomic-embed-text-v1.5/ vs chroma_db_bge-base-en-v1.5/).
+
+When nomic-ai/* models are active, documents are prefixed with 'search_document:'
+and queries with 'search_query:' as required by nomic-embed's task-instruction API.
+
+The embedding model is read from the EMBEDDING_MODEL environment variable
+(default: jinaai/jina-embeddings-v2-base-code). Set it via .env or inline:
+    EMBEDDING_MODEL="nomic-ai/nomic-embed-text-v1.5" EMBEDDING_DEVICE="mps" \\
+        python vector_db/create_vector_db.py
 """
 
 import os
@@ -21,6 +33,9 @@ import logging
 from tqdm import tqdm
 import chromadb
 from chromadb.utils import embedding_functions
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(
@@ -30,40 +45,88 @@ logging.basicConfig(
 )
 logger = logging.getLogger('vectordb')
 
-EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
+EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "jinaai/jina-embeddings-v2-base-code")
 EMBEDDING_DEVICE = os.environ.get("EMBEDDING_DEVICE", "cpu")
+IS_NOMIC = EMBEDDING_MODEL.startswith("nomic-ai/")
 logger.info(f"Using embedding model: {EMBEDDING_MODEL}, device: {EMBEDDING_DEVICE}")
 
+# Chunking parameters.
+# Models with a 512-token window (e.g. bge-base-en-v1.5) silently truncate documents
+# that exceed their limit, so chunking is not strictly required — they just lose content.
+# Models with a large window (e.g. nomic-embed-text-v1.5 at 8192 tokens) try to process
+# the full text, which causes OOM errors on files that are tens of thousands of tokens long.
+# Chunking is therefore applied to ALL models for consistency: every model indexes the full
+# content of every file, just split into overlapping pieces instead of one giant document.
+#
+# CHUNK_SIZE   — maximum characters per chunk (~375 tokens at 4 chars/token, well inside
+#                any model's window and small enough to keep each chunk semantically focused)
+# CHUNK_OVERLAP — characters shared between adjacent chunks to preserve context across
+#                boundaries (e.g. a predicate definition that straddles a split point)
+CHUNK_SIZE = 1500
+CHUNK_OVERLAP = 200
+
+def chunk_text(text, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP):
+    """
+    Split text into overlapping fixed-size character chunks.
+
+    Returns a list of strings. Files shorter than chunk_size are returned as-is
+    (single-element list). Overlap ensures that context spanning a chunk boundary
+    (e.g. a CodeQL predicate split across two chunks) is present in both neighbours.
+    """
+    if len(text) <= chunk_size:
+        return [text]
+    chunks = []
+    start = 0
+    while start < len(text):
+        end = start + chunk_size
+        chunks.append(text[start:end])
+        start += chunk_size - overlap
+    return chunks
+
 def load_documents(docs_dir):
-    """Load text content from extracted documentation files."""
+    """
+    Load and chunk text content from extracted documentation files.
+
+    Each source file is split into overlapping character chunks (see CHUNK_SIZE /
+    CHUNK_OVERLAP above). This keeps individual documents within the embedding
+    model's context window regardless of the original file size, and improves
+    retrieval precision by ensuring each chunk is semantically focused.
+
+    Chunk metadata records the source file and the chunk index so retrieved
+    results can be traced back to the original file.
+    """
     logger.info(f"Loading documents from {docs_dir}")
     documents = []
-    
+
     # Get all .txt files recursively
     txt_files = glob.glob(os.path.join(docs_dir, "**/*.txt"), recursive=True)
     logger.info(f"Found {len(txt_files)} text files")
-    
+
     for file_path in txt_files:
         try:
             with open(file_path, 'r', encoding='utf-8') as file:
                 content = file.read()
-                
-                # Create relative path for metadata
-                rel_path = os.path.relpath(file_path, docs_dir)
-                
+
+            rel_path = os.path.relpath(file_path, docs_dir)
+            file_name = os.path.basename(file_path)
+            chunks = chunk_text(content)
+
+            for i, chunk in enumerate(chunks):
                 documents.append({
-                    "content": content,
+                    "content": chunk,
                     "metadata": {
                         "source": rel_path,
                         "file_path": file_path,
-                        "file_name": os.path.basename(file_path)
+                        "file_name": file_name,
+                        "chunk_index": i,
+                        "total_chunks": len(chunks),
                     }
                 })
-                
+
         except Exception as e:
             logger.error(f"Error loading {file_path}: {str(e)}")
-    
-    logger.info(f"Successfully loaded {len(documents)} documents")
+
+    logger.info(f"Successfully loaded {len(documents)} chunks from {len(txt_files)} files")
     return documents
 
 def create_vector_db(db_path, model_name=None):
@@ -148,7 +211,8 @@ def main():
     # Define paths
     base_dir = os.path.dirname(os.path.abspath(__file__))
     docs_dir = os.path.join(base_dir, "docs_txt")
-    db_path = os.path.join(base_dir, "chroma_db")
+    db_folder = "chroma_db_" + EMBEDDING_MODEL.split("/")[-1]
+    db_path = os.path.join(base_dir, db_folder)
     
     # Load documents
     documents = load_documents(docs_dir)
@@ -170,25 +234,31 @@ def main():
         for i in tqdm(range(0, len(query_docs), batch_size)):
             batch = query_docs[i:i+batch_size]
             
-            ids = [f"query_{doc['metadata']['file_name']}" for doc in batch]
-            documents = [doc["content"] for doc in batch]
+            ids = [f"query_{doc['metadata']['file_name']}_c{doc['metadata']['chunk_index']}" for doc in batch]
+            documents = [
+                f"search_document: {doc['content']}" if IS_NOMIC else doc["content"]
+                for doc in batch
+            ]
             metadatas = [doc["metadata"] for doc in batch]
-            
+
             query_collection.add(
                 ids=ids,
                 documents=documents,
                 metadatas=metadatas
             )
-    
+
     # Add documentation documents to docs collection
     if doc_docs:
         logger.info("Adding documentation to vector database...")
         batch_size = 100
         for i in tqdm(range(0, len(doc_docs), batch_size)):
             batch = doc_docs[i:i+batch_size]
-            
-            ids = [f"doc_{doc['metadata']['file_name']}" for doc in batch]
-            documents = [doc["content"] for doc in batch]
+
+            ids = [f"doc_{doc['metadata']['file_name']}_c{doc['metadata']['chunk_index']}" for doc in batch]
+            documents = [
+                f"search_document: {doc['content']}" if IS_NOMIC else doc["content"]
+                for doc in batch
+            ]
             metadatas = [doc["metadata"] for doc in batch]
             
             docs_collection.add(
@@ -197,7 +267,7 @@ def main():
                 metadatas=metadatas
             )
     
-    logger.info(f"Successfully created vector database with {len(query_docs)} queries and {len(doc_docs)} docs")
+    logger.info(f"Successfully created vector database with {len(query_docs)} query chunks and {len(doc_docs)} documentation chunks")
     logger.info(f"Vector database created at {db_path}")
 
     ## ONE COLLECTION FOR ALL DOCUMENTS
