@@ -92,7 +92,6 @@ def filter_llm_findings(project_name, csv_path, filtered_csv_path, threshold=0.6
             enriched_summary=enriched_summary
         )
         confidence_response = llm_handler.send_message(confidence_prompt)
-        responses.append(confidence_response)
 
         # parse json response
         try:
@@ -103,7 +102,7 @@ def filter_llm_findings(project_name, csv_path, filtered_csv_path, threshold=0.6
                 if clean_response.startswith('json'):
                     clean_response = clean_response[4:]
                 clean_response = clean_response.strip()
-            
+
             result = json.loads(clean_response)
             confidence = float(result.get("confidence", 0.0))
             verdict = result.get("verdict", "UNKNOWN")
@@ -111,7 +110,10 @@ def filter_llm_findings(project_name, csv_path, filtered_csv_path, threshold=0.6
 
             logger.info(f"[{idx+1}/{len(results)}] {relative_path}:{sink_line} - "
                        f"Confidence: {confidence:.2f}, Verdict: {verdict}")
-            
+
+            # Save normalized parsed object (guaranteed single-line JSON)
+            responses.append(json.dumps({"confidence": confidence, "verdict": verdict, "reasoning": reasoning}))
+
             # keep if above threshold or insufficient context
             if confidence >= threshold or verdict == "INSUFFICIENT_CONTEXT":
                 filtered_rows.append(row)
@@ -122,10 +124,13 @@ def filter_llm_findings(project_name, csv_path, filtered_csv_path, threshold=0.6
         except (json.JSONDecodeError, ValueError) as e:
             logger.warning(f"Failed to parse LLM response for row {idx}: {e}")
             logger.debug(f"Response was: {confidence_response[:100]}")
+            # Save placeholder so line count always matches CSV row count
+            responses.append(json.dumps({"confidence": 0.0, "verdict": "PARSE_ERROR", "reasoning": "Failed to parse LLM response"}))
             # On parse error, keep the finding (conservative approach)
             filtered_rows.append(row)
 
-    # Write responses to output file (json)
+    # Write responses to output file — one compact JSON object per line
+    # so filter_with_existing_responses() can read them back reliably
     if response_output_path:
         with open(response_output_path, 'w', encoding='utf-8') as f:
             for response in responses:
@@ -201,8 +206,14 @@ def filter_with_existing_responses(csv_path, responses_json_path, filtered_csv_p
         except (json.JSONDecodeError, ValueError) as e:
             logger.warning(f"Failed to parse LLM response for row {idx}: {e}")
             logger.debug(f"Response was: {confidence_response[:100]}")
-            # On parse error, keep the finding (conservative approach)
+            # On parse error or PARSE_ERROR placeholder, keep the finding (conservative approach)
             filtered_rows.append(row)
+            continue
+
+        # Always keep PARSE_ERROR placeholders (conservative)
+        if verdict == "PARSE_ERROR":
+            filtered_rows.append(row)
+            continue
     
     # Write filtered results to new CSV
     if filtered_rows:

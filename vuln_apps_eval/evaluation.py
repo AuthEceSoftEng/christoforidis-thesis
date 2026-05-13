@@ -463,6 +463,10 @@ def main():
     initialize_report_file(report_file_path, start_time)
     logger.info(f"Progress report initialized: {report_file_path}")
 
+    model_id = os.environ.get("ARIADNE_MODEL_ID", "unknown-model")
+    embedding_model = os.environ.get("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
+    logger.info(f"=== LLM: {model_id} | Embedder: {embedding_model} ===")
+
 
     project_names = [os.environ.get("PROJECT_NAME", "dvna")]
     # CODEBASE_SUBFOLDER: optional subdirectory inside codebases/ that contains the
