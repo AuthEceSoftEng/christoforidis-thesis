@@ -11,9 +11,13 @@ The final list is the union of both sources, deduplicated and sorted.
 """
 
 import os
+import re
 import json
+import logging
 from .LLM import LLMHandler
 from .prompts import decide_cwes_prompt
+
+logger = logging.getLogger(__name__)
 
 def llm_decides_cwes(project_name: str, extra_folder: str = None):
     """
@@ -34,6 +38,9 @@ def llm_decides_cwes(project_name: str, extra_folder: str = None):
             readme_path = os.path.join(os.path.dirname(__file__), '..', 'codebases', project_name, 'README.md')
         else:
             readme_path = os.path.join(os.path.dirname(__file__), '..', 'codebases', extra_folder, project_name, 'README.md')
+            if not os.path.exists(readme_path):
+                # Fall back to parent folder README (e.g. codebases/sgarden/README.md)
+                readme_path = os.path.join(os.path.dirname(__file__), '..', 'codebases', extra_folder, 'README.md')
         with open(readme_path, 'r', encoding='utf-8') as file:
             readme_content = file.read()
     except FileNotFoundError:
@@ -53,16 +60,14 @@ def llm_decides_cwes(project_name: str, extra_folder: str = None):
     messages = decide_cwes_prompt(project_name, readme_content, package_content)
     response = llm.send_message(messages)
 
-    cwes = []
-    for token in response.split(','):
-        # Strip whitespace and any "CWE-" prefix the LLM may include
-        cleaned = token.strip().upper().replace('CWE-', '')
-        try:
-            cwes.append(int(cleaned))
-        except ValueError:
-            logger.warning(f"Skipping non-integer CWE token from LLM response: {token!r}")
+    # Extract all integers from the response (handles "CWE-XX", plain numbers, mixed text)
+    all_numbers = [int(n) for n in re.findall(r'\b(\d+)\b', response)]
+    # Keep only plausible CWE IDs (1–1275, matching registry max) and deduplicate
+    cwes = sorted(set(n for n in all_numbers if 1 <= n <= 1275))
     if not cwes:
         logger.error(f"LLM returned no parseable CWE IDs. Raw response: {response!r}")
+    else:
+        logger.info(f"LLM identified {len(cwes)} CWEs from response")
     return cwes
     
 def cwes_from_vulnerable_methods(methods_vulnerable):
@@ -97,9 +102,20 @@ def cwes_from_vulnerable_methods(methods_vulnerable):
     # Convert set to sorted list for consistent output
     return sorted(list(unique_cwes))
 
+def registry_cwes() -> set:
+    """Return the set of CWE IDs that have queries in the registry."""
+    registry_path = os.path.join(os.path.dirname(__file__), '..', 'codeql', 'registry.json')
+    with open(registry_path, 'r') as f:
+        registry = json.load(f)
+    return set(int(k) for k in registry.keys())
+
 def cwes_to_check(project_name: str, extra_folder: str = None):
     """
-    Build the full list of CWEs to scan for by combining LLM and advisory sources.
+    Build the full list of CWEs to scan for by combining LLM and advisory sources,
+    filtered to only those supported by the registry.
+
+    - LLM CWEs are intersected with the registry (only scannable CWEs kept).
+    - Advisory CWEs are kept as-is regardless of registry (grounded in real vulns).
 
     Args:
         project_name: Name of the project directory.
@@ -108,7 +124,13 @@ def cwes_to_check(project_name: str, extra_folder: str = None):
     Returns:
         Sorted, deduplicated list of integer CWE IDs from both sources.
     """
+    supported = registry_cwes()
+
     llm_cwes = llm_decides_cwes(project_name, extra_folder)
+    llm_cwes_filtered = [c for c in llm_cwes if c in supported]
+    skipped = len(llm_cwes) - len(llm_cwes_filtered)
+    if skipped:
+        logger.info(f"Filtered {skipped} LLM CWEs not in registry (kept {len(llm_cwes_filtered)})")
 
     try:
         with open(os.path.join(os.path.dirname(__file__), '..', 'output', project_name, 'methods_vulnerable.json'), 'r') as f:
@@ -116,6 +138,6 @@ def cwes_to_check(project_name: str, extra_folder: str = None):
         methods_cwes = cwes_from_vulnerable_methods(methods_vulnerable)
     except (FileNotFoundError, json.JSONDecodeError):
         methods_cwes = []
-    
-    # Combine and deduplicate CWEs
-    return sorted(list(set(llm_cwes) | set(methods_cwes)))
+
+    # LLM CWEs filtered to registry; advisory CWEs kept as-is
+    return sorted(list(set(llm_cwes_filtered) | set(methods_cwes)))

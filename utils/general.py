@@ -11,6 +11,7 @@ Provides helpers for:
 """
 
 import os
+import time
 import logging
 import pandas as pd
 import requests
@@ -221,21 +222,35 @@ def get_cwe_details(cwe_id):
 
     url = f"https://cwe-api.mitre.org/api/v1/cwe/weakness/{cwe_id}"
 
-    response = requests.get(url)
-
-    if response.status_code == 200:
-        data = response.json()
-        name = data['Weaknesses'][0]['Name']
-        description = data['Weaknesses'][0]['Description']
-    else:
-        logger.warning(f"Error: {response.status_code} fetching CWE details for ID {cwe_id}.")
-        name = f"CWE{cwe_id}Vulnerability"
-        description = "No description available."
+    max_retries = 5
+    backoff = 2  # seconds, doubles each attempt
+    for attempt in range(1, max_retries + 1):
+        try:
+            response = requests.get(url, timeout=15)
+            if response.status_code == 200:
+                data = response.json()
+                name = data['Weaknesses'][0]['Name']
+                description = data['Weaknesses'][0]['Description']
+                return {"id": cwe_id, "name": name, "description": description}
+            else:
+                logger.warning(f"Error: {response.status_code} fetching CWE details for ID {cwe_id}.")
+                return {
+                    "id": cwe_id,
+                    "name": f"CWE{cwe_id}Vulnerability",
+                    "description": "No description available.",
+                }
+        except requests.exceptions.RequestException as e:
+            if attempt < max_retries:
+                logger.warning(f"Network error fetching CWE-{cwe_id} (attempt {attempt}/{max_retries}): {e}. Retrying in {backoff}s...")
+                time.sleep(backoff)
+                backoff *= 2
+            else:
+                logger.warning(f"Failed to fetch CWE-{cwe_id} after {max_retries} attempts: {e}. Using fallback.")
 
     return {
         "id": cwe_id,
-        "name": name,
-        "description": description,
+        "name": f"CWE{cwe_id}Vulnerability",
+        "description": "No description available.",
     }
     
 def extract_predicate_from_file(file_path: str, predicate_name: str) -> str:

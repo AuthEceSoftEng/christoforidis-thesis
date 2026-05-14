@@ -169,7 +169,11 @@ def initialize_report_file(report_file_path, start_time):
         f.write("=" * 60 + "\n")
         f.write(f"Started: {datetime.fromtimestamp(start_time).strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Report File: {os.path.basename(report_file_path)}\n")
+        model_id = os.environ.get("ARIADNE_MODEL_ID", "unknown-model")
+        embedding_model = os.environ.get("EMBEDDING_MODEL", "unknown-embedder")
         f.write("\nQuery Execution: Batch with threading (codeql database analyze --threads)\n")
+        f.write(f"LLM Model: {model_id}\n")
+        f.write(f"Embedding Model: {embedding_model}\n")
         f.write("\nThis file tracks progress in real-time. Each project is appended as completed.\n")
         f.write("=" * 60 + "\n")
 

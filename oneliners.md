@@ -1,0 +1,4 @@
+PROJECT_NAME="dvna" .venv/bin/python3 vuln_apps_eval/evaluation.py && PROJECT_NAME="dvna" OUTPUT_DIR="$(pwd)/output" .venv/bin/python3 vuln_apps_eval/filter_results.py && GT="vuln_apps_eval/old/dvna/vulns.json" RESULTS_DIR="output/dvna_callgraphs1/dvna" && OUT="experiments/dvna-opus/results" && mkdir -p "$OUT" && for T in 0 40 50 60 70 75 80 90; do .venv/bin/python3 vuln_apps_eval/analyze_results.py "$RESULTS_DIR/filtered${T}_deduplicated.csv" "$GT" "$OUT/results_T${T}.json"; done && EXP="experiments/dvna-opus" && mkdir -p "$EXP/output" "$EXP/codeql_queries" "$EXP/report" && cp -r output/dvna_callgraphs1 "$EXP/output/" && cp -r output/dvna "$EXP/output/" && cp -r codeql/project_specific/dvna "$EXP/codeql_queries/" && cp "$(ls -t output/reports/llm_evaluation_batch_*.txt | head -1)" "$EXP/report/report.txt"
+
+
+
