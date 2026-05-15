@@ -1,3 +1,6 @@
+# Internal session notes — not for distribution
+SESSION_NOTES.md
+
 venv/
 utils/__pycache__/
 *.log

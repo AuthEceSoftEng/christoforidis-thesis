@@ -13,28 +13,34 @@
   },
   "22":{
     "hasCompat": true,
+    "alwaysInclude": true,
     "problemQueries": []
   },
   "73":{
     "hasCompat": true,
+    "alwaysInclude": true,
     "problemQueries": []
   },
   "78":{
     "hasCompat": true,
+    "alwaysInclude": true,
     "problemQueries": [
       "codeql/default/CWE-078/UselessUseOfCat.ql"
     ]
   },
   "79":{
     "hasCompat": true,
+    "alwaysInclude": true,
     "problemQueries": []
   },
   "89":{
     "hasCompat": true,
+    "alwaysInclude": true,
     "problemQueries": []
   },
   "94":{
     "hasCompat": true,
+    "alwaysInclude": true,
     "problemQueries": [
       "codeql/default/CWE-094/ExpressionInjection.ql"
     ]
@@ -50,10 +56,12 @@
   },
   "117":{
     "hasCompat": true,
+    "alwaysInclude": true,
     "problemQueries": []
   },
   "134":{
     "hasCompat": true,
+    "alwaysInclude": true,
     "problemQueries": []
   },
   "178":{
@@ -90,6 +98,7 @@
   },
   "312":{
     "hasCompat": true,
+    "alwaysInclude": true,
     "problemQueries": [
       "codeql/default/CWE-312/ActionsArtifactLeak.ql"
     ]
@@ -108,16 +117,19 @@
   },
   "327":{
     "hasCompat": true,
+    "alwaysInclude": true,
     "problemQueries": [
       "codeql/default/CWE-327/BadRandomness.ql"
     ]
   },
   "338":{
     "hasCompat": true,
+    "alwaysInclude": true,
     "problemQueries": []
   },
   "346":{
     "hasCompat": true,
+    "alwaysInclude": true,
     "problemQueries": []
   },
   "347":{
@@ -174,6 +186,7 @@
   },
   "601":{
     "hasCompat": true,
+    "alwaysInclude": true,
     "problemQueries": []
   },
   "611":{
@@ -261,10 +274,12 @@
   },
   "915":{
     "hasCompat": true,
+    "alwaysInclude": true,
     "problemQueries": []
   },
   "916":{
     "hasCompat": true,
+    "alwaysInclude": true,
     "problemQueries": []
   },
   "918":{

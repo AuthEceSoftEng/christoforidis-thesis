@@ -34,7 +34,7 @@ from utils.query_runner import run_codeql_query_tables, run_codeql_path_problem,
 from utils.methods_post_process import deduplicate_methods, methods_to_json, compare_with_advisories, classify_vulnerable_methods
 from utils.query_generator import generate_codeql_package_classification, generate_conditional_sanitizer_library, cleanup_test_queries, refine_vulnerability_query
 from utils.cwe_decider import cwes_to_check
-from utils.LLM import set_current_project, get_llm_stats, get_all_project_stats, reset_llm_stats
+from utils.LLM import set_current_project, get_llm_stats, get_all_project_stats, reset_llm_stats, InsufficientCreditsError
 
 # set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -250,6 +250,13 @@ def finalize_report(report_file_path, total_start_time, final_llm_stats, final_c
         f.write("EVALUATION COMPLETED SUCCESSFULLY\n")
         f.write(f"{'='*60}\n")
 
+def _checkpoint_exists(path):
+    """Return True if a checkpoint file/directory exists and is non-empty."""
+    if os.path.isdir(path):
+        return any(os.scandir(path))
+    return os.path.exists(path) and os.path.getsize(path) > 0
+
+
 def process_single_project(project_name, codebases_folder, project_root, report_file_path, codebase_subfolder=None):
     """Process a single project - designed to run in parallel with other projects"""
     project_start_time = time.time()
@@ -268,49 +275,68 @@ def process_single_project(project_name, codebases_folder, project_root, report_
         output_dir = os.path.join(project_root, "output", project_name)
         os.makedirs(output_dir, exist_ok=True)
 
-        # create codeql database
-        success, message, db_time = create_codeql_database(project_path, response='n')
-        if not success:
-            logger.error(f"Error creating CodeQL database for {project_name}: {message}")
-            return (project_name, False, 0, f"Database creation failed: {message}")
-        track_codeql_db_creation(project_name, db_time)
-        logger.info(f"Database created in {db_time:.1f}s")
-
         database_path = os.path.join(project_root, "databases", project_name)
-
-        ## EXTRACT METHODS FROM DEPENDENCIES ##
-        query_path = os.path.join(project_root, "codeql", "getPackageMethods.ql")
         results_path = os.path.join(output_dir, "methods")
-
-        # run the CodeQL query to extract methods from dependencies
-        success, error, extraction_time = run_codeql_query_tables(database_path, query_path, results_path)
-        if not success:
-            logger.error(f"Error running methods extraction query: {error}")
-            return (project_name, False, 0, f"Methods extraction failed: {error}")
-        track_codeql_methods_extraction(project_name, extraction_time)
-        logger.info(f"Methods extraction completed in {extraction_time:.1f}s. Results saved to {results_path}.csv")
-        
-        # deduplicate the df in case codeql returns duplicates
-        processed_methods = deduplicate_methods(f"{results_path}.csv", f"{results_path}_processed.csv")
-
-        # turn csv to json
-        methods_json = methods_to_json(processed_methods, f"{results_path}.json")
-
-        # check for vulnerable npm packages
-        vulnerable_packages = compare_with_advisories(methods_json, output_path=f"{results_path}_vulnerable.json")
-
-        # classify vulnerable methods
-        classified_methods = classify_vulnerable_methods(vulnerable_packages, f"{results_path}_vulnerable_classified.json")
-
-        # generate codeql library for package classifications (source, sinks, propagators)
+        classified_path = f"{results_path}_vulnerable_classified.json"
         project_specific_dir = os.path.join(project_root, "codeql", "project_specific", project_name)
         os.makedirs(project_specific_dir, exist_ok=True)
-        qll_path = os.path.join(project_specific_dir, "VulnerableMethodsClassification.qll")
-        generate_codeql_package_classification(classified_methods, qll_path)
-        
-        # conditional sanitizers
-        qll_path = os.path.join(project_specific_dir, "ConditionalSanitizers.qll")
-        generate_conditional_sanitizer_library(classified_methods, qll_path, validation_db=project_name)
+        vmclass_qll = os.path.join(project_specific_dir, "VulnerableMethodsClassification.qll")
+        sanitizers_qll = os.path.join(project_specific_dir, "ConditionalSanitizers.qll")
+
+        # ── CHECKPOINT: methods + classification ──────────────────────────
+        if _checkpoint_exists(classified_path):
+            logger.info(f"[RESUME] Skipping methods extraction and classification — checkpoint found: {classified_path}")
+            with open(classified_path, 'r') as f:
+                classified_methods = json.load(f)
+            # DB may not exist if we're resuming on a fresh machine; rebuild only if needed
+            if not _checkpoint_exists(database_path):
+                success, message, db_time = create_codeql_database(project_path, response='n')
+                if not success:
+                    logger.error(f"Error creating CodeQL database for {project_name}: {message}")
+                    return (project_name, False, 0, f"Database creation failed: {message}")
+                track_codeql_db_creation(project_name, db_time)
+                logger.info(f"Database created in {db_time:.1f}s")
+        else:
+            # create codeql database
+            success, message, db_time = create_codeql_database(project_path, response='n')
+            if not success:
+                logger.error(f"Error creating CodeQL database for {project_name}: {message}")
+                return (project_name, False, 0, f"Database creation failed: {message}")
+            track_codeql_db_creation(project_name, db_time)
+            logger.info(f"Database created in {db_time:.1f}s")
+
+            ## EXTRACT METHODS FROM DEPENDENCIES ##
+            query_path = os.path.join(project_root, "codeql", "getPackageMethods.ql")
+
+            # run the CodeQL query to extract methods from dependencies
+            success, error, extraction_time = run_codeql_query_tables(database_path, query_path, results_path)
+            if not success:
+                logger.error(f"Error running methods extraction query: {error}")
+                return (project_name, False, 0, f"Methods extraction failed: {error}")
+            track_codeql_methods_extraction(project_name, extraction_time)
+            logger.info(f"Methods extraction completed in {extraction_time:.1f}s. Results saved to {results_path}.csv")
+
+            # deduplicate the df in case codeql returns duplicates
+            processed_methods = deduplicate_methods(f"{results_path}.csv", f"{results_path}_processed.csv")
+
+            # turn csv to json
+            methods_json = methods_to_json(processed_methods, f"{results_path}.json")
+
+            # check for vulnerable npm packages
+            vulnerable_packages = compare_with_advisories(methods_json, output_path=f"{results_path}_vulnerable.json")
+
+            # classify vulnerable methods
+            classified_methods = classify_vulnerable_methods(vulnerable_packages, classified_path)
+
+        # ── CHECKPOINT: .qll library generation ───────────────────────────
+        if _checkpoint_exists(vmclass_qll) and _checkpoint_exists(sanitizers_qll):
+            logger.info(f"[RESUME] Skipping .qll library generation — checkpoints found")
+        else:
+            # generate codeql library for package classifications (source, sinks, propagators)
+            generate_codeql_package_classification(classified_methods, vmclass_qll)
+
+            # conditional sanitizers
+            generate_conditional_sanitizer_library(classified_methods, sanitizers_qll, validation_db=project_name)
 
         cleanup_test_queries(project_specific_dir)
 
@@ -330,12 +356,24 @@ def process_single_project(project_name, codebases_folder, project_root, report_
         failed_cwes = []
         for cwe_id in cwes:
         #for cwe_id in cwes_filtered: # temp: only when filtering CWEs
+
+            # ── CHECKPOINT: per-CWE final query ───────────────────────────
+            final_query_path = os.path.join(
+                project_specific_dir,
+                f"cwe_{cwe_id}_vulnerability_final_{model_name}.ql"
+            )
+            if _checkpoint_exists(final_query_path):
+                logger.info(f"[RESUME] Skipping CWE-{cwe_id} — final query already exists")
+                continue
+
             try:
                 formatted_call_graph = None
                 if call_graph_df is not None:
                     formatted_call_graph = format_call_graph_for_cwe(call_graph_df, cwe_id, project_name)
                 refine_vulnerability_query(cwe_id, project_name, general=False, extra_folder=codebase_subfolder,
                                call_graph=formatted_call_graph, track_query_fn=track_codeql_refinement_query)
+            except InsufficientCreditsError:
+                raise  # propagate immediately — do not swallow into failed_cwes
             except Exception as e:
                 logger.warning("Failed to refine query for CWE %s in %s: %s. Skipping this CWE.", cwe_id, project_name, str(e))
                 failed_cwes.append((cwe_id, str(e)))
@@ -356,50 +394,57 @@ def process_single_project(project_name, codebases_folder, project_root, report_
                 f.flush()
 
         # BATCH QUERY EXECUTION
-        logger.info(f"Preparing batch queries for {project_name}")
-        batch_queries_dir = os.path.join(project_specific_dir, "batch_queries")
-        os.makedirs(batch_queries_dir, exist_ok=True)
-        
-        # Copy final queries to batch folder
-        final_query_suffix = f"final_{model_name}.ql"
-        if os.path.exists(project_specific_dir):
-            final_queries = [f for f in os.listdir(project_specific_dir)
-                           if f.endswith(final_query_suffix)]
-            
-            for query_file in final_queries:
-                src = os.path.join(project_specific_dir, query_file)
-                dst = os.path.join(batch_queries_dir, query_file)
-                shutil.copy(src, dst)
-            
-            # Copy library files
-            for lib_file in ["ConditionalSanitizers.qll", "VulnerableMethodsClassification.qll"]:
-                src = os.path.join(project_specific_dir, lib_file)
-                dst = os.path.join(batch_queries_dir, lib_file)
-                if os.path.exists(src):
-                    shutil.copy(src, dst)
-            
-            # Copy problem queries
-            prob_queries_list = problem_queries(cwes)
-            for prob in prob_queries_list:
-                src = os.path.join(project_root, prob)
-                dst = os.path.join(batch_queries_dir, os.path.basename(prob))
-                if os.path.exists(src):
-                    shutil.copy(src, dst)
-            
-            logger.info(f"Copied {len(final_queries)} final queries and {len(prob_queries_list)} problem queries to batch folder")
-        
-        # Run batch queries with threading
-        logger.info(f"Running batch queries for {project_name} with parallel execution (--threads=0)")
+        # ── CHECKPOINT: batch results ──────────────────────────────────────
         batch_output_dir = os.path.join(project_root, "output", f"{project_name}_callgraphs1", project_name)
-        os.makedirs(batch_output_dir, exist_ok=True)
-        
-        success, error, batch_time = run_codeql_queries_batch(database_path, batch_queries_dir, batch_output_dir, threads=0)
-        track_codeql_query(project_name, batch_time)
-        
-        if not success:
-            logger.error(f"Batch query execution failed for {project_name}: {error}")
+        batch_results_path = os.path.join(batch_output_dir, "batch_results.csv")
+        if _checkpoint_exists(batch_results_path):
+            logger.info(f"[RESUME] Skipping batch execution — results already exist: {batch_results_path}")
+            track_codeql_query(project_name, 0.0)
         else:
-            logger.info(f"Batch query execution completed in {batch_time:.1f}s")
+            logger.info(f"Preparing batch queries for {project_name}")
+        batch_queries_dir = os.path.join(project_specific_dir, "batch_queries")
+        if not _checkpoint_exists(batch_results_path):
+            os.makedirs(batch_queries_dir, exist_ok=True)
+
+            # Copy final queries to batch folder
+            final_query_suffix = f"final_{model_name}.ql"
+            if os.path.exists(project_specific_dir):
+                final_queries = [f for f in os.listdir(project_specific_dir)
+                               if f.endswith(final_query_suffix)]
+
+                for query_file in final_queries:
+                    src = os.path.join(project_specific_dir, query_file)
+                    dst = os.path.join(batch_queries_dir, query_file)
+                    shutil.copy(src, dst)
+
+                # Copy library files
+                for lib_file in ["ConditionalSanitizers.qll", "VulnerableMethodsClassification.qll"]:
+                    src = os.path.join(project_specific_dir, lib_file)
+                    dst = os.path.join(batch_queries_dir, lib_file)
+                    if os.path.exists(src):
+                        shutil.copy(src, dst)
+
+                # Copy problem queries
+                prob_queries_list = problem_queries(cwes)
+                for prob in prob_queries_list:
+                    src = os.path.join(project_root, prob)
+                    dst = os.path.join(batch_queries_dir, os.path.basename(prob))
+                    if os.path.exists(src):
+                        shutil.copy(src, dst)
+
+                logger.info(f"Copied {len(final_queries)} final queries and {len(prob_queries_list)} problem queries to batch folder")
+
+            # Run batch queries with threading
+            logger.info(f"Running batch queries for {project_name} with parallel execution (--threads=0)")
+            os.makedirs(batch_output_dir, exist_ok=True)
+
+            success, error, batch_time = run_codeql_queries_batch(database_path, batch_queries_dir, batch_output_dir, threads=0)
+            track_codeql_query(project_name, batch_time)
+
+            if not success:
+                logger.error(f"Batch query execution failed for {project_name}: {error}")
+            else:
+                logger.info(f"Batch query execution completed in {batch_time:.1f}s")
 
         # NOW the project is truly completed
         project_end_time = time.time()
@@ -424,11 +469,34 @@ def process_single_project(project_name, codebases_folder, project_root, report_
         
         return (project_name, True, total_duration, None, project_stats, codeql_stats)
         
+    except InsufficientCreditsError as e:
+        # Freeze cleanly — write checkpoint notice and exit with code 2
+        project_end_time = time.time()
+        total_duration = project_end_time - project_start_time
+        logger.error(f"[FROZEN] Experiment paused — insufficient credits after {total_duration:.1f}s")
+        logger.error(f"[FROZEN] {e}")
+        with open(report_file_path, 'a') as f:
+            f.write(f"\n{'='*60}\n")
+            f.write(f"PROJECT: {project_name}\n")
+            f.write(f"{'='*60}\n")
+            f.write(f"Status: FROZEN (insufficient credits)\n")
+            f.write(f"Error: {str(e)}\n")
+            f.write(f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"Duration before freeze: {total_duration:.2f} seconds\n")
+            f.write(f"\nTo resume: recharge credits, then re-run the exact same command.\n")
+            f.write(f"The pipeline will skip all completed phases and CWEs automatically.\n")
+            f.flush()
+        logger.error("[FROZEN] To resume:")
+        logger.error("[FROZEN]   1. Recharge credits at https://ariadne.issel.ee.auth.gr")
+        logger.error("[FROZEN]   2. Re-run the exact same command")
+        logger.error("[FROZEN] The pipeline will skip all completed phases and CWEs automatically.")
+        sys.exit(2)
+
     except Exception as e:
         # Log error
         project_end_time = time.time()
         total_duration = project_end_time - project_start_time
-        
+
         logger.error(f"Error processing {project_name} after {total_duration:.1f}s: {str(e)}")
         with open(report_file_path, 'a') as f:
             f.write(f"\n{'='*60}\n")
@@ -446,7 +514,7 @@ def process_single_project(project_name, codebases_folder, project_root, report_
         except:
             project_stats = {}
             codeql_stats = {}
-        
+
         return (project_name, False, total_duration, str(e), project_stats, codeql_stats)
 
 def main():

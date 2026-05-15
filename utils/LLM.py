@@ -15,10 +15,23 @@ Environment Variables (all required — set in .env):
 """
 
 import os
+import sys
 import time
 import requests # type: ignore
 from dotenv import load_dotenv # type: ignore
 from collections import defaultdict
+
+
+class InsufficientCreditsError(Exception):
+    """
+    Raised when the Ariadne API returns HTTP 402 (Payment Required).
+
+    This indicates the account has run out of credits. The pipeline catches
+    this exception at the top level, logs the freeze point, and exits with
+    code 2. Re-running the same command will automatically resume from the
+    last on-disk checkpoint — no completed work is lost.
+    """
+    pass
 
 load_dotenv()
 
@@ -163,11 +176,17 @@ class LLMHandler:
             "provider":    self._ariadne_provider,
             "model":       self._ariadne_model,
             "temperature": self.temperature,
-            "max_tokens":  4096,
+            "max_tokens":  16384,
         }
 
         url = f"{self._base_url}/messages"
         resp = self._session.post(url, json=payload, timeout=120)
+        if resp.status_code == 402:
+            raise InsufficientCreditsError(
+                "API returned 402 Payment Required — account credits exhausted. "
+                "Recharge credits and re-run the same command; the pipeline will "
+                "resume automatically from the last checkpoint."
+            )
         resp.raise_for_status()
 
         data = resp.json()

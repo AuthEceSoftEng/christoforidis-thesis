@@ -1,13 +1,22 @@
 """
 CWE selection logic for determining which vulnerabilities to scan for.
 
-Combines two strategies to build a comprehensive list of CWEs to check:
+Combines three strategies to build a comprehensive list of CWEs to check:
   1. LLM-based: Analyzes the project's README.md and package.json to infer
-     plausible CWE categories.
+     plausible CWE categories. Results are intersected with the registry
+     (only CWEs with supported queries are kept).
   2. Advisory-based: Extracts CWE IDs from GitHub Security Advisories that
-     matched the project's vulnerable dependencies.
+     matched the project's vulnerable dependencies. Kept as-is since they are
+     grounded in real vulnerability data.
+  3. Baseline: A set of universally applicable taint-trackable CWEs for any
+     Node.js/Express application, driven by the 'alwaysInclude' flag in
+     codeql/registry.json. These cover first-party application-code vulnerabilities
+     (e.g. CWE-78 CommandInjection, CWE-22 PathTraversal) that never appear in npm
+     advisories and may not be inferable from a minimal README, yet are detectable
+     by CodeQL taint analysis. This prevents the pipeline from silently skipping
+     entire vulnerability classes due to poor project documentation.
 
-The final list is the union of both sources, deduplicated and sorted.
+The final list is the union of all three sources, deduplicated and sorted.
 """
 
 import os
@@ -109,20 +118,47 @@ def registry_cwes() -> set:
         registry = json.load(f)
     return set(int(k) for k in registry.keys())
 
+def baseline_cwes() -> set:
+    """
+    Return the set of CWE IDs marked as always-include in the registry.
+
+    These are universally applicable taint-trackable vulnerabilities for any
+    Node.js/Express application — CWEs that any developer could introduce in
+    first-party application code, regardless of what the project README says or
+    which npm advisories are triggered.
+
+    This addresses a structural blind spot in the LLM+advisory CWE selection:
+    vulnerabilities like OS command injection (CWE-78) or path traversal (CWE-22)
+    never appear in npm package advisories (they are app-code bugs, not library bugs),
+    and a minimal or generic README gives the LLM no signal to predict them. Without
+    this baseline, the taint analysis would silently skip entire vulnerability classes.
+
+    The set is driven by the 'alwaysInclude' flag in codeql/registry.json, keeping
+    the registry as the single source of truth for pipeline scanning capabilities.
+
+    Returns:
+        Set of integer CWE IDs with alwaysInclude=true in the registry.
+    """
+    registry_path = os.path.join(os.path.dirname(__file__), '..', 'codeql', 'registry.json')
+    with open(registry_path, 'r') as f:
+        registry = json.load(f)
+    return set(int(k) for k, v in registry.items() if v.get('alwaysInclude', False))
+
 def cwes_to_check(project_name: str, extra_folder: str = None):
     """
-    Build the full list of CWEs to scan for by combining LLM and advisory sources,
-    filtered to only those supported by the registry.
-
-    - LLM CWEs are intersected with the registry (only scannable CWEs kept).
-    - Advisory CWEs are kept as-is regardless of registry (grounded in real vulns).
+    Build the full list of CWEs to scan for by combining three sources:
+      1. LLM CWEs (intersected with registry — only scannable CWEs kept)
+      2. Advisory CWEs (kept as-is — grounded in real vulnerability data)
+      3. Baseline CWEs (always-include set from registry — covers universally
+         applicable taint vulnerabilities that neither READMEs nor npm advisories
+         reliably surface, e.g. CWE-78, CWE-22, CWE-79, CWE-89, CWE-94)
 
     Args:
         project_name: Name of the project directory.
         extra_folder: Optional subdirectory within codebases/.
 
     Returns:
-        Sorted, deduplicated list of integer CWE IDs from both sources.
+        Sorted, deduplicated list of integer CWE IDs from all three sources.
     """
     supported = registry_cwes()
 
@@ -139,5 +175,10 @@ def cwes_to_check(project_name: str, extra_folder: str = None):
     except (FileNotFoundError, json.JSONDecodeError):
         methods_cwes = []
 
-    # LLM CWEs filtered to registry; advisory CWEs kept as-is
-    return sorted(list(set(llm_cwes_filtered) | set(methods_cwes)))
+    # Baseline CWEs are already registry-validated (alwaysInclude only set on
+    # entries with hasCompat=true), so no additional filtering needed.
+    base_cwes = baseline_cwes()
+    logger.info(f"Baseline CWEs always included: {sorted(base_cwes)}")
+
+    # Union of all three sources
+    return sorted(list(set(llm_cwes_filtered) | set(methods_cwes) | base_cwes))
