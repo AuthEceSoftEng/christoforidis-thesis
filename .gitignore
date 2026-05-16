@@ -1,3 +1,8 @@
+# Internal working documents — not for distribution
+SESSION_NOTES.md
+FIX_STRAY_BRACE.md
+Architecture.md
+
 venv/
 utils/__pycache__/
 *.log

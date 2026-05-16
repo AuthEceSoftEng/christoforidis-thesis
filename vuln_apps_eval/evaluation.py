@@ -258,8 +258,8 @@ def process_single_project(project_name, codebases_folder, project_root, report_
     set_current_project(project_name)
     reset_llm_stats(project_name)
 
-    # Model name used for query filename suffix
-    model_name = os.environ.get("ARIADNE_MODEL_ID", "unknown-model")
+    # Model name used for query filename suffix — sanitize '/' for filesystem safety
+    model_name = os.environ.get("ARIADNE_MODEL_ID", "unknown-model").replace("/", "-")
 
     project_path = os.path.join(codebases_folder, project_name)
     logger.info(f"Processing project: {project_name}")

@@ -1249,7 +1249,7 @@ def refine_vulnerability_query(cwe_id, project_name, general: bool = False, extr
     
     query = general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, flow_predicate)
 
-    _model_name = os.environ.get("ARIADNE_MODEL_ID", "unknown-model")
+    _model_name = os.environ.get("ARIADNE_MODEL_ID", "unknown-model").replace("/", "-")
     output_path = os.path.join(os.path.dirname(__file__), "..", "codeql", "project_specific", project_name, f"cwe_{cwe_id}_vulnerability_final_{_model_name}.ql")
     with open(output_path, 'w') as f:
         f.write(query)
