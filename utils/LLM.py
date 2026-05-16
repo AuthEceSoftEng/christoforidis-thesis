@@ -17,6 +17,7 @@ Environment Variables (all required — set in .env):
 import os
 import sys
 import time
+import threading
 import requests # type: ignore
 from dotenv import load_dotenv # type: ignore
 from collections import defaultdict
@@ -34,6 +35,9 @@ class InsufficientCreditsError(Exception):
     pass
 
 load_dotenv()
+
+# Lock protecting all global stat dicts (safe for concurrent CWE threads)
+_stats_lock = threading.Lock()
 
 # Global tracking variables
 _current_project = None
@@ -64,19 +68,12 @@ def _extract_input_text(messages):
     return str(messages)
 
 def _track_request(model, input_text, output_text, request_time):
-    """Track a single request's statistics"""
+    """Track a single request's statistics (thread-safe)."""
     global _global_stats, _project_stats, _current_project
 
     input_tokens = _estimate_tokens(input_text)
     output_tokens = _estimate_tokens(output_text)
 
-    # Update global totals
-    _global_stats['request_count'] += 1
-    _global_stats['total_request_time'] += request_time
-    _global_stats['total_input_tokens'] += input_tokens
-    _global_stats['total_output_tokens'] += output_tokens
-
-    # Store global request details
     request_info = {
         'project': _current_project,
         'timestamp': time.time(),
@@ -85,16 +82,23 @@ def _track_request(model, input_text, output_text, request_time):
         'output_tokens': output_tokens,
         'model': model
     }
-    _global_stats['request_history'].append(request_info)
 
-    # Update project-specific stats if project is set
-    if _current_project:
-        project_stats = _project_stats[_current_project]
-        project_stats['request_count'] += 1
-        project_stats['total_request_time'] += request_time
-        project_stats['total_input_tokens'] += input_tokens
-        project_stats['total_output_tokens'] += output_tokens
-        project_stats['request_history'].append(request_info)
+    with _stats_lock:
+        # Update global totals
+        _global_stats['request_count'] += 1
+        _global_stats['total_request_time'] += request_time
+        _global_stats['total_input_tokens'] += input_tokens
+        _global_stats['total_output_tokens'] += output_tokens
+        _global_stats['request_history'].append(request_info)
+
+        # Update project-specific stats if project is set
+        if _current_project:
+            project_stats = _project_stats[_current_project]
+            project_stats['request_count'] += 1
+            project_stats['total_request_time'] += request_time
+            project_stats['total_input_tokens'] += input_tokens
+            project_stats['total_output_tokens'] += output_tokens
+            project_stats['request_history'].append(request_info)
 
 class LLMHandler:
     def __init__(self, model=None, temperature=1.0):

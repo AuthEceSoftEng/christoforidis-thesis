@@ -175,120 +175,6 @@ Return only the selected sink categories in a comma-separated format without any
 """
     return [{"role": "user", "message": sink_selection_prompt}]
 
-def flow_explaination_prompt(cwe_details, flow_predicate, sink_predicate, sinks_extracted, docs, readme_content=None, package_content=None, call_graph=None):
-    """Build prompt for the explanation phase of flow step refinement (phase 1 of 2)."""
-    prompt = f"""
-    You are a CodeQL expert specialized in security vulnerabilities for Javascript projects. You are tasked with improving an isAdditionalFlowStep predicate in a custom configuration.
-    The configuration tries to detect the following CWE (Common Weakness Enumeration) vulnerability.
-    CWE ID: {cwe_details['id']}
-    CWE Name: {cwe_details['name']}
-    CWE Description: {cwe_details['description']}"""
-
-    if readme_content is not None:
-        prompt += f"""
-        Project's README.md (summary):
-        ```markdown
-        {readme_content}
-        ```
-        """
-
-    if package_content is not None:
-        prompt += f"""
-        Project's package.json:
-        ```json
-        {package_content}
-        ```
-        """
-
-    if call_graph is not None:
-        prompt += f"""
-        
-PROJECT CALL GRAPH (CWE-{cwe_details['id']} Relevant):
-{call_graph}
-
-This shows the actual function call relationships in this specific project, filtered for patterns relevant to {cwe_details['name']}.
-Use this to identify:
-- How data flows through THIS project's specific architecture
-- Custom middleware, validators, or utility functions that propagate data
-- Project-specific API patterns and abstractions
-- Functions that connect user input (routes/handlers) to dangerous operations (sinks)
-        """
-
-    prompt += f"""
-CURRENT IMPLEMENTATION:
-    ```ql
-    {flow_predicate}
-    ```
-
-    SINK DEFINITION:
-    ```ql
-    {sink_predicate}
-    ```
-
-    SINK PATTERNS DETECTED:
-    ```ql
-    {sinks_extracted}
-    ```
-
-    RELEVANT DOCUMENTATION:
-    {docs}
-
-    ANALYSIS TASK:
-    1. First, analyze the sink definitions to identify exactly what types of vulnerabilities they represent
-    2. Based ONLY on these sink definitions, identify the TOP 3 MOST CRITICAL missing flow patterns
-    3. Prioritize patterns that would most improve detection of the specific vulnerability types in the sinks
-    4. You should provide AT LEAST ONE missing flow pattern for each sink type
-    5. If readme/package.json/call graph info is provided, use it to better understand the project context and refine your analysis
-    6. Pay special attention to the call graph - it shows THIS project's actual data flow architecture
-    
-    For each pattern, provide:
-    - A clear name and description of what's missing
-    - Why it's critical for detection (high impact)
-    - A simple code example showing a vulnerable pattern that would be missed
-    - Reference specific functions/files from the call graph if relevant
-    
-    FOCUS: Your analysis must be based directly on the sink definitions provided and the actual call graph structure, not general assumptions about the CWE category.
-
-    At this stage you should only focus on explaining the missing flow patterns and NOT on writing the actual CodeQL code.
-"""
-    
-    return [{"role": "user", "message": prompt}]
-
-def flow_implementation_prompt(flow_predicate, explanation, docs):
-    """Build prompt for the implementation phase of flow step refinement (phase 2 of 2)."""
-    prompt = f"""
-    You are a CodeQL expert specialized in security vulnerabilities for Javascript projects. Based on your previous analysis of missing flow patterns:
-
-    {explanation}
-
-    I now need you to implement these improvements to the isAdditionalFlowStep predicate.
-
-    CURRENT IMPLEMENTATION:
-    ```ql
-    {flow_predicate}
-    ```
-
-    RELEVANT DOCUMENTATION:
-    {docs}
-
-    IMPLEMENTATION TASK:
-    1. Modify the predicate to include the missing flow patterns you identified
-    2. Implement each pattern using correct CodeQL syntax and classes
-    3. Add brief comments explaining each new pattern
-    4. Ensure all existing functionality is preserved
-
-    REQUIREMENTS:
-    - Use only classes and methods available in the standard CodeQL JavaScript library
-    - Follow CodeQL best practices for predicate implementation
-    - Maintain proper indentation and formatting
-    - Add ONLY the missing patterns - don't remove any existing functionality
-    - Use clear, descriptive variable names
-
-    Return the complete improved isAdditionalFlowStep predicate code without any explaination.
-    """
-    
-    return [{"role": "user", "message": prompt}]
-
 def flow_refinement_prompt(flow_predicate, errors, docs):
     """Build prompt for fixing compilation errors in a flow step predicate."""
     prompt = f"""
@@ -345,123 +231,6 @@ Do not include any other text or explanation.
 """
     return [{"role": "user", "message": prompt}]
 
-def sink_explaination_prompt(cwe_details, sink_predicate, sinks_extracted, docs, readme_content=None, package_content=None, call_graph=None):
-    """Build prompt for the explanation phase of sink refinement (phase 1 of 2)."""
-    prompt = f"""
-    You are a CodeQL expert specialized in security vulnerabilities for Javascript projects. You are tasked with improving an isSink predicate in a custom configuration.
-    The configuration tries to detect the following CWE (Common Weakness Enumeration) vulnerability.
-    CWE ID: {cwe_details['id']}
-    CWE Name: {cwe_details['name']}
-    CWE Description: {cwe_details['description']}"""
-
-    if readme_content is not None:
-        prompt += f"""
-        Project's README.md (summary):
-        ```markdown
-        {readme_content}
-        ```
-        """
-
-    if package_content is not None:
-        prompt += f"""
-        Project's package.json:
-        ```json
-        {package_content}
-        ```
-        """
-
-    if call_graph is not None:
-        prompt += f"""
-        
-PROJECT CALL GRAPH (CWE-{cwe_details['id']} Relevant):
-{call_graph}
-
-This shows the actual function call relationships in this specific project, filtered for patterns relevant to {cwe_details['name']}.
-Use this to identify:
-- Project-specific dangerous operations that may not be covered by standard sinks
-- Custom database wrappers, file system utilities, or command execution functions
-- Framework-specific APIs that this project uses (Express, Sequelize, etc.)
-- Functions in routes/handlers/controllers that perform security-sensitive operations
-        """
-
-    prompt += f"""
-CURRENT IMPLEMENTATION:
-    ```ql
-    {sink_predicate}
-    ```
-
-    SINK PATTERNS DETECTED:
-    ```ql
-    {sinks_extracted}
-    ```
-
-    RELEVANT DOCUMENTATION:
-    {docs}
-
-    ANALYSIS TASK:
-    1. First, analyze the existing sink definitions and patterns detected
-    2. Based on the CWE, identify the TOP 3 MOST CRITICAL missing sink patterns
-    3. Prioritize patterns that would most improve detection of the specific vulnerability types
-    4. If readme/package.json/call graph info is provided, use it to better understand the project context and refine your analysis
-    5. Pay special attention to the call graph - it may reveal project-specific dangerous functions not covered by generic sinks
-    
-    For each pattern, provide:
-    - A clear name and description of what's missing
-    - Why it's critical for detection (high impact)
-    - A simple code example showing a vulnerable pattern that would be missed
-    - Reference specific functions/files from the call graph if they represent uncovered sinks
-
-    FORMAT YOUR RESPONSE AS FOLLOWS:
-
-    ## Missing Pattern 1: [Name]
-    Description: [Clear description]
-    Critical because: [Justification]
-    Example:
-    ```javascript
-    // Code showing vulnerability
-    
-    At this stage you should only focus on explaining the missing sink patterns and NOT on writing the actual CodeQL code.
-"""
-    
-    return [{"role": "user", "message": prompt}]
-
-def sink_implementation_prompt(sink_predicate, explanation, docs):
-    """Build prompt for the implementation phase of sink refinement (phase 2 of 2)."""
-    prompt = f"""
-    You are a CodeQL expert specialized in security vulnerabilities for Javascript projects. Based on your previous analysis of missing sink patterns:
-
-    {explanation}
-
-    I now need you to implement these improvements to the isSink predicate.
-
-    CURRENT IMPLEMENTATION:
-    ```ql
-    {sink_predicate}
-    ```
-
-    RELEVANT DOCUMENTATION:
-    {docs}
-
-    IMPLEMENTATION TASK:
-    1. Modify the predicate to include the missing sink patterns you identified
-    2. Implement each pattern using correct CodeQL syntax and classes
-    3. Add brief comments explaining each new pattern
-    4. Ensure all existing functionality is preserved
-
-    REQUIREMENTS:
-    - Use only classes and methods available in the standard CodeQL JavaScript library
-    - Follow CodeQL best practices for predicate implementation
-    - Maintain proper indentation and formatting
-    - Add ONLY the missing patterns - don't remove any existing functionality
-    - Use clear, descriptive variable names
-
-    Return the complete improved isSink predicate code without any explaination.
-    DO NOT ADD ANY OTHER PREDICATES ONLY THE ONE REQUESTED.
-    DO NOT ADD HELPER PRIVATE PREDICATES JUST ADD EVERYTHING INSIDE THE isSink PREDICATE.
-    """
-    
-    return [{"role": "user", "message": prompt}]
-
 def sink_refinement_prompt(sink_predicate, errors, docs):
     """Build prompt for fixing compilation errors in a sink predicate."""
     prompt = f"""
@@ -489,6 +258,173 @@ DO NOT ADD ANY OTHER PREDICATES ONLY THE ONE REQUESTED.
 """
     
     return [{"role": "user", "message": prompt}]
+
+def sink_direct_prompt(cwe_details, sink_predicate, sinks_extracted, docs, readme_content=None, package_content=None, call_graph=None):
+    """Build a single-call prompt that identifies AND implements missing sink patterns.
+
+    Replaces the two-call explain→implement chain for models with sufficient internal
+    reasoning (Sonnet 4.5+, Opus, Qwen 3.6). The model is asked to reason about what
+    is missing and produce the improved CodeQL predicate in one pass.
+    """
+    prompt = f"""
+    You are a CodeQL expert specialized in security vulnerabilities for Javascript projects. You are tasked with improving an isSink predicate in a custom configuration.
+    The configuration tries to detect the following CWE (Common Weakness Enumeration) vulnerability.
+    CWE ID: {cwe_details['id']}
+    CWE Name: {cwe_details['name']}
+    CWE Description: {cwe_details['description']}"""
+
+    if readme_content is not None:
+        prompt += f"""
+        Project's README.md (summary):
+        ```markdown
+        {readme_content}
+        ```
+        """
+
+    if package_content is not None:
+        prompt += f"""
+        Project's package.json:
+        ```json
+        {package_content}
+        ```
+        """
+
+    if call_graph is not None:
+        prompt += f"""
+
+PROJECT CALL GRAPH (CWE-{cwe_details['id']} Relevant):
+{call_graph}
+
+This shows the actual function call relationships in this specific project, filtered for patterns relevant to {cwe_details['name']}.
+Use this to identify:
+- How data flows through THIS project's specific architecture
+- Custom middleware, validators, or utility functions that propagate data
+- Project-specific API patterns and abstractions
+- Functions that connect user input (routes/handlers) to dangerous operations (sinks)
+        """
+
+    prompt += f"""
+CURRENT IMPLEMENTATION:
+    ```ql
+    {sink_predicate}
+    ```
+
+    SINK PATTERNS DETECTED:
+    ```ql
+    {sinks_extracted}
+    ```
+
+    RELEVANT DOCUMENTATION:
+    {docs}
+
+    TASK:
+    1. Analyze the existing sink definitions and patterns detected
+    2. Identify the TOP 3 MOST CRITICAL missing sink patterns based on the CWE and the project context
+    3. Prioritize patterns that would most improve detection of the specific vulnerability types
+    4. If readme/package.json/call graph info is provided, use it to identify project-specific dangerous functions not covered by generic sinks
+    5. Implement ALL identified missing patterns directly in the improved predicate
+
+    REQUIREMENTS:
+    - Use only classes and methods available in the standard CodeQL JavaScript library
+    - Follow CodeQL best practices for predicate implementation
+    - Maintain proper indentation and formatting
+    - Add ONLY the missing patterns - don't remove any existing functionality
+    - Use clear, descriptive variable names
+    - Add brief inline comments explaining each new pattern
+
+    Return the complete improved isSink predicate code without any explanation.
+    DO NOT ADD ANY OTHER PREDICATES ONLY THE ONE REQUESTED.
+    DO NOT ADD HELPER PRIVATE PREDICATES JUST ADD EVERYTHING INSIDE THE isSink PREDICATE.
+    """
+
+    return [{"role": "user", "message": prompt}]
+
+
+def flow_direct_prompt(cwe_details, flow_predicate, sink_predicate, sinks_extracted, docs, readme_content=None, package_content=None, call_graph=None):
+    """Build a single-call prompt that identifies AND implements missing flow step patterns.
+
+    Replaces the two-call explain→implement chain for models with sufficient internal
+    reasoning (Sonnet 4.5+, Opus, Qwen 3.6). The model is asked to reason about what
+    is missing and produce the improved CodeQL predicate in one pass.
+    """
+    prompt = f"""
+    You are a CodeQL expert specialized in security vulnerabilities for Javascript projects. You are tasked with improving an isAdditionalFlowStep predicate in a custom configuration.
+    The configuration tries to detect the following CWE (Common Weakness Enumeration) vulnerability.
+    CWE ID: {cwe_details['id']}
+    CWE Name: {cwe_details['name']}
+    CWE Description: {cwe_details['description']}"""
+
+    if readme_content is not None:
+        prompt += f"""
+        Project's README.md (summary):
+        ```markdown
+        {readme_content}
+        ```
+        """
+
+    if package_content is not None:
+        prompt += f"""
+        Project's package.json:
+        ```json
+        {package_content}
+        ```
+        """
+
+    if call_graph is not None:
+        prompt += f"""
+
+PROJECT CALL GRAPH (CWE-{cwe_details['id']} Relevant):
+{call_graph}
+
+This shows the actual function call relationships in this specific project, filtered for patterns relevant to {cwe_details['name']}.
+Use this to identify:
+- How data flows through THIS project's specific architecture
+- Custom middleware, validators, or utility functions that propagate data
+- Project-specific API patterns and abstractions
+- Functions that connect user input (routes/handlers) to dangerous operations (sinks)
+        """
+
+    prompt += f"""
+CURRENT IMPLEMENTATION:
+    ```ql
+    {flow_predicate}
+    ```
+
+    SINK DEFINITION:
+    ```ql
+    {sink_predicate}
+    ```
+
+    SINK PATTERNS DETECTED:
+    ```ql
+    {sinks_extracted}
+    ```
+
+    RELEVANT DOCUMENTATION:
+    {docs}
+
+    TASK:
+    1. Analyze the sink definitions to identify exactly what types of vulnerabilities they represent
+    2. Based ONLY on these sink definitions, identify the TOP 3 MOST CRITICAL missing flow patterns
+    3. Prioritize patterns that would most improve detection of the specific vulnerability types in the sinks
+    4. Provide AT LEAST ONE missing flow pattern for each sink type
+    5. If readme/package.json/call graph info is provided, use it to better understand the project context
+    6. Pay special attention to the call graph - it shows THIS project's actual data flow architecture
+    7. Implement ALL identified missing patterns directly in the improved predicate
+
+    REQUIREMENTS:
+    - Use only classes and methods available in the standard CodeQL JavaScript library
+    - Follow CodeQL best practices for predicate implementation
+    - Maintain proper indentation and formatting
+    - Add ONLY the missing patterns - don't remove any existing functionality
+    - Use clear, descriptive variable names
+    - Add brief inline comments explaining each new pattern
+
+    Return the complete improved isAdditionalFlowStep predicate code without any explanation.
+    """
+
+    return [{"role": "user", "message": prompt}]
+
 
 def keywords_filter_prompt(cwe_id, cwe_details):
     """Build prompt for identifying call graph filtering keywords relevant to a CWE."""
@@ -518,6 +454,10 @@ Example output: query, execute, find, sql, database"""
 
 def get_vulnerability_confidence(context, file_path, source_line, source_expression, sink_line, sink_expression, query_name, description, enriched_summary: str = ""):
     """Build prompt for assessing whether a detected vulnerability is a true positive or false positive."""
+    semantic_summary_block = (
+        f"\n**Semantic Summary** (extracted from inline comments and naming conventions):\n{enriched_summary}\n"
+        if enriched_summary else ""
+    )
     prompt = f"""
 You are a security analyst reviewing a code snippet to determine if it contains a vulnerability.
 **Reported Vulnerability Type**: {query_name} - {description}
@@ -535,10 +475,7 @@ You are a security analyst reviewing a code snippet to determine if it contains 
 ```javascript
 {context}
 ```
-{f"""
-**Semantic Summary** (extracted from inline comments and naming conventions):
-{enriched_summary}
-""" if enriched_summary else ""}
+{semantic_summary_block}
 **Your Task**: Analyze the code snippet and determine if this is a TRUE vulnerability or a FALSE POSITIVE.
 
 **Analysis Checklist:**

@@ -15,8 +15,8 @@ This is the core intelligence module of the pipeline. It handles:
      flow steps.
 
   4. Two-phase query refinement:
-     - Sink refinement: LLM explains missing sink patterns, then implements them
-     - Flow refinement: LLM explains missing flow steps, then implements them
+     - Sink refinement: LLM identifies and implements missing sink patterns in one call
+     - Flow refinement: LLM identifies and implements missing flow steps in one call
      Both phases use RAG from the ChromaDB vector database of CodeQL documentation
      and validate generated code against the CodeQL compiler.
 
@@ -28,17 +28,22 @@ import glob
 import re
 import os
 import logging
+import threading
 import chromadb
 import json
 from chromadb.utils import embedding_functions
 from .LLM import LLMHandler
-from .prompts import get_initial_sanitizer_prompt, get_refinement_sanitizer_prompt, get_sink_selection_prompt, flow_explaination_prompt, flow_implementation_prompt, flow_refinement_prompt, sink_explaination_prompt, sink_implementation_prompt, sink_refinement_prompt
+from .prompts import get_initial_sanitizer_prompt, get_refinement_sanitizer_prompt, get_sink_selection_prompt, flow_refinement_prompt, sink_refinement_prompt, sink_direct_prompt, flow_direct_prompt
 from .query_runner import run_codeql_query_tables, run_codeql_path_problem
 from .general import get_cwe_details, extract_predicate_from_file
 
 EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "jinaai/jina-embeddings-v2-base-code")
 EMBEDDING_DEVICE = os.environ.get("EMBEDDING_DEVICE", "cpu")
 IS_NOMIC = EMBEDDING_MODEL.startswith("nomic-ai/")
+
+# Serialise concurrent ChromaDB reads — PersistentClient uses SQLite which does not
+# support multiple simultaneous readers from different Python objects on the same path.
+_chromadb_lock = threading.Lock()
 
 # set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -203,12 +208,17 @@ def generate_codeql_package_classification(classified_methods, output_path):
     logger.info(f"Successfully generated CodeQL library at {output_path}")
 
 def _get_relevant_documentation(queries, collection_type="both"):
-    """Get relevant documentation from vector database."""
+    """Get relevant documentation from vector database (thread-safe)."""
+    with _chromadb_lock:
+        return _get_relevant_documentation_locked(queries, collection_type)
+
+def _get_relevant_documentation_locked(queries, collection_type="both"):
+    """Inner implementation — must only be called while _chromadb_lock is held."""
     try:
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         db_folder = "chroma_db_" + EMBEDDING_MODEL.split("/")[-1]
         db_path = os.path.join(base_dir, "vector_db", db_folder)
-        
+
         client = chromadb.PersistentClient(path=db_path)
         embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
             model_name=EMBEDDING_MODEL, device=EMBEDDING_DEVICE
@@ -879,8 +889,9 @@ def generate_vulnerability_query(cwe_id, project_name):
     for pred in sinks['predicates']:
         sink_predicate_parts.append(f'exists(DataFlow::CallNode call | VulnerableMethodsClassificationLib::{pred}(call) and sink = call)')
 
+    _sink_sep = ' or\n    '
     sink_predicate = f"""  predicate isSink(DataFlow::Node sink) {{
-    {' or\n    '.join(sink_predicate_parts)}"""
+    {_sink_sep.join(sink_predicate_parts)}"""
     if _has_compat(cwe_id):
         if sink_predicate_parts:
             sink_predicate += f"""\n    or DefaultCWE{str(cwe_id)}Compat::defaultIsSink(sink)"""
@@ -1106,13 +1117,12 @@ def refine_sink_vulnerability_query(cwe_id, project_name, general: bool = False,
                 package_content = file.read()
         except FileNotFoundError:
             package_content = "No package.json found for this project."
-        messages = sink_explaination_prompt(cwe_details, sink_predicate, sinks_extracted, docs, readme_content, package_content, call_graph)
+        messages = sink_direct_prompt(cwe_details, sink_predicate, sinks_extracted, docs, readme_content, package_content, call_graph)
     else:
-        messages = sink_explaination_prompt(cwe_details, sink_predicate, sinks_extracted, docs, call_graph=call_graph)
-    explanation = llm.send_message(messages)
-    messages = sink_implementation_prompt(sink_predicate, explanation, docs)
-    refined_sink_predicate = llm.send_message(messages)
-    refined_sink_predicate = clean_predicate_response(refined_sink_predicate)
+        messages = sink_direct_prompt(cwe_details, sink_predicate, sinks_extracted, docs, call_graph=call_graph)
+    raw_response = llm.send_message(messages)
+    messages.append({"role": "assistant", "message": raw_response})
+    refined_sink_predicate = clean_predicate_response(raw_response)
     query = general_vuln_query(cwe_id, refined_sink_predicate, sanitizer_predicate, flow_predicate)
     ql_path = os.path.join(base_dir, "codeql", "project_specific", project_name, f"cwe_{cwe_id}_vulnerability_sinkrefined.ql")
 
@@ -1133,8 +1143,9 @@ def refine_sink_vulnerability_query(cwe_id, project_name, general: bool = False,
 
         messages.append(sink_refinement_prompt(refined_sink_predicate, clean_errors, docs_text)[0])
 
-        refined_sink_predicate = llm.send_message(messages)
-        refined_sink_predicate = clean_predicate_response(refined_sink_predicate)
+        raw_response = llm.send_message(messages)
+        messages.append({"role": "assistant", "message": raw_response})
+        refined_sink_predicate = clean_predicate_response(raw_response)
 
         logger.info(f"#Try: {tries+1}: Refined sink predicate for CWE-{cwe_id}")
         query = general_vuln_query(cwe_id, refined_sink_predicate, sanitizer_predicate, flow_predicate)
@@ -1194,13 +1205,12 @@ def refine_flow_vulnerability_query(cwe_id, project_name, general: bool = False,
                 package_content = file.read()
         except FileNotFoundError:
             package_content = "No package.json found for this project."
-        messages = flow_explaination_prompt(cwe_details, flow_predicate, sink_predicate, sinks_extracted, docs, readme_content, package_content, call_graph)
+        messages = flow_direct_prompt(cwe_details, flow_predicate, sink_predicate, sinks_extracted, docs, readme_content, package_content, call_graph)
     else:
-        messages = flow_explaination_prompt(cwe_details, flow_predicate, sink_predicate, sinks_extracted, docs, call_graph=call_graph)
-    explanation = llm.send_message(messages)
-    messages = flow_implementation_prompt(flow_predicate, explanation, docs)
-    refined_flow_predicate = llm.send_message(messages)
-    refined_flow_predicate = clean_predicate_response(refined_flow_predicate)
+        messages = flow_direct_prompt(cwe_details, flow_predicate, sink_predicate, sinks_extracted, docs, call_graph=call_graph)
+    raw_response = llm.send_message(messages)
+    messages.append({"role": "assistant", "message": raw_response})
+    refined_flow_predicate = clean_predicate_response(raw_response)
     query = general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, refined_flow_predicate)
     ql_path = os.path.join(base_dir, "codeql", "project_specific", project_name, f"cwe_{cwe_id}_vulnerability_flowrefined.ql")
 
@@ -1221,8 +1231,9 @@ def refine_flow_vulnerability_query(cwe_id, project_name, general: bool = False,
 
         messages.append(flow_refinement_prompt(refined_flow_predicate, clean_errors, docs_text)[0])
 
-        refined_flow_predicate = llm.send_message(messages)
-        refined_flow_predicate = clean_predicate_response(refined_flow_predicate)
+        raw_response = llm.send_message(messages)
+        messages.append({"role": "assistant", "message": raw_response})
+        refined_flow_predicate = clean_predicate_response(raw_response)
 
         logger.info(f"#Try: {tries+1}: Refined flow predicate for CWE-{cwe_id}")
         query = general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, refined_flow_predicate)

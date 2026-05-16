@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 import shutil
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -82,7 +83,7 @@ def main():
         logger.info(f"CWEs to check for {project_name}: {cwes}")
 
         # refine vulnerability query for each CWE
-        for cwe_id in cwes:
+        def _refine_one_cwe(cwe_id):
             output_path = os.path.join(project_root, 'codeql', 'general', f'cwe_{cwe_id}_vulnerability_final.ql')
             if not os.path.exists(output_path):
                 refine_vulnerability_query(cwe_id, project_name, general=True)
@@ -90,6 +91,13 @@ def main():
                 src = output_path
                 dst = os.path.join(project_specific_dir, f'cwe_{cwe_id}_vulnerability_final.ql')
                 shutil.copy2(src, dst)
+
+        max_workers = min(len(cwes), int(os.environ.get("CWE_WORKERS", "8")))
+        logger.info(f"Processing {len(cwes)} CWEs with {max_workers} parallel workers")
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {executor.submit(_refine_one_cwe, cwe_id): cwe_id for cwe_id in cwes}
+            for future in as_completed(futures):
+                future.result()  # re-raises any unexpected exception
 
     for project_name in project_names:
         project_specific_dir = os.path.join(project_root, "codeql", "project_specific", project_name)

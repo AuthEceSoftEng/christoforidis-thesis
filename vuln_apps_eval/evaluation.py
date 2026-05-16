@@ -21,7 +21,9 @@ import os
 import sys
 import json
 import shutil
+import threading
 import multiprocessing
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import partial
 from datetime import datetime
 from collections import defaultdict
@@ -354,9 +356,10 @@ def process_single_project(project_name, codebases_folder, project_root, report_
 
         # refine vulnerability query for each CWE; on failure skip only the current CWE
         failed_cwes = []
-        for cwe_id in cwes:
-        #for cwe_id in cwes_filtered: # temp: only when filtering CWEs
+        _failed_cwes_lock = threading.Lock()
+        _credit_exhausted = threading.Event()
 
+        def _refine_one_cwe(cwe_id):
             # ── CHECKPOINT: per-CWE final query ───────────────────────────
             final_query_path = os.path.join(
                 project_specific_dir,
@@ -364,7 +367,7 @@ def process_single_project(project_name, codebases_folder, project_root, report_
             )
             if _checkpoint_exists(final_query_path):
                 logger.info(f"[RESUME] Skipping CWE-{cwe_id} — final query already exists")
-                continue
+                return
 
             try:
                 formatted_call_graph = None
@@ -373,11 +376,23 @@ def process_single_project(project_name, codebases_folder, project_root, report_
                 refine_vulnerability_query(cwe_id, project_name, general=False, extra_folder=codebase_subfolder,
                                call_graph=formatted_call_graph, track_query_fn=track_codeql_refinement_query)
             except InsufficientCreditsError:
-                raise  # propagate immediately — do not swallow into failed_cwes
+                _credit_exhausted.set()
+                raise  # propagate so the future carries the exception
             except Exception as e:
                 logger.warning("Failed to refine query for CWE %s in %s: %s. Skipping this CWE.", cwe_id, project_name, str(e))
-                failed_cwes.append((cwe_id, str(e)))
-                continue
+                with _failed_cwes_lock:
+                    failed_cwes.append((cwe_id, str(e)))
+
+        max_workers = min(len(cwes), int(os.environ.get("CWE_WORKERS", "8")))
+        logger.info(f"Processing {len(cwes)} CWEs with {max_workers} parallel workers")
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {executor.submit(_refine_one_cwe, cwe_id): cwe_id for cwe_id in cwes}
+            for future in as_completed(futures):
+                try:
+                    future.result()
+                except InsufficientCreditsError:
+                    executor.shutdown(wait=False, cancel_futures=True)
+                    raise  # propagate immediately — do not swallow into failed_cwes
 
         # If any CWE refinements failed, append details to the project report so it's recorded
         if failed_cwes:

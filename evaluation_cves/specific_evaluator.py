@@ -19,6 +19,8 @@ import time
 import os
 import sys
 import json
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from collections import defaultdict
 
@@ -370,13 +372,22 @@ def main():
 
             # refine vulnerability query for each CWE; on failure skip only the current CWE
             failed_cwes = []
-            for cwe_id in cwes:
+            _failed_cwes_lock = threading.Lock()
+
+            def _refine_one_cwe(cwe_id):
                 try:
                     refine_vulnerability_query(cwe_id, project_name, general=False, extra_folder='mini_cloned_repos', track_query_fn=track_codeql_refinement_query)
                 except Exception as e:
                     logger.warning("Failed to refine query for CWE %s in %s: %s. Skipping this CWE.", cwe_id, project_name, str(e))
-                    failed_cwes.append((cwe_id, str(e)))
-                    continue
+                    with _failed_cwes_lock:
+                        failed_cwes.append((cwe_id, str(e)))
+
+            max_workers = min(len(cwes), int(os.environ.get("CWE_WORKERS", "8")))
+            logger.info(f"Processing {len(cwes)} CWEs with {max_workers} parallel workers")
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = {executor.submit(_refine_one_cwe, cwe_id): cwe_id for cwe_id in cwes}
+                for future in as_completed(futures):
+                    future.result()  # re-raises any unexpected exception
 
             # If any CWE refinements failed, append details to the project report so it's recorded
             if failed_cwes:
