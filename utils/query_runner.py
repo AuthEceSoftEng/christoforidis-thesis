@@ -56,10 +56,18 @@ Batch strategy (run_codeql_queries_batch):
 import os
 import subprocess
 import logging
+import threading
 import time
 from typing import Optional, Tuple
 from dotenv import load_dotenv
 load_dotenv()
+
+# CodeQL's IMB disk cache uses a file lock that allows only one concurrent
+# run-queries process per database directory. This lock serialises only the
+# evaluation step (run-queries); interpret-results is lock-free and runs in
+# parallel. --max-disk-cache=0 does NOT bypass this — CodeQL silently rounds
+# it up to 2048 MB. The lock is the only reliable solution.
+_codeql_run_lock = threading.Lock()
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -245,7 +253,8 @@ def run_codeql_path_problem(database_path: str, query_path: str, output_path: st
     logger.info(f"[path-problem] {os.path.basename(query_path)} on {os.path.basename(database_path)}")
 
     try:
-        subprocess.run(command_run, check=True, text=True, capture_output=True)
+        with _codeql_run_lock:
+            subprocess.run(command_run, check=True, text=True, capture_output=True)
         logger.debug("run-queries complete, BQRS stored in database")
     except subprocess.CalledProcessError as e:
         return False, f"run-queries failed (exit {e.returncode}): {e.stderr}", time.time() - start_time

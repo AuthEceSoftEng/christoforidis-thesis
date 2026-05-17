@@ -184,18 +184,43 @@ def create_categorized_vector_db(db_path, model_name=None):
     return query_collection, docs_collection
 
 def categorize_documents(documents):
-    """Separate documents into queries and documentation based on original file extension."""
+    """Separate documents into queries and documentation based on original file extension.
+
+    Key API-defining .qll files (DataFlow, Nodes, TaintTracking, AdditionalTaintSteps)
+    are added to BOTH collections: as query examples AND as API reference documentation.
+    This ensures the documentation collection returns actionable type/method information
+    during the refinement correction loop, rather than only changelogs and blog posts.
+    """
     query_docs = []
     doc_docs = []
-    
+
+    # QLL files whose content defines the core JS dataflow API that models need
+    # during compile-error correction (wrong type names, wrong method signatures, etc.)
+    API_REFERENCE_QLLS = {
+        'DataFlow.qll.txt',
+        'Nodes.qll.txt',
+        'TaintTracking.qll.txt',
+        'AdditionalTaintSteps.qll.txt',
+        'AdditionalFlowStep.qll.txt',
+        'DataFlowPrivate.qll.txt',
+        'TaintTrackingPrivate.qll.txt',
+    }
+
     for doc in documents:
         # Extract original extension from filename (before .txt was added)
         filename = doc['metadata']['file_name']
-        
+
         # Check if it's a query file (.ql.txt or .qll.txt)
         if filename.endswith(('.ql.txt', '.qll.txt')):
             doc['metadata']['type'] = 'query'
             query_docs.append(doc)
+            # Also index core API-defining QLL files into the documentation collection
+            # so the correction loop can retrieve correct type/method definitions
+            if filename in API_REFERENCE_QLLS:
+                api_doc = dict(doc)
+                api_doc['metadata'] = dict(doc['metadata'])
+                api_doc['metadata']['type'] = 'documentation'
+                doc_docs.append(api_doc)
         # Check if it's documentation (.rst.txt or .md.txt)
         elif filename.endswith(('.rst.txt', '.md.txt')):
             doc['metadata']['type'] = 'documentation'
@@ -204,7 +229,7 @@ def categorize_documents(documents):
             # Default to documentation for any other files
             doc['metadata']['type'] = 'documentation'
             doc_docs.append(doc)
-    
+
     return query_docs, doc_docs
 
 def main():

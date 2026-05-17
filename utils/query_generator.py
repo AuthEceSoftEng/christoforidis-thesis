@@ -45,6 +45,7 @@ IS_NOMIC = EMBEDDING_MODEL.startswith("nomic-ai/")
 # support multiple simultaneous readers from different Python objects on the same path.
 _chromadb_lock = threading.Lock()
 
+
 # set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -646,6 +647,22 @@ def deduplicate_helper_predicates(code: str) -> str:
         body_start = m.end()
         body_end   = matches[i + 1].start() if i + 1 < len(matches) else len(code)
         body = code[body_start:body_end]
+
+        # For the last predicate, body_end = len(code) which may include the
+        # outer module closing brace(s) from general_vuln_query. Trim the body
+        # at the predicate's own closing brace using a depth counter.
+        if i + 1 == len(matches):
+            body_lines = body.split('\n')
+            clean_body_lines = []
+            depth = 1  # already inside the predicate's opening {
+            for line in body_lines:
+                stripped = line.strip()
+                depth += stripped.count('{') - stripped.count('}')
+                clean_body_lines.append(line)
+                if depth <= 0:
+                    break  # predicate is closed — stop here
+            body = '\n'.join(clean_body_lines)
+
         segments.append((header, name, body))
 
     # Group by normalised header (strip leading whitespace so indentation
@@ -749,39 +766,102 @@ def clean_predicate_response(response):
             else:
                 result.append("")
                 
-        return "\n".join(result)
-    
+        joined = "\n".join(result)
+        # Strip any duplicate trailing closing braces — LLMs sometimes wrap the
+        # predicate in a module block, leaving an extra } after the predicate's own }.
+        while re.search(r'\}\s*\}\s*$', joined):
+            joined = re.sub(r'\}\s*(\}\s*)$', r'\1', joined)
+        return joined.rstrip()
+
     # Fallback: if no clear predicate found, return the cleaned response
     return response.strip()
+
+def extract_types_from_error(error_string):
+    """Extract type names and method names from CodeQL compiler error strings.
+
+    Turns a raw error like:
+        "getMethodName() cannot be resolved for type Nodes::CallNode"
+    into targeted RAG queries:
+        ["CallNode", "MethodCallNode", "getMethodName"]
+
+    This produces far more precise vector DB hits than querying with the full
+    error string, which tends to retrieve semantically adjacent but useless docs.
+    """
+    import re
+    queries = []
+
+    for line in error_string.strip().split('\n'):
+        # Pattern: "someMethod() cannot be resolved for type Some::TypeName"
+        m = re.search(r'(\w+)\(\S*\)\s+cannot be resolved for type\s+([\w:]+)', line)
+        if m:
+            method = m.group(1)
+            full_type = m.group(2)
+            # Take the last segment of the qualified type name (e.g. "CallNode" from "Nodes::CallNode")
+            type_name = full_type.split('::')[-1]
+            queries.append(type_name)
+            queries.append(method)
+            continue
+
+        # Pattern: "cannot resolve type Some::TypeName" or "DataFlow::SomeType cannot be resolved"
+        m = re.search(r'(?:cannot resolve type|cannot be resolved)\s+([\w:]+)|'
+                      r'([\w:]+)\s+cannot be resolved', line)
+        if m:
+            full_type = (m.group(1) or m.group(2) or '').strip()
+            if full_type:
+                type_name = full_type.split('::')[-1]
+                queries.append(type_name)
+
+    # Deduplicate while preserving order
+    seen = set()
+    unique = []
+    for q in queries:
+        if q and q not in seen:
+            seen.add(q)
+            unique.append(q)
+
+    return unique if unique else [error_string[:200]]
+
 
 def extract_codeql_errors(error_string):
     if not error_string:
         return "No error information available"
-    
-    # Split into lines
+
     lines = error_string.strip().split('\n')
-    
-    # Extract only error messages
+
+    # Primary pass: extract structured "ERROR: <msg> (<file>:<loc>)" lines
     error_messages = []
     for line in lines:
         if line.strip().startswith("ERROR:"):
-            # Use regex to match the error message before the file path in parentheses
-            import re
             match = re.match(r"ERROR:\s+(.*?)\s+\([^)]+\)$", line.strip())
             if match:
                 error_messages.append(match.group(1))
             else:
-                # Fallback: just remove the "ERROR:" prefix
                 message = line.strip().replace("ERROR:", "", 1).strip()
                 error_messages.append(message)
-    
-    # Deduplicate error messages
+
+    # Fallback: when CodeQL emits no ERROR:-prefixed lines (e.g. pure parse/syntax
+    # errors that appear as raw stderr), extract any line that looks like a
+    # diagnostic — lines containing "cannot", "missing", "unexpected", "no viable",
+    # "expected", "unresolved", etc. Strip the trailing file-location parenthetical.
+    if not error_messages:
+        diagnostic_pattern = re.compile(
+            r'(cannot|missing|unexpected|no viable|expected|unresolved|not found)',
+            re.IGNORECASE
+        )
+        for line in lines:
+            stripped = line.strip()
+            if diagnostic_pattern.search(stripped):
+                # Remove trailing "(/path/to/file.ql:line,col)" if present
+                cleaned = re.sub(r'\s+\([^)]+\.ql:[0-9,]+\)$', '', stripped)
+                error_messages.append(cleaned)
+
+    # Deduplicate while preserving order
     unique_errors = []
     for msg in error_messages:
-        if msg not in unique_errors:
+        if msg and msg not in unique_errors:
             unique_errors.append(msg)
-    
-    return "\n".join(unique_errors)
+
+    return "\n".join(unique_errors) if unique_errors else error_string.strip()[:500]
 
 def generate_test_query_sanitizer(test_query_path, package, method, bypass_condition, initial_response, predicate_name):
     with open(test_query_path, 'w') as test_f:
@@ -1074,6 +1154,18 @@ def general_vuln_query(cwe_id, sink_predicate, sanitizer_predicate, flow_predica
     # the assembled .ql never contains conflicting definitions.
     query = deduplicate_helper_predicates(query)
 
+    # Safety net: ensure brace balance. LLM-generated predicates can introduce
+    # stray closing braces (e.g. from hallucinated module wrappers) that survive
+    # into the assembled query and cause CodeQL parse errors in batch execution.
+    open_count  = query.count('{')
+    close_count = query.count('}')
+    if close_count > open_count:
+        excess = close_count - open_count
+        for _ in range(excess):
+            last_brace = query.rfind('}')
+            if last_brace != -1:
+                query = query[:last_brace] + query[last_brace + 1:]
+
     return query
 
 def refine_sink_vulnerability_query(cwe_id, project_name, general: bool = False, extra_folder: str = None, call_graph: str = None, track_query_fn=None):
@@ -1138,8 +1230,8 @@ def refine_sink_vulnerability_query(cwe_id, project_name, general: bool = False,
         clean_errors = extract_codeql_errors(error)
         logger.error(f"Error running refined sink_predicate query for CWE-{cwe_id}: {clean_errors}")
 
-        docs_text = _get_relevant_documentation([clean_errors], "both")
-        docs_text += _get_relevant_documentation([refined_sink_predicate], "both")
+        type_queries = extract_types_from_error(clean_errors)
+        docs_text = _get_relevant_documentation(type_queries, "both")
 
         messages.append(sink_refinement_prompt(refined_sink_predicate, clean_errors, docs_text)[0])
 
@@ -1226,8 +1318,8 @@ def refine_flow_vulnerability_query(cwe_id, project_name, general: bool = False,
         clean_errors = extract_codeql_errors(error)
         logger.error(f"Error running refined flow_predicate query for CWE-{cwe_id}: {clean_errors}")
 
-        docs_text = _get_relevant_documentation([clean_errors], "both")
-        docs_text += _get_relevant_documentation([refined_flow_predicate], "both")
+        type_queries = extract_types_from_error(clean_errors)
+        docs_text = _get_relevant_documentation(type_queries, "both")
 
         messages.append(flow_refinement_prompt(refined_flow_predicate, clean_errors, docs_text)[0])
 
